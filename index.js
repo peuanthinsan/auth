@@ -196,6 +196,14 @@ app.get('/organizations', authenticateToken, async (req, res) => {
   });
 });
 
+app.get('/my-organizations', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id).populate('organizations');
+  if (!user) return res.sendStatus(404);
+  res.json({
+    organizations: user.organizations.map(o => ({ id: o._id, name: o.name }))
+  });
+});
+
 
 app.post('/organizations/:id/members', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
@@ -228,7 +236,6 @@ app.post('/organizations/:id/invite', authenticateToken, requireAdmin, async (re
   const { email } = req.body;
   const org = await Organization.findById(id);
   if (!org) return res.status(404).json({ message: 'Org not found' });
-  if (!org.members.includes(req.user.id)) return res.status(403).json({ message: 'Not authorized' });
   const invite = new Invite({ orgId: org._id, email, token: Math.random().toString(36).substring(2) });
   await invite.save();
   org.invites.push(invite._id);
@@ -270,7 +277,9 @@ app.patch('/organizations/:id', authenticateToken, requireAdmin, async (req, res
 });
 
 app.get('/users', authenticateToken, requireAdmin, async (req, res) => {
-  const users = await User.find().populate('role', 'code name');
+  const users = await User.find()
+    .populate('role', 'code name')
+    .populate('organizations', 'name');
   res.json(users.map(u => ({
     id: u._id,
     username: u.username,
@@ -279,7 +288,8 @@ app.get('/users', authenticateToken, requireAdmin, async (req, res) => {
     lastName: u.lastName,
     balance: u.balance,
     roleId: u.role?._id,
-    role: u.role?.code
+    role: u.role?.code,
+    organizations: u.organizations.map(o => ({ id: o._id, name: o.name }))
   })));
 });
 

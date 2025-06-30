@@ -1150,3 +1150,23 @@
    * This source code is licensed under the MIT license found in the
    * LICENSE file in the root directory of this source tree.
    *)
+    const [orgs, setOrgs] = (0, import_react19.useState)([]);
+        const [uRes, rRes, oRes] = await Promise.all([
+          api_default.get("/roles"),
+          api_default.get("/organizations/all")
+        setOrgs(oRes.data);
+      {
+        Header: "Organizations",
+        accessor: "organizations",
+        Cell: ({ row }) => row.original.organizations.map((o) => o.name).join(", ")
+      },
+    }))), /* @__PURE__ */ import_react19.default.createElement(Box_default, { sx: styles6.actionRow }, /* @__PURE__ */ import_react19.default.createElement(Stack_default, { direction: "row", spacing: 1, sx: { mt: 2 } }, /* @__PURE__ */ import_react19.default.createElement(Select_default, { size: "small", value: addOrgId, onChange: (e) => setAddOrgId(e.target.value), displayEmpty: true }, /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { value: "", disabled: true }, "Select Org"), orgs.map((o) => /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { key: o.id, value: o.id }, o.name))), /* @__PURE__ */ import_react19.default.createElement(Select_default, { size: "small", value: addUserId, onChange: (e) => setAddUserId(e.target.value), displayEmpty: true }, /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { value: "", disabled: true }, "Select User"), users.map((u) => /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { key: u.id, value: u.id }, u.username))), /* @__PURE__ */ import_react19.default.createElement(Button_default, { variant: "contained", onClick: addMember }, "Add Member")), /* @__PURE__ */ import_react19.default.createElement(Stack_default, { direction: "row", spacing: 1, sx: { mt: 2 } }, /* @__PURE__ */ import_react19.default.createElement(Select_default, { size: "small", value: removeOrgId, onChange: (e) => setRemoveOrgId(e.target.value), displayEmpty: true }, /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { value: "", disabled: true }, "Select Org"), orgs.map((o) => /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { key: o.id, value: o.id }, o.name))), /* @__PURE__ */ import_react19.default.createElement(Select_default, { size: "small", value: removeUserId, onChange: (e) => setRemoveUserId(e.target.value), displayEmpty: true }, /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { value: "", disabled: true }, "Select User"), users.map((u) => /* @__PURE__ */ import_react19.default.createElement(MenuItem_default, { key: u.id, value: u.id }, u.username))), /* @__PURE__ */ import_react19.default.createElement(Button_default, { variant: "contained", color: "error", onClick: removeMember }, "Remove Member"))));
+    const [profile, setProfile] = (0, import_react26.useState)(null);
+        const [oRes, pRes] = await Promise.all([
+          api_default.get("/my-organizations"),
+          api_default.get("/profile")
+        ]);
+        setOrgs(oRes.data.organizations);
+        setProfile(pRes.data);
+        setProfile(null);
+    return /* @__PURE__ */ import_react26.default.createElement(BrowserRouter, null, /* @__PURE__ */ import_react26.default.createElement(Box_default, { sx: styles6.root }, /* @__PURE__ */ import_react26.default.createElement(CssBaseline_default, null), /* @__PURE__ */ import_react26.default.createElement(AppBar_default, { position: "fixed", sx: styles6.appBar }, /* @__PURE__ */ import_react26.default.createElement(Toolbar_default, null, /* @__PURE__ */ import_react26.default.createElement(Typography_default, { variant: "h6", noWrap: true, component: "div", sx: { flexGrow: 1 } }, "Auth Dashboard"), token2 && profile && /* @__PURE__ */ import_react26.default.createElement(Typography_default, { sx: { mr: 2 } }, profile.firstName, " ", profile.lastName, " (", profile.username, ") - Balance ", profile.balance), token2 && /* @__PURE__ */ import_react26.default.createElement(FormControl_default, { size: "small", sx: { minWidth: 120 } }, /* @__PURE__ */ import_react26.default.createElement(InputLabel_default, { id: "org-select-label" }, "Org"), /* @__PURE__ */ import_react26.default.createElement(

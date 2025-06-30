@@ -64,16 +64,22 @@ export default function App() {
   const { token, currentOrg, setCurrentOrg } = useContext(AuthContext);
   const navItems = token ? loggedInNav : loggedOutNav;
   const [orgs, setOrgs] = useState([]);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      const res = await api.get('/organizations');
-      setOrgs(res.data.organizations);
+      const [oRes, pRes] = await Promise.all([
+        api.get('/my-organizations'),
+        api.get('/profile')
+      ]);
+      setOrgs(oRes.data.organizations);
+      setProfile(pRes.data);
     };
     if (token) {
       load();
     } else {
       setOrgs([]);
+      setProfile(null);
       setCurrentOrg('');
     }
   }, [token]);
@@ -91,6 +97,11 @@ export default function App() {
             <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
               Auth Dashboard
             </Typography>
+            {token && profile && (
+              <Typography sx={{ mr: 2 }}>
+                {profile.firstName} {profile.lastName} ({profile.username}) - Balance {profile.balance}
+              </Typography>
+            )}
             {token && (
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel id="org-select-label">Org</InputLabel>
