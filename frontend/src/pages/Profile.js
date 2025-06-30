@@ -15,7 +15,14 @@ export default function Profile() {
     <Box>
       <Typography variant="h6" gutterBottom>Profile</Typography>
       <Button variant="contained" onClick={load} sx={styles.mb2}>Load</Button>
-      {profile && <pre>{JSON.stringify(profile, null, 2)}</pre>}
+      {profile && (
+        <>
+          {profile.profilePicture && (
+            <img src={profile.profilePicture} alt="profile" width={100} />
+          )}
+          <pre>{JSON.stringify(profile, null, 2)}</pre>
+        </>
+      )}
     </Box>
   );
 }
