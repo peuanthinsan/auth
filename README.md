@@ -14,7 +14,8 @@ node index.js
 ```
 
 Endpoints include registration, login, profile management, organization management,
-a listing of your organizations and a simple currency transfer system.
+a listing of your organizations and a simple currency transfer system. All API
+routes are now served under the `/api` prefix (for example `/api/login`).
 Routes that modify organization membership or invites require an admin user. Admins
 can list all users with `GET /users`, change a user's role with `POST /users/:id/role`,
 list all organizations via `GET /organizations/all` and update an organization's name
@@ -38,7 +39,7 @@ Environment variables are loaded from a `.env` file in the project root. A sampl
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/authdb
 JWT_SECRET=supersecretkey
-API_URL=http://localhost:3000
+API_URL=http://localhost:3000/api
 FRONTEND_PORT=4000
 ```
 

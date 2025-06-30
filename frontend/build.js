@@ -8,6 +8,6 @@ esbuild.build({
   loader: { '.js': 'jsx' },
   define: {
     'process.env.NODE_ENV': '"production"',
-    'process.env.API_URL': JSON.stringify(process.env.API_URL || 'http://localhost:3000')
+    'process.env.API_URL': JSON.stringify(process.env.API_URL || 'http://localhost:3000/api')
   }
 }).catch(() => process.exit(1));
