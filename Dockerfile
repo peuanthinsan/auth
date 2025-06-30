@@ -1,11 +1,19 @@
 # Use Node.js LTS for building
 FROM node:20 AS build
 WORKDIR /app
+# install backend dependencies first
 COPY package*.json ./
-COPY frontend/package*.json frontend/
 RUN npm install
-RUN cd frontend && npm install && npm run build
+
+# install frontend dependencies separately to leverage Docker layer caching
+COPY frontend/package*.json frontend/
+RUN cd frontend && npm install
+
+# copy the rest of the source
 COPY . .
+
+# build the frontend assets
+RUN cd frontend && npm run build
 
 # Production image
 FROM node:20
