@@ -1,0 +1,25 @@
+export const drawerWidth = 240;
+
+export const styles = {
+  root: { display: 'flex' },
+  appBar: { zIndex: (theme) => theme.zIndex.drawer + 1 },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+    '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' }
+  },
+  content: { flexGrow: 1, p: 3 },
+  formStack: { maxWidth: 300 },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    '& th, & td': {
+      textAlign: 'left',
+      padding: '8px'
+    },
+    '& th': { borderBottom: '1px solid', borderColor: 'divider' }
+  },
+  actionRow: { mt: 2 },
+  ml1: { ml: 1 },
+  mb2: { mb: 2 }
+};
