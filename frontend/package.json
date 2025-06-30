@@ -1,0 +1,22 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/material": "^7.2.0",
+    "axios": "^1.6.7",
+    "dotenv": "^17.0.0",
+    "esbuild": "^0.25.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0",
+    "react-table": "^7.8.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "build": "node build.js"
+  }
+}

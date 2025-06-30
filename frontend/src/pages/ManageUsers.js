@@ -1,0 +1,86 @@
+import React, { useEffect, useState, useMemo } from 'react';
+import { Box, Typography, Select, MenuItem } from '@mui/material';
+import { styles } from '../styles';
+import { useTable } from 'react-table';
+import api from '../api';
+
+export default function ManageUsers() {
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const [uRes, rRes] = await Promise.all([
+        api.get('/users'),
+        api.get('/roles')
+      ]);
+      setUsers(uRes.data);
+      setRoles(rRes.data);
+    };
+    load();
+  }, []);
+
+  const changeRole = async (id, roleId) => {
+    await api.post(`/users/${id}/role`, { roleId });
+    const role = roles.find(r => r.id === roleId);
+    setUsers(users.map(u => (u.id === id ? { ...u, role: role.code, roleId } : u)));
+  };
+
+  const columns = useMemo(() => [
+    { Header: 'Username', accessor: 'username' },
+    {
+      Header: 'Role',
+      accessor: 'role',
+      Cell: ({ row }) => (
+        <Select
+          size="small"
+          value={row.original.roleId}
+          onChange={e => changeRole(row.original.id, e.target.value)}
+        >
+          {roles.map(r => (
+            <MenuItem key={r.id} value={r.id}>{r.code}</MenuItem>
+          ))}
+        </Select>
+      )
+    }
+  ], [users, roles]);
+
+  const table = useTable({ columns, data: users });
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow
+  } = table;
+
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>Manage Users</Typography>
+      <Box component="table" {...getTableProps()} sx={styles.table}>
+        <Box component="thead">
+          {headerGroups.map(hg => (
+            <Box component="tr" {...hg.getHeaderGroupProps()}>
+              {hg.headers.map(col => (
+                <Box component="th" {...col.getHeaderProps()}>{col.render('Header')}</Box>
+              ))}
+            </Box>
+          ))}
+        </Box>
+        <Box component="tbody" {...getTableBodyProps()}>
+          {rows.map(row => {
+            prepareRow(row);
+            return (
+              <Box component="tr" {...row.getRowProps()}>
+                {row.cells.map(cell => (
+                  <Box component="td" {...cell.getCellProps()}>{cell.render('Cell')}</Box>
+                ))}
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
