@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { TextField, Button, Stack, Typography, Box } from '@mui/material';
+import { TextField, Button, Stack, Typography, Box, Link } from '@mui/material';
 import { styles } from '../styles';
 import { AuthContext } from '../AuthContext';
 
@@ -18,6 +18,7 @@ export default function Login() {
         <TextField label="username" value={username} onChange={e => setUsername(e.target.value)} />
         <TextField type="password" label="password" value={password} onChange={e => setPassword(e.target.value)} />
         <Button variant="contained" onClick={submit}>Submit</Button>
+        <Link href="/reset-password" underline="hover">Forgot password?</Link>
       </Stack>
     </Box>
   );

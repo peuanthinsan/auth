@@ -36,6 +36,7 @@ export default function ManageRoles() {
   };
 
   const columns = useMemo(() => [
+    { Header: 'ID', accessor: 'id' },
     {
       Header: 'Code',
       accessor: 'code',

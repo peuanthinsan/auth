@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, TextField } from '@mui/material';
+import { Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api from '../api';
 
 export default function ManageOrganizations() {
   const [orgs, setOrgs] = useState([]);
+  const [newName, setNewName] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -18,6 +19,17 @@ export default function ManageOrganizations() {
   const updateName = async (id, name) => {
     await api.patch(`/organizations/${id}`, { name });
     setOrgs(orgs.map(o => (o.id === id ? { ...o, name } : o)));
+  };
+
+  const createOrg = async () => {
+    const res = await api.post('/organizations', { name: newName });
+    setOrgs([...orgs, { id: res.data.orgId, name: newName, members: 1, invites: 0 }]);
+    setNewName('');
+  };
+
+  const deleteOrg = async (id) => {
+    await api.delete(`/organizations/${id}`);
+    setOrgs(orgs.filter(o => o.id !== id));
   };
 
   const columns = useMemo(() => [
@@ -33,7 +45,15 @@ export default function ManageOrganizations() {
         />
       )
     },
-    { Header: 'Members', accessor: 'members' }
+    { Header: 'Members', accessor: 'members' },
+    { Header: 'Invites', accessor: 'invites' },
+    {
+      Header: 'Actions',
+      accessor: 'actions',
+      Cell: ({ row }) => (
+        <Button color="error" onClick={() => deleteOrg(row.original.id)}>Delete</Button>
+      )
+    }
   ], [orgs]);
 
   const table = useTable({ columns, data: orgs });
@@ -65,6 +85,10 @@ export default function ManageOrganizations() {
           })}
         </Box>
       </Box>
+      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+        <TextField size="small" label="name" value={newName} onChange={e => setNewName(e.target.value)} />
+        <Button variant="contained" onClick={createOrg}>Create Organization</Button>
+      </Stack>
     </Box>
   );
 }
