@@ -134,14 +134,25 @@ app.post('/login', async (req, res) => {
 
 // get profile
 app.get('/profile', authenticateToken, async (req, res) => {
-  const user = await User.findById(req.user.id).lean();
+  const user = await User.findById(req.user.id)
+    .populate('organizations', 'name')
+    .lean();
   if (!user) return res.sendStatus(404);
   res.json({
     username: user.username,
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
-    balance: user.balance
+    balance: user.balance,
+    organizations: user.organizations.map(o => ({ id: o._id, name: o.name }))
+  });
+});
+
+app.get('/my/organizations', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id).populate('organizations', 'name');
+  if (!user) return res.sendStatus(404);
+  res.json({
+    organizations: user.organizations.map(o => ({ id: o._id, name: o.name }))
   });
 });
 
@@ -270,17 +281,22 @@ app.patch('/organizations/:id', authenticateToken, requireAdmin, async (req, res
 });
 
 app.get('/users', authenticateToken, requireAdmin, async (req, res) => {
-  const users = await User.find().populate('role', 'code name');
-  res.json(users.map(u => ({
-    id: u._id,
-    username: u.username,
-    email: u.email,
-    firstName: u.firstName,
-    lastName: u.lastName,
-    balance: u.balance,
-    roleId: u.role?._id,
-    role: u.role?.code
-  })));
+  const users = await User.find()
+    .populate('role', 'code name')
+    .populate('organizations', 'name');
+  res.json(
+    users.map(u => ({
+      id: u._id,
+      username: u.username,
+      email: u.email,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      balance: u.balance,
+      organizations: u.organizations.map(o => ({ id: o._id, name: o.name })),
+      roleId: u.role?._id,
+      role: u.role?.code
+    }))
+  );
 });
 
 app.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) => {

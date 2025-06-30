@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, Select, MenuItem, TextField, Button, Stack } from '@mui/material';
+import { Box, Typography, Select, MenuItem, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api from '../api';
@@ -7,6 +7,7 @@ import api from '../api';
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [allOrgs, setAllOrgs] = useState([]);
   const [addOrgId, setAddOrgId] = useState('');
   const [addUserId, setAddUserId] = useState('');
   const [removeOrgId, setRemoveOrgId] = useState('');
@@ -14,12 +15,14 @@ export default function ManageUsers() {
 
   useEffect(() => {
     const load = async () => {
-      const [uRes, rRes] = await Promise.all([
+      const [uRes, rRes, oRes] = await Promise.all([
         api.get('/users'),
-        api.get('/roles')
+        api.get('/roles'),
+        api.get('/organizations/all')
       ]);
       setUsers(uRes.data);
       setRoles(rRes.data);
+      setAllOrgs(oRes.data);
     };
     load();
   }, []);
@@ -52,6 +55,11 @@ export default function ManageUsers() {
     { Header: 'First Name', accessor: 'firstName' },
     { Header: 'Last Name', accessor: 'lastName' },
     { Header: 'Balance', accessor: 'balance' },
+    {
+      Header: 'Organizations',
+      accessor: 'organizations',
+      Cell: ({ value }) => value.map(o => o.name).join(', ')
+    },
     {
       Header: 'Role',
       accessor: 'role',
@@ -114,13 +122,45 @@ export default function ManageUsers() {
       </Box>
       <Box sx={styles.actionRow}>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <TextField size="small" label="org id" value={addOrgId} onChange={e => setAddOrgId(e.target.value)} />
-          <TextField size="small" label="user id" value={addUserId} onChange={e => setAddUserId(e.target.value)} />
+          <Select
+            size="small"
+            value={addOrgId}
+            onChange={e => setAddOrgId(e.target.value)}
+          >
+            {allOrgs.map(o => (
+              <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
+            ))}
+          </Select>
+          <Select
+            size="small"
+            value={addUserId}
+            onChange={e => setAddUserId(e.target.value)}
+          >
+            {users.map(u => (
+              <MenuItem key={u.id} value={u.id}>{u.username}</MenuItem>
+            ))}
+          </Select>
           <Button variant="contained" onClick={addMember}>Add Member</Button>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <TextField size="small" label="org id" value={removeOrgId} onChange={e => setRemoveOrgId(e.target.value)} />
-          <TextField size="small" label="user id" value={removeUserId} onChange={e => setRemoveUserId(e.target.value)} />
+          <Select
+            size="small"
+            value={removeOrgId}
+            onChange={e => setRemoveOrgId(e.target.value)}
+          >
+            {allOrgs.map(o => (
+              <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
+            ))}
+          </Select>
+          <Select
+            size="small"
+            value={removeUserId}
+            onChange={e => setRemoveUserId(e.target.value)}
+          >
+            {users.map(u => (
+              <MenuItem key={u.id} value={u.id}>{u.username}</MenuItem>
+            ))}
+          </Select>
           <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
         </Stack>
       </Box>
