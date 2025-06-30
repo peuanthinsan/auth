@@ -341,6 +341,7 @@ app.get('/balance', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.id);
   res.json({ balance: user.balance });
 });
+
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/public/index.html'));
 });
