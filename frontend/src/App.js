@@ -7,6 +7,8 @@ import {
   Drawer,
   List,
   ListItem,
+  ListItemButton,
+  ListItemIcon,
   ListItemText,
   CssBaseline,
   Box,
@@ -15,43 +17,52 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
+import {
+  PersonAdd,
+  Login as LoginIcon,
+  AccountCircle,
+  Edit,
+  Lock,
+  HowToReg,
+  SwapHoriz,
+  AccountBalanceWallet,
+  AdminPanelSettings,
+  Logout
+} from '@mui/icons-material';
 import { styles } from './styles';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import UpdateProfile from './pages/UpdateProfile';
 import ChangePassword from './pages/ChangePassword';
-import CreateOrganization from './pages/CreateOrganization';
-import AddMember from './pages/AddMember';
-import RemoveMember from './pages/RemoveMember';
-import InviteUser from './pages/InviteUser';
-import ViewInvites from './pages/ViewInvites';
 import AcceptInvite from './pages/AcceptInvite';
 import Transfer from './pages/Transfer';
 import Balance from './pages/Balance';
 import Administration from './pages/Administration';
+import ResetPassword from './pages/ResetPassword';
+import LogoutPage from './pages/Logout';
 import api from './api';
 import { AuthContext } from './AuthContext';
 
 export default function App() {
-  const navItems = [
-    { text: 'Register', path: '/register' },
-    { text: 'Login', path: '/login' },
-    { text: 'Profile', path: '/profile' },
-    { text: 'Update Profile', path: '/update-profile' },
-    { text: 'Change Password', path: '/change-password' },
-    { text: 'Create Org', path: '/create-org' },
-    { text: 'Add Member', path: '/add-member' },
-    { text: 'Remove Member', path: '/remove-member' },
-    { text: 'Invite User', path: '/invite-user' },
-    { text: 'View Invites', path: '/view-invites' },
-    { text: 'Accept Invite', path: '/accept-invite' },
-    { text: 'Transfer', path: '/transfer' },
-    { text: 'Balance', path: '/balance' },
-    { text: 'Administration', path: '/admin' }
+  const loggedOutNav = [
+    { text: 'Register', path: '/register', icon: <PersonAdd /> },
+    { text: 'Login', path: '/login', icon: <LoginIcon /> }
+  ];
+
+  const loggedInNav = [
+    { text: 'Profile', path: '/profile', icon: <AccountCircle /> },
+    { text: 'Update Profile', path: '/update-profile', icon: <Edit /> },
+    { text: 'Change Password', path: '/change-password', icon: <Lock /> },
+    { text: 'Accept Invite', path: '/accept-invite', icon: <HowToReg /> },
+    { text: 'Transfer', path: '/transfer', icon: <SwapHoriz /> },
+    { text: 'Balance', path: '/balance', icon: <AccountBalanceWallet /> },
+    { text: 'Administration', path: '/admin', icon: <AdminPanelSettings /> },
+    { text: 'Logout', path: '/logout', icon: <Logout /> }
   ];
 
   const { token, currentOrg, setCurrentOrg } = useContext(AuthContext);
+  const navItems = token ? loggedInNav : loggedOutNav;
   const [orgs, setOrgs] = useState([]);
 
   useEffect(() => {
@@ -104,8 +115,11 @@ export default function App() {
           <Toolbar />
           <List>
             {navItems.map((item) => (
-              <ListItem button component={Link} to={item.path} key={item.text}>
-              <ListItemText primary={item.text} />
+              <ListItem disablePadding key={item.text}>
+                <ListItemButton component={Link} to={item.path}>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>
@@ -118,15 +132,12 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/update-profile" element={<UpdateProfile />} />
             <Route path="/change-password" element={<ChangePassword />} />
-            <Route path="/create-org" element={<CreateOrganization />} />
-            <Route path="/add-member" element={<AddMember />} />
-            <Route path="/remove-member" element={<RemoveMember />} />
-            <Route path="/invite-user" element={<InviteUser />} />
-            <Route path="/view-invites" element={<ViewInvites />} />
             <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/balance" element={<Balance />} />
             <Route path="/admin" element={<Administration />} />
+            <Route path="/logout" element={<LogoutPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<div>Home</div>} />
           </Routes>
         </Box>
