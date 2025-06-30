@@ -15,7 +15,8 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  Avatar
 } from '@mui/material';
 import {
   PersonAdd,
@@ -98,7 +99,10 @@ export default function App() {
               Auth Dashboard
             </Typography>
             {token && profile && (
-              <Typography sx={{ mr: 2 }}>
+              <Typography sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
+                {profile.profilePicture && (
+                  <Avatar src={profile.profilePicture} sx={{ width: 32, height: 32, mr: 1 }} />
+                )}
                 {profile.firstName} {profile.lastName} | {profile.username} | Balance: {profile.balance}
               </Typography>
             )}

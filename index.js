@@ -4,6 +4,7 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import multer from 'multer';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,9 +14,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json());
 app.use(cors());
+const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 app.use('/dist', express.static(path.join(__dirname, 'frontend/dist')));
 app.use(express.static(path.join(__dirname, 'frontend/public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
 const ROLE_CODES = {
@@ -41,6 +44,7 @@ const userSchema = new Schema({
   email: String,
   firstName: String,
   lastName: String,
+  profilePicture: String,
   organizations: [{ type: Schema.Types.ObjectId, ref: 'Organization' }],
   invites: [{ type: Schema.Types.ObjectId, ref: 'Invite' }],
   balance: { type: Number, default: 0 },
@@ -181,6 +185,7 @@ apiRouter.get('/profile', authenticateToken, async (req, res) => {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
+    profilePicture: user.profilePicture,
     balance: user.balance,
     organizations: user.organizations.map(o => ({ id: o._id, name: o.name }))
   });
@@ -195,16 +200,24 @@ apiRouter.get('/my/organizations', authenticateToken, async (req, res) => {
 });
 
 // update profile
-apiRouter.patch('/profile', authenticateToken, async (req, res) => {
-  const { username, firstName, lastName } = req.body;
-  const user = await User.findById(req.user.id);
-  if (!user) return res.sendStatus(404);
-  if (username) user.username = username;
-  if (firstName) user.firstName = firstName;
-  if (lastName) user.lastName = lastName;
-  await user.save();
-  res.json({ message: 'Profile updated' });
-});
+apiRouter.patch(
+  '/profile',
+  authenticateToken,
+  upload.single('profilePicture'),
+  async (req, res) => {
+    const { username, firstName, lastName } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.sendStatus(404);
+    if (username) user.username = username;
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (req.file) {
+      user.profilePicture = `/uploads/${req.file.filename}`;
+    }
+    await user.save();
+    res.json({ message: 'Profile updated' });
+  }
+);
 
 // change password
 apiRouter.post('/password/change', authenticateToken, async (req, res) => {
@@ -405,8 +418,12 @@ apiRouter.delete('/invites/:id', authenticateToken, requireAdmin, async (req, re
 
 apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
   const { id } = req.params;
+  const { token } = req.body;
   const invite = await Invite.findById(id);
   if (!invite) return res.status(404).json({ message: 'Invite not found' });
+  if (!token || invite.token !== token) {
+    return res.status(400).json({ message: 'Invalid token' });
+  }
   const org = await Organization.findById(invite.orgId);
   if (!org) return res.status(404).json({ message: 'Org not found' });
   const user = await User.findById(req.user.id);
