@@ -44,7 +44,8 @@ const userSchema = new Schema({
   organizations: [{ type: Schema.Types.ObjectId, ref: 'Organization' }],
   invites: [{ type: Schema.Types.ObjectId, ref: 'Invite' }],
   balance: { type: Number, default: 0 },
-  role: { type: Schema.Types.ObjectId, ref: 'Role' }
+  role: { type: Schema.Types.ObjectId, ref: 'Role' },
+  refreshToken: String
 });
 
 const organizationSchema = new Schema({
@@ -131,7 +132,42 @@ apiRouter.post('/login', async (req, res) => {
   const match = await bcrypt.compare(password, user.passwordHash);
   if (!match) return res.status(400).json({ message: 'Invalid credentials' });
   const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: '1h' });
-  res.json({ token });
+  const refreshToken = jwt.sign({ id: user._id }, SECRET, { expiresIn: '7d' });
+  user.refreshToken = refreshToken;
+  await user.save();
+  res.json({ token, refreshToken });
+});
+
+apiRouter.post('/logout', async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.sendStatus(400);
+  try {
+    const payload = jwt.verify(refreshToken, SECRET);
+    const user = await User.findById(payload.id);
+    if (user && user.refreshToken === refreshToken) {
+      user.refreshToken = '';
+      await user.save();
+    }
+    res.json({ message: 'Logged out' });
+  } catch (err) {
+    res.sendStatus(400);
+  }
+});
+
+apiRouter.post('/refresh', async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.sendStatus(401);
+  try {
+    const payload = jwt.verify(refreshToken, SECRET);
+    const user = await User.findById(payload.id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.sendStatus(403);
+    }
+    const token = jwt.sign({ id: user._id }, SECRET, { expiresIn: '1h' });
+    res.json({ token });
+  } catch (err) {
+    res.sendStatus(403);
+  }
 });
 
 // get profile
