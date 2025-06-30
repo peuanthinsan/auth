@@ -99,7 +99,7 @@ export default function App() {
             </Typography>
             {token && profile && (
               <Typography sx={{ mr: 2 }}>
-                {profile.firstName} {profile.lastName} ({profile.username}) | Balance: {profile.balance}
+                {profile.firstName} {profile.lastName} | {profile.username} | Balance: {profile.balance}
               </Typography>
             )}
             {token && (
