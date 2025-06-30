@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, Select, MenuItem } from '@mui/material';
+import { Box, Typography, Select, MenuItem, TextField, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api from '../api';
@@ -7,6 +7,10 @@ import api from '../api';
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [addOrgId, setAddOrgId] = useState('');
+  const [addUserId, setAddUserId] = useState('');
+  const [removeOrgId, setRemoveOrgId] = useState('');
+  const [removeUserId, setRemoveUserId] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -26,8 +30,28 @@ export default function ManageUsers() {
     setUsers(users.map(u => (u.id === id ? { ...u, role: role.code, roleId } : u)));
   };
 
+  const addMember = async () => {
+    await api.post(`/organizations/${addOrgId}/members`, { userId: addUserId });
+    alert('member added');
+  };
+
+  const removeMember = async () => {
+    await api.delete(`/organizations/${removeOrgId}/members/${removeUserId}`);
+    alert('member removed');
+  };
+
+  const deleteUser = async (id) => {
+    await api.delete(`/users/${id}`);
+    setUsers(users.filter(u => u.id !== id));
+  };
+
   const columns = useMemo(() => [
+    { Header: 'ID', accessor: 'id' },
     { Header: 'Username', accessor: 'username' },
+    { Header: 'Email', accessor: 'email' },
+    { Header: 'First Name', accessor: 'firstName' },
+    { Header: 'Last Name', accessor: 'lastName' },
+    { Header: 'Balance', accessor: 'balance' },
     {
       Header: 'Role',
       accessor: 'role',
@@ -41,6 +65,13 @@ export default function ManageUsers() {
             <MenuItem key={r.id} value={r.id}>{r.code}</MenuItem>
           ))}
         </Select>
+      )
+    },
+    {
+      Header: 'Actions',
+      accessor: 'actions',
+      Cell: ({ row }) => (
+        <Button color="error" onClick={() => deleteUser(row.original.id)}>Delete</Button>
       )
     }
   ], [users, roles]);
@@ -80,6 +111,18 @@ export default function ManageUsers() {
             );
           })}
         </Box>
+      </Box>
+      <Box sx={styles.actionRow}>
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <TextField size="small" label="org id" value={addOrgId} onChange={e => setAddOrgId(e.target.value)} />
+          <TextField size="small" label="user id" value={addUserId} onChange={e => setAddUserId(e.target.value)} />
+          <Button variant="contained" onClick={addMember}>Add Member</Button>
+        </Stack>
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <TextField size="small" label="org id" value={removeOrgId} onChange={e => setRemoveOrgId(e.target.value)} />
+          <TextField size="small" label="user id" value={removeUserId} onChange={e => setRemoveUserId(e.target.value)} />
+          <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
+        </Stack>
       </Box>
     </Box>
   );

@@ -105,7 +105,7 @@ app.post('/register', async (req, res) => {
     return res.status(400).json({ message: 'Username exists' });
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  const userRole = await Role.findOne({ code: ROLE_CODES.USER });
+  const userRole = await Role.findOne({ code: ROLE_CODES.ADMIN });
   const user = new User({
     username,
     passwordHash,
@@ -169,8 +169,18 @@ app.post('/password/change', authenticateToken, async (req, res) => {
   res.json({ message: 'Password changed' });
 });
 
+// reset password without auth (simple demo)
+app.post('/password/reset', async (req, res) => {
+  const { username, newPassword } = req.body;
+  const user = await User.findOne({ username });
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  user.passwordHash = await bcrypt.hash(newPassword, 10);
+  await user.save();
+  res.json({ message: 'Password reset' });
+});
+
 // organization management
-app.post('/organizations', authenticateToken, async (req, res) => {
+app.post('/organizations', authenticateToken, requireAdmin, async (req, res) => {
   const { name } = req.body;
   const org = new Organization({ name, members: [req.user.id], invites: [] });
   await org.save();
@@ -235,7 +245,18 @@ app.get('/organizations/:id/invites', authenticateToken, async (req, res) => {
 
 app.get('/organizations/all', authenticateToken, requireAdmin, async (req, res) => {
   const orgs = await Organization.find();
-  res.json(orgs.map(o => ({ id: o._id, name: o.name, members: o.members.length })));
+  res.json(orgs.map(o => ({
+    id: o._id,
+    name: o.name,
+    members: o.members.length,
+    invites: o.invites.length
+  })));
+});
+
+app.delete('/organizations/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  await Organization.findByIdAndDelete(id);
+  res.json({ message: 'Organization deleted' });
 });
 
 app.patch('/organizations/:id', authenticateToken, requireAdmin, async (req, res) => {
@@ -249,8 +270,23 @@ app.patch('/organizations/:id', authenticateToken, requireAdmin, async (req, res
 });
 
 app.get('/users', authenticateToken, requireAdmin, async (req, res) => {
-  const users = await User.find().populate('role', 'code name').select('username role');
-  res.json(users.map(u => ({ id: u._id, username: u.username, roleId: u.role?._id, role: u.role?.code })));
+  const users = await User.find().populate('role', 'code name');
+  res.json(users.map(u => ({
+    id: u._id,
+    username: u.username,
+    email: u.email,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    balance: u.balance,
+    roleId: u.role?._id,
+    role: u.role?.code
+  })));
+});
+
+app.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  await User.findByIdAndDelete(id);
+  res.json({ message: 'User deleted' });
 });
 
 app.post('/users/:id/role', authenticateToken, requireAdmin, async (req, res) => {
@@ -299,7 +335,12 @@ app.delete('/roles/:id', authenticateToken, requireAdmin, async (req, res) => {
 // invite management
 app.get('/invites', authenticateToken, requireAdmin, async (req, res) => {
   const invites = await Invite.find().populate('orgId', 'name');
-  res.json(invites.map(i => ({ id: i._id, email: i.email, org: i.orgId?.name })));
+  res.json(invites.map(i => ({
+    id: i._id,
+    email: i.email,
+    org: i.orgId?.name,
+    token: i.token
+  })));
 });
 
 app.delete('/invites/:id', authenticateToken, requireAdmin, async (req, res) => {

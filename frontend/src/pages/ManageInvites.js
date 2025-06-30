@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
+import { Box, Typography, IconButton, TextField, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
@@ -7,6 +7,10 @@ import api from '../api';
 
 export default function ManageInvites() {
   const [invites, setInvites] = useState([]);
+  const [orgId, setOrgId] = useState('');
+  const [email, setEmail] = useState('');
+  const [viewOrgId, setViewOrgId] = useState('');
+  const [orgInvites, setOrgInvites] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -21,9 +25,21 @@ export default function ManageInvites() {
     setInvites(invites.filter(i => i.id !== id));
   };
 
+  const sendInvite = async () => {
+    await api.post(`/organizations/${orgId}/invite`, { email });
+    alert('invite sent');
+  };
+
+  const loadOrgInvites = async () => {
+    const res = await api.get(`/organizations/${viewOrgId}/invites`);
+    setOrgInvites(res.data);
+  };
+
   const columns = useMemo(() => [
+    { Header: 'ID', accessor: 'id' },
     { Header: 'Email', accessor: 'email' },
     { Header: 'Organization', accessor: 'org' },
+    { Header: 'Token', accessor: 'token' },
     {
       Header: 'Actions',
       accessor: 'actions',
@@ -63,6 +79,20 @@ export default function ManageInvites() {
             );
           })}
         </Box>
+      </Box>
+      <Box sx={styles.actionRow}>
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <TextField size="small" label="org id" value={orgId} onChange={e => setOrgId(e.target.value)} />
+          <TextField size="small" label="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <Button variant="contained" onClick={sendInvite}>Invite User</Button>
+        </Stack>
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <TextField size="small" label="org id" value={viewOrgId} onChange={e => setViewOrgId(e.target.value)} />
+          <Button variant="contained" onClick={loadOrgInvites}>View Invites</Button>
+        </Stack>
+        {orgInvites.length > 0 && (
+          <Box component="pre" sx={{ mt: 2 }}>{JSON.stringify(orgInvites, null, 2)}</Box>
+        )}
       </Box>
     </Box>
   );
