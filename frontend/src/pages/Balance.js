@@ -23,7 +23,7 @@ export default function Balance() {
     <Box>
       <Typography variant="h6" gutterBottom>Balance</Typography>
       {balance !== null && (
-        <Typography>Balance: {balance}</Typography>
+        <Typography>Current Balance: {balance}</Typography>
       )}
     </Box>
   );

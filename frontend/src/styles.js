@@ -2,11 +2,18 @@ export const drawerWidth = 240;
 
 export const styles = {
   root: { display: 'flex' },
-  appBar: { zIndex: (theme) => theme.zIndex.drawer + 1 },
+  appBar: {
+    zIndex: (theme) => theme.zIndex.drawer + 1,
+    background: 'linear-gradient(90deg, #4285F4 0%, #34A853 100%)'
+  },
   drawer: {
     width: drawerWidth,
     flexShrink: 0,
-    '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' }
+    '& .MuiDrawer-paper': {
+      width: drawerWidth,
+      boxSizing: 'border-box',
+      backgroundColor: '#f7f7f7'
+    }
   },
   content: { flexGrow: 1, p: 3 },
   formStack: { maxWidth: 300 },

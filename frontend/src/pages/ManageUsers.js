@@ -89,10 +89,10 @@ export default function ManageUsers() {
           multiple
           value={row.original.roleIds}
           onChange={e => changeRoles(row.original.id, e.target.value)}
-          renderValue={selected => roles.filter(r => selected.includes(r.id)).map(r => r.code).join(', ')}
+          renderValue={selected => roles.filter(r => selected.includes(r.id)).map(r => r.name).join(', ')}
         >
           {roles.map(r => (
-            <MenuItem key={r.id} value={r.id}>{r.code}</MenuItem>
+            <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
           ))}
         </Select>
       )
@@ -112,7 +112,7 @@ export default function ManageUsers() {
     () =>
       currentOrg
         ? users.filter(u => u.organizations.some(o => o.id === currentOrg))
-        : users,
+        : users.filter(u => u.organizations.length === 0),
     [users, currentOrg]
   );
   const table = useTable({ columns, data: filtered });
