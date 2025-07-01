@@ -43,6 +43,7 @@ export default function ManageRoles() {
       Cell: ({ row }) => (
         <TextField
           size="small"
+          placeholder="Code"
           value={row.original.code}
           onChange={e => updateRole(row.original.id, 'code', e.target.value)}
         />
@@ -54,6 +55,7 @@ export default function ManageRoles() {
       Cell: ({ row }) => (
         <TextField
           size="small"
+          placeholder="Name"
           value={row.original.name}
           onChange={e => updateRole(row.original.id, 'name', e.target.value)}
         />
@@ -100,8 +102,21 @@ export default function ManageRoles() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
-        <TextField label="Code" size="small" value={newCode} onChange={e => setNewCode(e.target.value)} />
-        <TextField label="Name" size="small" sx={styles.ml1} value={newName} onChange={e => setNewName(e.target.value)} />
+        <TextField
+          label="Code"
+          placeholder="Code"
+          size="small"
+          value={newCode}
+          onChange={e => setNewCode(e.target.value)}
+        />
+        <TextField
+          label="Name"
+          placeholder="Name"
+          size="small"
+          sx={styles.ml1}
+          value={newName}
+          onChange={e => setNewName(e.target.value)}
+        />
         <Button sx={styles.ml1} variant="contained" onClick={createRole}>Add</Button>
       </Box>
     </Box>

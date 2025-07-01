@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, Select, MenuItem, Button, Stack } from '@mui/material';
+import { Box, Typography, Select, MenuItem, Button, Stack, IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api from '../api';
@@ -12,13 +13,14 @@ export default function ManageUsers() {
   const [addUserId, setAddUserId] = useState('');
   const [removeOrgId, setRemoveOrgId] = useState('');
   const [removeUserId, setRemoveUserId] = useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const load = async () => {
       const [uRes, rRes, oRes] = await Promise.all([
         api.get('/users'),
         api.get('/roles'),
-        api.get('/organizations/all')
+        api.get('/organizations')
       ]);
       setUsers(uRes.data);
       setRoles(rRes.data);
@@ -34,13 +36,21 @@ export default function ManageUsers() {
   };
 
   const addMember = async () => {
+    if (!addOrgId || !addUserId) {
+      setMessage('Select organization and user');
+      return;
+    }
     await api.post(`/organizations/${addOrgId}/members`, { userId: addUserId });
-    alert('member added');
+    setMessage('Member added');
   };
 
   const removeMember = async () => {
+    if (!removeOrgId || !removeUserId) {
+      setMessage('Select organization and user');
+      return;
+    }
     await api.delete(`/organizations/${removeOrgId}/members/${removeUserId}`);
-    alert('member removed');
+    setMessage('Member removed');
   };
 
   const deleteUser = async (id) => {
@@ -79,7 +89,9 @@ export default function ManageUsers() {
       Header: 'Actions',
       accessor: 'actions',
       Cell: ({ row }) => (
-        <Button color="error" onClick={() => deleteUser(row.original.id)}>Delete</Button>
+        <IconButton color="error" onClick={() => deleteUser(row.original.id)}>
+          <DeleteIcon />
+        </IconButton>
       )
     }
   ], [users, roles]);
@@ -124,18 +136,26 @@ export default function ManageUsers() {
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           <Select
             size="small"
+            displayEmpty
             value={addOrgId}
             onChange={e => setAddOrgId(e.target.value)}
           >
+            <MenuItem value="">
+              <em>Select Org</em>
+            </MenuItem>
             {allOrgs.map(o => (
               <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
             ))}
           </Select>
           <Select
             size="small"
+            displayEmpty
             value={addUserId}
             onChange={e => setAddUserId(e.target.value)}
           >
+            <MenuItem value="">
+              <em>Select User</em>
+            </MenuItem>
             {users.map(u => (
               <MenuItem key={u.id} value={u.id}>{u.username}</MenuItem>
             ))}
@@ -145,25 +165,36 @@ export default function ManageUsers() {
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           <Select
             size="small"
+            displayEmpty
             value={removeOrgId}
             onChange={e => setRemoveOrgId(e.target.value)}
           >
+            <MenuItem value="">
+              <em>Select Org</em>
+            </MenuItem>
             {allOrgs.map(o => (
               <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
             ))}
           </Select>
           <Select
             size="small"
+            displayEmpty
             value={removeUserId}
             onChange={e => setRemoveUserId(e.target.value)}
           >
+            <MenuItem value="">
+              <em>Select User</em>
+            </MenuItem>
             {users.map(u => (
               <MenuItem key={u.id} value={u.id}>{u.username}</MenuItem>
             ))}
           </Select>
-          <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
-        </Stack>
-      </Box>
+      <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
+    </Stack>
+      {message && (
+        <Typography role="status" aria-live="polite" sx={{ mt: 1 }}>{message}</Typography>
+      )}
     </Box>
-  );
+  </Box>
+);
 }

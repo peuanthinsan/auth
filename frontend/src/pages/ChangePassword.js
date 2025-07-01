@@ -8,17 +8,41 @@ export default function ChangePassword() {
   useContext(AuthContext);
   const [oldPassword, setOld] = useState('');
   const [newPassword, setNew] = useState('');
-  const submit = async () => {
+  const [message, setMessage] = useState('');
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!oldPassword || !newPassword) {
+      setMessage('Both fields are required');
+      return;
+    }
     await api.post('/password/change', { oldPassword, newPassword });
-    alert('password changed');
+    setMessage('Password changed');
   };
   return (
-    <Box>
+    <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Change Password</Typography>
       <Stack spacing={2} sx={styles.formStack}>
-        <TextField label="old password" type="password" value={oldPassword} onChange={e => setOld(e.target.value)} />
-        <TextField label="new password" type="password" value={newPassword} onChange={e => setNew(e.target.value)} />
-        <Button variant="contained" onClick={submit}>Submit</Button>
+        <TextField
+          label="old password"
+          placeholder="Old Password"
+          type="password"
+          value={oldPassword}
+          onChange={e => setOld(e.target.value)}
+          required
+        />
+        <TextField
+          label="new password"
+          placeholder="New Password"
+          type="password"
+          value={newPassword}
+          onChange={e => setNew(e.target.value)}
+          required
+        />
+        <Button type="submit" variant="contained">Submit</Button>
+        {message && (
+          <Typography role="status" aria-live="polite">{message}</Typography>
+        )}
       </Stack>
     </Box>
   );

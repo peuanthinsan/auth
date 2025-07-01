@@ -39,7 +39,7 @@ const roleSchema = new Schema({
 });
 
 const userSchema = new Schema({
-  username: { type: String, unique: true },
+  username: { type: String, unique: true, maxlength: 20, trim: true },
   passwordHash: String,
   email: String,
   firstName: String,
@@ -49,7 +49,8 @@ const userSchema = new Schema({
   invites: [{ type: Schema.Types.ObjectId, ref: 'Invite' }],
   balance: { type: Number, default: 0 },
   role: { type: Schema.Types.ObjectId, ref: 'Role' },
-  refreshToken: String
+  refreshToken: String,
+  resetToken: String
 });
 
 const organizationSchema = new Schema({
@@ -107,7 +108,11 @@ const apiRouter = express.Router();
 
 // register
 apiRouter.post('/register', async (req, res) => {
-  const { username, password, email, firstName, lastName } = req.body;
+  let { username, password, email, firstName, lastName } = req.body;
+  username = username ? username.trim() : '';
+  if (!username || username.length > 20 || !password || !email || !firstName || !lastName) {
+    return res.status(400).json({ message: 'Invalid input' });
+  }
   if (await User.findOne({ username })) {
     return res.status(400).json({ message: 'Username exists' });
   }
@@ -131,7 +136,8 @@ apiRouter.post('/register', async (req, res) => {
 // login
 apiRouter.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const user = await User.findOne({ username });
+  const trimmed = username ? username.trim() : '';
+  const user = await User.findOne({ username: trimmed });
   if (!user) return res.status(400).json({ message: 'Invalid credentials' });
   const match = await bcrypt.compare(password, user.passwordHash);
   if (!match) return res.status(400).json({ message: 'Invalid credentials' });
@@ -191,7 +197,7 @@ apiRouter.get('/profile', authenticateToken, async (req, res) => {
   });
 });
 
-apiRouter.get('/my/organizations', authenticateToken, async (req, res) => {
+apiRouter.get('/user/organizations', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.id).populate('organizations', 'name');
   if (!user) return res.sendStatus(404);
   res.json({
@@ -232,11 +238,23 @@ apiRouter.post('/password/change', authenticateToken, async (req, res) => {
 });
 
 // reset password without auth (simple demo)
-apiRouter.post('/password/reset', async (req, res) => {
-  const { username, newPassword } = req.body;
-  const user = await User.findOne({ username });
+apiRouter.post('/password/forgot', async (req, res) => {
+  const { username } = req.body;
+  const trimmed = username ? username.trim() : '';
+  const user = await User.findOne({ username: trimmed });
   if (!user) return res.status(404).json({ message: 'User not found' });
+  const token = Math.random().toString(36).substring(2);
+  user.resetToken = token;
+  await user.save();
+  res.json({ message: 'Reset token created', token });
+});
+
+apiRouter.post('/password/reset', async (req, res) => {
+  const { token, newPassword } = req.body;
+  const user = await User.findOne({ resetToken: token });
+  if (!user) return res.status(400).json({ message: 'Invalid token' });
   user.passwordHash = await bcrypt.hash(newPassword, 10);
+  user.resetToken = '';
   await user.save();
   res.json({ message: 'Password reset' });
 });
@@ -250,12 +268,16 @@ apiRouter.post('/organizations', authenticateToken, requireAdmin, async (req, re
   res.json({ message: 'Organization created', orgId: org._id });
 });
 
-apiRouter.get('/organizations', authenticateToken, async (req, res) => {
-  const user = await User.findById(req.user.id).populate('organizations');
-  if (!user) return res.sendStatus(404);
-  res.json({
-    organizations: user.organizations.map(o => ({ id: o._id, name: o.name }))
-  });
+apiRouter.get('/organizations', authenticateToken, requireAdmin, async (req, res) => {
+  const orgs = await Organization.find();
+  res.json(
+    orgs.map(o => ({
+      id: o._id,
+      name: o.name,
+      members: o.members.length,
+      invites: o.invites.length
+    }))
+  );
 });
 
 
@@ -264,7 +286,9 @@ apiRouter.post('/organizations/:id/members', authenticateToken, requireAdmin, as
   const { userId } = req.body;
   const org = await Organization.findById(id);
   if (!org) return res.status(404).json({ message: 'Org not found' });
-  if (!org.members.includes(req.user.id)) return res.status(403).json({ message: 'Not authorized' });
+  if (!org.members.some(m => m.toString() === req.user.id)) {
+    return res.status(403).json({ message: 'Not authorized' });
+  }
   if (!org.members.includes(userId)) {
     org.members.push(userId);
     await User.findByIdAndUpdate(userId, { $push: { organizations: org._id } });
@@ -277,7 +301,9 @@ apiRouter.delete('/organizations/:id/members/:userId', authenticateToken, requir
   const { id, userId } = req.params;
   const org = await Organization.findById(id);
   if (!org) return res.status(404).json({ message: 'Org not found' });
-  if (!org.members.includes(req.user.id)) return res.status(403).json({ message: 'Not authorized' });
+  if (!org.members.some(m => m.toString() === req.user.id)) {
+    return res.status(403).json({ message: 'Not authorized' });
+  }
   org.members = org.members.filter(m => m.toString() !== userId);
   await org.save();
   await User.findByIdAndUpdate(userId, { $pull: { organizations: org._id } });
@@ -285,12 +311,14 @@ apiRouter.delete('/organizations/:id/members/:userId', authenticateToken, requir
 });
 
 // invite user (dummy implementation)
-apiRouter.post('/organizations/:id/invite', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.post('/organizations/:id/invite', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { email } = req.body;
   const org = await Organization.findById(id);
   if (!org) return res.status(404).json({ message: 'Org not found' });
-  if (!org.members.includes(req.user.id)) return res.status(403).json({ message: 'Not authorized' });
+  if (!org.members.some(m => m.toString() === req.user.id)) {
+    return res.status(403).json({ message: 'Not authorized' });
+  }
   const invite = new Invite({ orgId: org._id, email, token: Math.random().toString(36).substring(2) });
   await invite.save();
   org.invites.push(invite._id);
@@ -305,15 +333,6 @@ apiRouter.get('/organizations/:id/invites', authenticateToken, async (req, res) 
   res.json(org.invites);
 });
 
-apiRouter.get('/organizations/all', authenticateToken, requireAdmin, async (req, res) => {
-  const orgs = await Organization.find();
-  res.json(orgs.map(o => ({
-    id: o._id,
-    name: o.name,
-    members: o.members.length,
-    invites: o.invites.length
-  })));
-});
 
 apiRouter.delete('/organizations/:id', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
@@ -436,12 +455,26 @@ apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
 // currency transfer
 apiRouter.post('/transfer', authenticateToken, async (req, res) => {
   const { toUsername, amount } = req.body;
+  const recipient = toUsername ? toUsername.trim() : '';
   const numAmount = parseFloat(amount);
-  if (isNaN(numAmount) || numAmount <= 0) return res.status(400).json({ message: 'Invalid amount' });
+  if (!recipient || isNaN(numAmount) || numAmount <= 0) {
+    return res.status(400).json({ message: 'Invalid amount or recipient' });
+  }
   const fromUser = await User.findById(req.user.id);
-  const toUser = await User.findOne({ username: toUsername });
+  const toUser = await User.findOne({ username: recipient });
   if (!toUser) return res.status(404).json({ message: 'Recipient not found' });
-  if (fromUser.balance < numAmount) return res.status(400).json({ message: 'Insufficient balance' });
+  if (toUser._id.equals(fromUser._id)) {
+    return res.status(400).json({ message: 'Cannot transfer to self' });
+  }
+  const fromOrgs = fromUser.organizations.map(o => o.toString());
+  const toOrgs = toUser.organizations.map(o => o.toString());
+  const sameOrg = fromOrgs.some(o => toOrgs.includes(o));
+  if (!sameOrg) {
+    return res.status(400).json({ message: 'Users must share an organization' });
+  }
+  if (fromUser.balance < numAmount) {
+    return res.status(400).json({ message: 'Insufficient balance' });
+  }
   fromUser.balance -= numAmount;
   toUser.balance += numAmount;
   await Promise.all([fromUser.save(), toUser.save()]);

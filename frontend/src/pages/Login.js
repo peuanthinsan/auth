@@ -1,5 +1,12 @@
 import React, { useState, useContext } from 'react';
-import { TextField, Button, Stack, Typography, Box, Link } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Stack,
+  Typography,
+  Box,
+  Link
+} from '@mui/material';
 import { styles } from '../styles';
 import { AuthContext } from '../AuthContext';
 
@@ -7,18 +14,43 @@ export default function Login() {
   const { login } = useContext(AuthContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const submit = async () => {
-    await login(username, password);
-    alert('logged in');
+  const [message, setMessage] = useState('');
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!username.trim() || !password) {
+      setMessage('Username and password are required');
+      return;
+    }
+    await login(username.trim(), password);
+    setMessage('Logged in');
   };
   return (
-    <Box>
+    <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Login</Typography>
       <Stack spacing={2} sx={styles.formStack}>
-        <TextField label="username" value={username} onChange={e => setUsername(e.target.value)} />
-        <TextField type="password" label="password" value={password} onChange={e => setPassword(e.target.value)} />
-        <Button variant="contained" onClick={submit}>Submit</Button>
-        <Link href="/reset-password" underline="hover">Forgot password?</Link>
+        <TextField
+          label="username"
+          placeholder="Username"
+          inputProps={{ maxLength: 20 }}
+          helperText="max 20 characters"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+          required
+        />
+        <TextField
+          type="password"
+          label="password"
+          placeholder="Password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+        />
+        <Button type="submit" variant="contained">Submit</Button>
+        <Link href="/forgot-password" underline="hover">Forgot password?</Link>
+        {message && (
+          <Typography role="status" aria-live="polite">{message}</Typography>
+        )}
       </Stack>
     </Box>
   );

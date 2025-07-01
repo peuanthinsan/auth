@@ -41,6 +41,7 @@ import Transfer from './pages/Transfer';
 import Balance from './pages/Balance';
 import Administration from './pages/Administration';
 import ResetPassword from './pages/ResetPassword';
+import ForgotPassword from './pages/ForgotPassword';
 import LogoutPage from './pages/Logout';
 import api from './api';
 import { AuthContext } from './AuthContext';
@@ -70,7 +71,7 @@ export default function App() {
   useEffect(() => {
     const load = async () => {
       const [orgRes, profRes] = await Promise.all([
-        api.get('/my/organizations'),
+        api.get('/user/organizations'),
         api.get('/profile')
       ]);
       setOrgs(orgRes.data.organizations);
@@ -152,6 +153,7 @@ export default function App() {
             <Route path="/balance" element={<Balance />} />
             <Route path="/admin" element={<Administration />} />
             <Route path="/logout" element={<LogoutPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<div>Home</div>} />
           </Routes>
