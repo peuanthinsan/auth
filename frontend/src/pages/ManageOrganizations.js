@@ -10,6 +10,7 @@ export default function ManageOrganizations() {
   const { refreshOrgs } = useContext(AuthContext);
   const [orgs, setOrgs] = useState([]);
   const [newName, setNewName] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   const loadOrgs = async () => {
     const res = await api.get('/organizations');
@@ -21,22 +22,36 @@ export default function ManageOrganizations() {
   }, []);
 
   const updateName = async (id, name) => {
-    await api.patch(`/organizations/${id}`, { name });
-    setOrgs(orgs.map(o => (o.id === id ? { ...o, name } : o)));
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setMessage({ text: 'Name is required', error: true });
+      return;
+    }
+    await api.patch(`/organizations/${id}`, { name: trimmed });
+    setOrgs(orgs.map(o => (o.id === id ? { ...o, name: trimmed } : o)));
     refreshOrgs();
+    setMessage({ text: 'Organization updated', error: false });
   };
 
   const createOrg = async () => {
-    await api.post('/organizations', { name: newName });
+    const trimmed = newName.trim();
+    if (!trimmed) {
+      setMessage({ text: 'Name is required', error: true });
+      return;
+    }
+    await api.post('/organizations', { name: trimmed });
     setNewName('');
     loadOrgs();
     refreshOrgs();
+    setMessage({ text: 'Organization created', error: false });
   };
 
   const deleteOrg = async (id) => {
+    if (!window.confirm('Delete this organization?')) return;
     await api.delete(`/organizations/${id}`);
     loadOrgs();
     refreshOrgs();
+    setMessage({ text: 'Organization deleted', error: false });
   };
 
   const NameCell = ({ row }) => {
@@ -114,6 +129,9 @@ export default function ManageOrganizations() {
         />
         <Button variant="contained" onClick={createOrg}>Create Organization</Button>
       </Stack>
+      {message.text && (
+        <Typography role="status" aria-live="polite" sx={{ mt: 2 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
+      )}
     </Box>
   );
 }

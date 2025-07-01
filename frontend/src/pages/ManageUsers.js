@@ -56,6 +56,7 @@ export default function ManageUsers() {
   };
 
   const deleteUser = async (id) => {
+    if (!window.confirm('Delete this user?')) return;
     try {
       await api.delete(`/users/${id}`);
       setUsers(users.filter(u => u.id !== id));
@@ -89,10 +90,15 @@ export default function ManageUsers() {
           multiple
           value={row.original.roleIds}
           onChange={e => changeRoles(row.original.id, e.target.value)}
-          renderValue={selected => roles.filter(r => selected.includes(r.id)).map(r => r.code).join(', ')}
+          renderValue={selected =>
+            roles
+              .filter(r => selected.includes(r.id))
+              .map(r => r.name)
+              .join(', ')
+          }
         >
           {roles.map(r => (
-            <MenuItem key={r.id} value={r.id}>{r.code}</MenuItem>
+            <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
           ))}
         </Select>
       )

@@ -90,7 +90,7 @@ export default function App() {
         <AppBar position="fixed" sx={styles.appBar}>
           <Toolbar>
             <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              Auth Dashboard
+              Dashboard
             </Typography>
             {token && profile && (
               <Typography sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
