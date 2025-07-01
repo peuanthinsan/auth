@@ -7,24 +7,6 @@ const api = axios.create({
   baseURL: apiBase
 });
 
-const cache = {};
-
-export async function getCached(url, config = {}) {
-  const key = url + JSON.stringify(config.params || {});
-  if (cache[key]) {
-    return { data: cache[key] };
-  }
-  const res = await api.get(url, config);
-  cache[key] = res.data;
-  return res;
-}
-
-export function clearCache(prefix) {
-  Object.keys(cache).forEach(k => {
-    if (k.startsWith(prefix)) delete cache[k];
-  });
-}
-
 let refreshTokenValue = '';
 let tokenRefreshHandler = null;
 

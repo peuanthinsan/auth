@@ -3,7 +3,7 @@ import { Box, Typography, TextField, IconButton, Button, Stack } from '@mui/mate
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
-import api, { getCached, clearCache } from '../api';
+import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
@@ -17,7 +17,7 @@ export default function ManageRoles() {
   useEffect(() => {
     const load = async () => {
       if (!currentOrg) { setRoles([]); return; }
-      const res = await getCached('/roles', { params: { orgId: currentOrg } });
+      const res = await api.get('/roles', { params: { orgId: currentOrg } });
       setRoles(res.data);
     };
     load();
@@ -30,7 +30,6 @@ export default function ManageRoles() {
       return;
     }
     await api.patch(`/roles/${id}`, { [field]: trimmed });
-    clearCache('/roles');
     setRoles(roles.map(r => (r.id === id ? { ...r, [field]: trimmed } : r)));
     showToast('Role updated', 'success');
   };
@@ -40,7 +39,6 @@ export default function ManageRoles() {
     if (role?.system) return;
     if (!window.confirm('Delete this role?')) return;
     await api.delete(`/roles/${id}`);
-    clearCache('/roles');
     setRoles(roles.filter(r => r.id !== id));
     showToast('Role deleted', 'success');
   };
@@ -55,7 +53,6 @@ export default function ManageRoles() {
       return;
     }
     const res = await api.post('/roles', { code, name, orgId: currentOrg });
-    clearCache('/roles');
     setRoles([...roles, { id: res.data.id, code, name, system: false }]);
     setNewCode('');
     setNewName('');

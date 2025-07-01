@@ -10,10 +10,11 @@ import {
 } from '@mui/material';
 import { styles } from '../styles';
 import { AuthContext } from '../AuthContext';
+import api from '../api';
 import { ToastContext } from '../ToastContext';
 
 export default function Login() {
-  const { login, refreshOrgs } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
@@ -27,9 +28,9 @@ export default function Login() {
     }
     try {
       await login(username.trim(), password);
-      const newOrgs = await refreshOrgs();
+      const orgRes = await api.get('/user/organizations');
       showToast('Logged in', 'success');
-      if (!newOrgs.length) {
+      if (orgRes.data.organizations.length === 0) {
         navigate('/accept-invite');
       } else {
         navigate('/balance');

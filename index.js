@@ -190,6 +190,9 @@ apiRouter.post('/register', async (req, res) => {
   if (await User.findOne({ email })) {
     return res.status(400).json({ message: 'Email exists' });
   }
+  if (await User.findOne({ email })) {
+    return res.status(400).json({ message: 'Email exists' });
+  }
   const passwordHash = await bcrypt.hash(password, 10);
   const userRole = await Role.findOne({ code: ROLE_CODES.USER, orgId: null });
   const user = new User({
