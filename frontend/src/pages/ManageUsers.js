@@ -12,6 +12,7 @@ export default function ManageUsers() {
   const navigate = useNavigate();
   const { currentOrg, profile, logout } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [orgs, setOrgs] = useState([]);
   const [addUserId, setAddUserId] = useState('');
@@ -20,18 +21,24 @@ export default function ManageUsers() {
   const [removeOrgId, setRemoveOrgId] = useState('');
   const { showToast } = useContext(ToastContext);
   const load = async () => {
-    const userReq =
-      currentOrg && !profile?.isSuperAdmin
-        ? api.get('/users', { params: { orgId: currentOrg } })
-        : api.get('/users');
+    const memberReq = currentOrg
+      ? api.get('/users', { params: { orgId: currentOrg } })
+      : api.get('/users');
     const roleReq = api.get('/roles', {
       params: currentOrg ? { orgId: currentOrg } : {}
     });
     const orgReq = profile?.isSuperAdmin
       ? api.get('/organizations')
       : Promise.resolve({ data: [] });
-    const [uRes, rRes, oRes] = await Promise.all([userReq, roleReq, orgReq]);
+    const allReq = api.get('/users');
+    const [uRes, rRes, oRes, aRes] = await Promise.all([
+      memberReq,
+      roleReq,
+      orgReq,
+      allReq
+    ]);
     setUsers(uRes.data);
+    setAllUsers(aRes.data);
     setRoles(rRes.data);
     setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));
   };
@@ -133,11 +140,12 @@ export default function ManageUsers() {
     base.push({
       Header: 'Actions',
       accessor: 'actions',
-      Cell: ({ row }) => (
-        <IconButton color="error" onClick={() => deleteUser(row.original.id)}>
-          <DeleteIcon />
-        </IconButton>
-      )
+      Cell: ({ row }) =>
+        profile?.isSuperAdmin ? (
+          <IconButton color="error" onClick={() => deleteUser(row.original.id)}>
+            <DeleteIcon />
+          </IconButton>
+        ) : null
     });
 
     return base;
@@ -152,13 +160,7 @@ export default function ManageUsers() {
   );
   const table = useTable({ columns, data: filtered });
 
-  const addOptions = useMemo(
-    () =>
-      currentOrg
-        ? users.filter(u => !u.organizations.some(o => o.id === currentOrg))
-        : users.filter(u => u.organizations.length === 0),
-    [users, currentOrg]
-  );
+  const addOptions = useMemo(() => allUsers, [allUsers]);
 
   const removeOptions = useMemo(
     () =>

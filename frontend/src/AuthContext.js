@@ -88,7 +88,7 @@ export function AuthProvider({ children }) {
     setTokenState(res.data.token);
   };
 
-  const isAdmin = profile?.isSuperAdmin || profile?.roles?.includes('ADMIN');
+  const isAdmin = profile?.isSuperAdmin || profile?.roleCodes?.includes('ADMIN');
 
   return (
     <AuthContext.Provider value={{
