@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
-import { Box, Typography, TextField, IconButton, Button, Stack } from '@mui/material';
+import { Box, Typography, TextField, IconButton, Button } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
@@ -9,6 +9,7 @@ import { AuthContext } from '../AuthContext';
 export default function ManageRoles() {
   const { currentOrg } = useContext(AuthContext);
   const [roles, setRoles] = useState([]);
+  const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
@@ -20,9 +21,9 @@ export default function ManageRoles() {
     load();
   }, [currentOrg]);
 
-  const updateRole = async (id, name) => {
-    await api.patch(`/roles/${id}`, { name });
-    setRoles(roles.map(r => (r.id === id ? { ...r, name } : r)));
+  const updateRole = async (id, field, value) => {
+    await api.patch(`/roles/${id}`, { [field]: value });
+    setRoles(roles.map(r => (r.id === id ? { ...r, [field]: value } : r)));
   };
 
   const deleteRole = async (id) => {
@@ -33,30 +34,38 @@ export default function ManageRoles() {
   };
 
   const createRole = async () => {
-    if (!currentOrg || !newName) return;
-    const code = newName.toUpperCase().replace(/\s+/g, '_');
-    const res = await api.post('/roles', { code, name: newName, orgId: currentOrg });
-    setRoles([...roles, { id: res.data.id, name: newName, code, system: false }]);
+    if (!currentOrg) return;
+    const res = await api.post('/roles', { code: newCode, name: newName, orgId: currentOrg });
+    setRoles([...roles, { id: res.data.id, code: newCode, name: newName, system: false }]);
+    setNewCode('');
     setNewName('');
-  };
-
-  const NameCell = ({ row }) => {
-    const [value, setValue] = useState(row.original.name);
-    const save = () => updateRole(row.original.id, value);
-    return (
-      <Stack direction="row" spacing={1}>
-        <TextField size="small" value={value} onChange={e => setValue(e.target.value)} />
-        <Button size="small" variant="contained" onClick={save}>Change</Button>
-      </Stack>
-    );
   };
 
   const columns = useMemo(() => [
     { Header: 'ID', accessor: 'id' },
     {
+      Header: 'Code',
+      accessor: 'code',
+      Cell: ({ row }) => (
+        <TextField
+          size="small"
+          placeholder="Code"
+          value={row.original.code}
+          onChange={e => updateRole(row.original.id, 'code', e.target.value)}
+        />
+      )
+    },
+    {
       Header: 'Name',
       accessor: 'name',
-      Cell: NameCell
+      Cell: ({ row }) => (
+        <TextField
+          size="small"
+          placeholder="Name"
+          value={row.original.name}
+          onChange={e => updateRole(row.original.id, 'name', e.target.value)}
+        />
+      )
     },
     {
       Header: 'Actions',
@@ -99,6 +108,13 @@ export default function ManageRoles() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
+        <TextField
+          label="Code"
+          placeholder="Code"
+          size="small"
+          value={newCode}
+          onChange={e => setNewCode(e.target.value)}
+        />
         <TextField
           label="Name"
           placeholder="Name"

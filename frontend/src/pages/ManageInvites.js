@@ -102,8 +102,8 @@ export default function ManageInvites() {
               value={role}
               onChange={e => setRole(e.target.value)}
             >
-              <MenuItem value="USER">User</MenuItem>
-              <MenuItem value="ADMIN">Administrator</MenuItem>
+              <MenuItem value="USER">USER</MenuItem>
+              <MenuItem value="ADMIN">ADMIN</MenuItem>
             </Select>
             <Button type="submit" variant="contained">Invite User</Button>
           </Stack>

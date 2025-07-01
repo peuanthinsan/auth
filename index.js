@@ -250,7 +250,7 @@ apiRouter.get('/profile', authenticateToken, async (req, res) => {
     firstName: user.firstName,
     lastName: user.lastName,
     profilePicture: user.profilePicture,
-    roles: user.roles.map(r => r.name),
+    roles: user.roles.map(r => r.code),
     isSuperAdmin: user.isSuperAdmin,
     balances: user.balances.map(b => ({
       orgId: b.orgId?._id ?? b.orgId,

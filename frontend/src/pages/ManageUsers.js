@@ -89,10 +89,10 @@ export default function ManageUsers() {
           multiple
           value={row.original.roleIds}
           onChange={e => changeRoles(row.original.id, e.target.value)}
-          renderValue={selected => roles.filter(r => selected.includes(r.id)).map(r => r.name).join(', ')}
+          renderValue={selected => roles.filter(r => selected.includes(r.id)).map(r => r.code).join(', ')}
         >
           {roles.map(r => (
-            <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
+            <MenuItem key={r.id} value={r.id}>{r.code}</MenuItem>
           ))}
         </Select>
       )
