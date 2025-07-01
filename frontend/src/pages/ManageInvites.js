@@ -10,13 +10,19 @@ export default function ManageInvites() {
   const { currentOrg } = useContext(AuthContext);
   const [invites, setInvites] = useState([]);
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('USER');
+  const [role, setRole] = useState('');
+  const [roles, setRoles] = useState([]);
   const [message, setMessage] = useState({ text: '', error: false });
 
   const loadInvites = async () => {
-    if (!currentOrg) { setInvites([]); return; }
-    const res = await api.get(`/organizations/${currentOrg}/invites`);
-    setInvites(res.data.map(i => ({ id: i.id, email: i.email, token: i.token, role: i.role })));
+    if (!currentOrg) { setInvites([]); setRoles([]); return; }
+    const [iRes, rRes] = await Promise.all([
+      api.get(`/organizations/${currentOrg}/invites`),
+      api.get('/roles', { params: { orgId: currentOrg } })
+    ]);
+    setInvites(iRes.data.map(i => ({ id: i.id, email: i.email, token: i.token, role: i.role })));
+    setRoles(rRes.data);
+    if (rRes.data.length && !role) setRole(rRes.data[0].code);
   };
   useEffect(() => {
     loadInvites();
@@ -24,17 +30,20 @@ export default function ManageInvites() {
 
 
   const deleteInvite = async (id) => {
+    if (!window.confirm('Delete this invite?')) return;
     await api.delete(`/invites/${id}`);
     setInvites(invites.filter(i => i.id !== id));
+    setMessage({ text: 'Invite deleted', error: false });
   };
 
   const sendInvite = async (e) => {
     e.preventDefault();
-    if (!currentOrg || !email) {
-      setMessage({ text: 'Organization and email are required', error: true });
+    const trimmed = email.trim();
+    if (!currentOrg || !trimmed || !role) {
+      setMessage({ text: 'Organization, email and role are required', error: true });
       return;
     }
-    await api.post(`/organizations/${currentOrg}/invite`, { email, role });
+    await api.post(`/organizations/${currentOrg}/invite`, { email: trimmed, role });
     setMessage({ text: 'Invite sent', error: false });
     setEmail('');
     loadInvites();
@@ -45,7 +54,11 @@ export default function ManageInvites() {
     { Header: 'ID', accessor: 'id' },
     { Header: 'Email', accessor: 'email' },
     { Header: 'Token', accessor: 'token' },
-    { Header: 'Role', accessor: 'role' },
+    {
+      Header: 'Role',
+      accessor: 'role',
+      Cell: ({ value }) => roles.find(r => r.code === value)?.name || value
+    },
     {
       Header: 'Actions',
       accessor: 'actions',
@@ -55,7 +68,7 @@ export default function ManageInvites() {
         </IconButton>
       )
     }
-  ], [invites]);
+  ], [invites, roles]);
 
   const table = useTable({ columns, data: invites });
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = table;
@@ -102,8 +115,9 @@ export default function ManageInvites() {
               value={role}
               onChange={e => setRole(e.target.value)}
             >
-              <MenuItem value="USER">USER</MenuItem>
-              <MenuItem value="ADMIN">ADMIN</MenuItem>
+              {roles.map(r => (
+                <MenuItem key={r.id} value={r.code}>{r.name}</MenuItem>
+              ))}
             </Select>
             <Button type="submit" variant="contained">Invite User</Button>
           </Stack>

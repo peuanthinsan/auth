@@ -13,6 +13,12 @@ export default function UpdateProfile() {
   const [preview, setPreview] = useState('');
   const [message, setMessage] = useState({ text: '', error: false });
 
+  const formatLabel = (field) =>
+    field
+      .replace(/^(.)/, (c) => c.toUpperCase())
+      .replace(/([A-Z])/g, ' $1')
+      .trim();
+
   useEffect(() => {
     if (profile) {
       setForm({ username: profile.username || '', firstName: profile.firstName || '', lastName: profile.lastName || '' });
@@ -42,8 +48,8 @@ export default function UpdateProfile() {
         {['username','firstName','lastName'].map(f => (
           <TextField
             key={f}
-            label={f}
-            placeholder={f.replace(/^(.)/, c => c.toUpperCase()).replace(/([A-Z])/g, ' $1').trim()}
+            label={formatLabel(f)}
+            placeholder={formatLabel(f)}
             value={form[f]}
             onChange={e => setForm({ ...form, [f]: e.target.value })}
           />

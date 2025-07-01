@@ -16,7 +16,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Avatar
+  Avatar,
+  GlobalStyles
 } from '@mui/material';
 import {
   PersonAdd,
@@ -28,7 +29,8 @@ import {
   SwapHoriz,
   AccountBalanceWallet,
   AdminPanelSettings,
-  Logout
+  Logout,
+  LockReset
 } from '@mui/icons-material';
 import { styles } from './styles';
 import Register from './pages/Register';
@@ -50,7 +52,8 @@ export default function App() {
   const loggedOutNav = [
     { text: 'Register', path: '/register', icon: <PersonAdd /> },
     { text: 'Login', path: '/login', icon: <LoginIcon /> },
-    { text: 'Create SuperAdmin', path: '/create-superadmin', icon: <AdminPanelSettings /> }
+    { text: 'Create SuperAdmin', path: '/create-superadmin', icon: <AdminPanelSettings /> },
+    { text: 'Reset Password', path: '/reset-password', icon: <LockReset /> }
   ];
 
   const { token, currentOrg, setCurrentOrg, profile, orgs, refreshOrgs, isAdmin } = useContext(AuthContext);
@@ -87,10 +90,11 @@ export default function App() {
     <Router>
       <Box sx={styles.root}>
         <CssBaseline />
+        <GlobalStyles styles={{ body: { fontSize: '14px' } }} />
         <AppBar position="fixed" sx={styles.appBar}>
           <Toolbar>
             <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              Auth Dashboard
+              Dashboard
             </Typography>
             {token && profile && (
               <Typography sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
@@ -132,7 +136,7 @@ export default function App() {
             {navItems.map((item) => (
               <ListItem disablePadding key={item.text}>
                 <ListItemButton component={Link} to={item.path}>
-                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemIcon sx={{ minWidth: 0, mr: 2 }}>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.text} />
                 </ListItemButton>
               </ListItem>

@@ -13,7 +13,10 @@ export default function Administration() {
   const showOrgs = profile?.isSuperAdmin;
   if (!isAdmin) return <Box>Not authorized</Box>;
   const tabs = [];
-  if (currentOrg) tabs.push({ label: 'Users', component: <ManageUsers /> });
+  if (currentOrg || profile?.isSuperAdmin) {
+    const label = currentOrg ? 'Users' : 'Unassigned Users';
+    tabs.push({ label, component: <ManageUsers /> });
+  }
   if (currentOrg) tabs.push({ label: 'Roles', component: <ManageRoles /> });
   if (showOrgs) tabs.push({ label: 'Organizations', component: <ManageOrganizations /> });
   if (currentOrg) tabs.push({ label: 'Invites', component: <ManageInvites /> });

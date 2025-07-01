@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
-import { Box, Typography, Select, MenuItem, Button, Stack, IconButton, Autocomplete, TextField } from '@mui/material';
+import { Box, Typography, Select, MenuItem, Button, Stack, IconButton, Autocomplete, TextField, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
@@ -19,7 +19,9 @@ export default function ManageUsers() {
     const userReq = currentOrg
       ? api.get('/users', { params: { orgId: currentOrg } })
       : api.get('/users');
-    const roleReq = api.get('/roles', { params: currentOrg ? { orgId: currentOrg } : {} });
+    const roleReq = currentOrg
+      ? api.get('/roles', { params: { orgId: currentOrg } })
+      : Promise.resolve({ data: [] });
     const [uRes, rRes] = await Promise.all([userReq, roleReq]);
     setUsers(uRes.data);
     setRoles(rRes.data);
@@ -56,6 +58,7 @@ export default function ManageUsers() {
   };
 
   const deleteUser = async (id) => {
+    if (!window.confirm('Delete this user?')) return;
     try {
       await api.delete(`/users/${id}`);
       setUsers(users.filter(u => u.id !== id));
@@ -68,36 +71,54 @@ export default function ManageUsers() {
     }
   };
 
-  const columns = useMemo(() => [
-    { Header: 'ID', accessor: 'id' },
-    { Header: 'Username', accessor: 'username' },
-    { Header: 'Email', accessor: 'email' },
-    { Header: 'First Name', accessor: 'firstName' },
-    { Header: 'Last Name', accessor: 'lastName' },
-    { Header: 'Balance', accessor: 'balance' },
-    {
-      Header: 'Organizations',
-      accessor: 'organizations',
-      Cell: ({ value }) => value.map(o => o.name).join(', ')
-    },
-    {
-      Header: 'Roles',
-      accessor: 'roles',
-      Cell: ({ row }) => (
-        <Select
-          size="small"
-          multiple
-          value={row.original.roleIds}
-          onChange={e => changeRoles(row.original.id, e.target.value)}
-          renderValue={selected => roles.filter(r => selected.includes(r.id)).map(r => r.code).join(', ')}
-        >
-          {roles.map(r => (
-            <MenuItem key={r.id} value={r.id}>{r.code}</MenuItem>
-          ))}
-        </Select>
-      )
-    },
-    {
+  const columns = useMemo(() => {
+    const base = [
+      { Header: 'ID', accessor: 'id' },
+      { Header: 'Username', accessor: 'username' },
+      { Header: 'Email', accessor: 'email' },
+      { Header: 'First Name', accessor: 'firstName' },
+      { Header: 'Last Name', accessor: 'lastName' }
+    ];
+    if (currentOrg) {
+      base.push(
+        { Header: 'Balance', accessor: 'balance' },
+        {
+          Header: 'Organizations',
+          accessor: 'organizations',
+          Cell: ({ value }) => value.map(o => o.name).join(', ')
+        },
+        {
+          Header: 'Roles',
+          accessor: 'roles',
+          Cell: ({ row }) => (
+            <Select
+              size="small"
+              multiple
+              value={row.original.roleIds}
+              onChange={e => changeRoles(row.original.id, e.target.value)}
+              renderValue={selected =>
+                roles
+                  .filter(r => selected.includes(r.id))
+                  .map(r => r.name)
+                  .join(', ')
+              }
+            >
+              {roles.map(r => (
+                <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
+              ))}
+            </Select>
+          )
+        }
+      );
+    } else {
+      base.push({
+        Header: 'Profile Picture',
+        accessor: 'profilePicture',
+        Cell: ({ value }) =>
+          value ? <Avatar src={value} sx={{ width: 32, height: 32 }} /> : null
+      });
+    }
+    base.push({
       Header: 'Actions',
       accessor: 'actions',
       Cell: ({ row }) => (
@@ -105,8 +126,9 @@ export default function ManageUsers() {
           <DeleteIcon />
         </IconButton>
       )
-    }
-  ], [users, roles]);
+    });
+    return base;
+  }, [users, roles, currentOrg]);
 
   const filtered = useMemo(
     () =>
@@ -151,6 +173,7 @@ export default function ManageUsers() {
           })}
         </Box>
       </Box>
+      {currentOrg && (
       <Box sx={styles.actionRow}>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           <Autocomplete
@@ -176,6 +199,7 @@ export default function ManageUsers() {
           <Typography role="status" aria-live="polite" sx={{ mt: 1 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Box>
+      )}
     </Box>
 );
 }
