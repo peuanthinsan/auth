@@ -468,7 +468,10 @@ apiRouter.patch('/organizations/:id', authenticateToken, requireSuperAdmin, asyn
 
 apiRouter.get('/users', authenticateToken, requireAdmin, async (req, res) => {
   const { orgId } = req.query;
-  const filter = orgId ? { organizations: orgId } : {};
+  let filter = {};
+  if (orgId && mongoose.isValidObjectId(orgId)) {
+    filter.organizations = new mongoose.Types.ObjectId(orgId);
+  }
   const users = await User.find(filter)
     .populate('roles', 'code name')
     .populate('organizations', 'name');
@@ -516,7 +519,10 @@ apiRouter.post('/users/:id/roles', authenticateToken, requireAdmin, async (req, 
 // role management
 apiRouter.get('/roles', authenticateToken, requireAdmin, async (req, res) => {
   const { orgId } = req.query;
-  const filter = orgId ? { orgId } : { orgId: null };
+  let filter = { orgId: null };
+  if (orgId && mongoose.isValidObjectId(orgId)) {
+    filter = { orgId: new mongoose.Types.ObjectId(orgId) };
+  }
   const roles = await Role.find(filter);
   res.json(roles.map(r => ({ id: r._id, code: r.code, name: r.name, system: r.system })));
 });
