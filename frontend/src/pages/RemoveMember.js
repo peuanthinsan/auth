@@ -16,22 +16,26 @@ export default function RemoveMember() {
       setMessage('Org and user IDs are required');
       return;
     }
-    await api.delete(`/organizations/${orgId}/members/${userId}`);
-    setMessage('Member removed');
+    try {
+      await api.delete(`/organizations/${orgId}/members/${userId}`);
+      setMessage('Member removed');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Error removing member');
+    }
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Remove Member</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
-          label="org id"
+          label="Org ID"
           placeholder="Org ID"
           value={orgId}
           onChange={e => setOrgId(e.target.value)}
           required
         />
         <TextField
-          label="user id"
+          label="User ID"
           placeholder="User ID"
           value={userId}
           onChange={e => setUserId(e.target.value)}

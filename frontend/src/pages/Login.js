@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   TextField,
   Button,
@@ -12,6 +13,7 @@ import { AuthContext } from '../AuthContext';
 
 export default function Login() {
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -22,8 +24,13 @@ export default function Login() {
       setMessage('Username and password are required');
       return;
     }
-    await login(username.trim(), password);
-    setMessage('Logged in');
+    try {
+      await login(username.trim(), password);
+      setMessage('Logged in');
+      navigate('/balance');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Login failed');
+    }
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
@@ -33,7 +40,6 @@ export default function Login() {
           label="username"
           placeholder="Username"
           inputProps={{ maxLength: 20 }}
-          helperText="max 20 characters"
           value={username}
           onChange={e => setUsername(e.target.value)}
           required

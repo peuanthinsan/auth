@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useContext } from 'react';
 import { Box, Typography, Select, MenuItem, Button, Stack, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api from '../api';
+import { AuthContext } from '../AuthContext';
 
 export default function ManageUsers() {
+  const { currentOrg } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [allOrgs, setAllOrgs] = useState([]);
@@ -18,8 +20,8 @@ export default function ManageUsers() {
   useEffect(() => {
     const load = async () => {
       const [uRes, rRes, oRes] = await Promise.all([
-        api.get('/users'),
-        api.get('/roles'),
+        api.get('/users', { params: { orgId: currentOrg } }),
+        api.get('/roles', { params: { orgId: currentOrg } }),
         api.get('/organizations')
       ]);
       setUsers(uRes.data);
@@ -27,7 +29,7 @@ export default function ManageUsers() {
       setAllOrgs(oRes.data);
     };
     load();
-  }, []);
+  }, [currentOrg]);
 
   const changeRole = async (id, roleId) => {
     await api.post(`/users/${id}/role`, { roleId });
@@ -96,7 +98,14 @@ export default function ManageUsers() {
     }
   ], [users, roles]);
 
-  const table = useTable({ columns, data: users });
+  const filtered = useMemo(
+    () =>
+      currentOrg
+        ? users.filter(u => u.organizations.some(o => o.id === currentOrg))
+        : users,
+    [users, currentOrg]
+  );
+  const table = useTable({ columns, data: filtered });
 
   const {
     getTableProps,

@@ -16,7 +16,7 @@ export default function ViewInvites() {
     <Box>
       <Typography variant="h6" gutterBottom>View Invites</Typography>
       <Stack spacing={2} sx={styles.formStack}>
-        <TextField label="org id" value={orgId} onChange={e => setOrgId(e.target.value)} />
+        <TextField label="Org ID" value={orgId} onChange={e => setOrgId(e.target.value)} />
         <Button variant="contained" onClick={load}>Load</Button>
       </Stack>
       <pre>{JSON.stringify(invites, null, 2)}</pre>

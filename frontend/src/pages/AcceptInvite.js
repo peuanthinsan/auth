@@ -16,22 +16,26 @@ export default function AcceptInvite() {
       setMessage('Invite ID and token are required');
       return;
     }
-    await api.post(`/invites/${inviteId}/accept`, { token });
-    setMessage('Invite accepted');
+    try {
+      await api.post(`/invites/${inviteId}/accept`, { token });
+      setMessage('Invite accepted');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Error accepting invite');
+    }
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Accept Invite</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
-          label="invite id"
+          label="Invite ID"
           placeholder="Invite ID"
           value={inviteId}
           onChange={e => setInviteId(e.target.value)}
           required
         />
         <TextField
-          label="token"
+          label="Token"
           placeholder="Token"
           value={token}
           onChange={e => setToken(e.target.value)}

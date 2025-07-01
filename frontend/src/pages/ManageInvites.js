@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useContext } from 'react';
 import { Box, Typography, IconButton, TextField, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
 import api from '../api';
+import { AuthContext } from '../AuthContext';
 
 export default function ManageInvites() {
+  const { currentOrg } = useContext(AuthContext);
   const [invites, setInvites] = useState([]);
   const [orgId, setOrgId] = useState('');
   const [email, setEmail] = useState('');
@@ -15,11 +17,12 @@ export default function ManageInvites() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await api.get('/invites');
-      setInvites(res.data);
+      if (!currentOrg) { setInvites([]); return; }
+      const res = await api.get(`/organizations/${currentOrg}/invites`);
+      setInvites(res.data.map(i => ({ id: i._id, email: i.email, token: i.token })));
     };
     load();
-  }, []);
+  }, [currentOrg]);
 
   const deleteInvite = async (id) => {
     await api.delete(`/invites/${id}`);
@@ -28,23 +31,25 @@ export default function ManageInvites() {
 
   const sendInvite = async (e) => {
     e.preventDefault();
-    if (!orgId || !email) {
+    const targetOrg = orgId || currentOrg;
+    if (!targetOrg || !email) {
       setMessage('Org ID and email are required');
       return;
     }
-    await api.post(`/organizations/${orgId}/invite`, { email });
+    await api.post(`/organizations/${targetOrg}/invite`, { email });
     setMessage('Invite sent');
   };
 
   const loadOrgInvites = async () => {
-    const res = await api.get(`/organizations/${viewOrgId}/invites`);
+    const target = viewOrgId || currentOrg;
+    if (!target) return;
+    const res = await api.get(`/organizations/${target}/invites`);
     setOrgInvites(res.data);
   };
 
   const columns = useMemo(() => [
     { Header: 'ID', accessor: 'id' },
     { Header: 'Email', accessor: 'email' },
-    { Header: 'Organization', accessor: 'org' },
     { Header: 'Token', accessor: 'token' },
     {
       Header: 'Actions',
@@ -91,7 +96,7 @@ export default function ManageInvites() {
         <Stack direction="row" spacing={1}>
           <TextField
             size="small"
-            label="org id"
+            label="Org ID"
             placeholder="Org ID"
             value={orgId}
             onChange={e => setOrgId(e.target.value)}
@@ -99,7 +104,7 @@ export default function ManageInvites() {
           />
           <TextField
             size="small"
-            label="email"
+            label="Email"
             placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -111,7 +116,7 @@ export default function ManageInvites() {
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           <TextField
             size="small"
-            label="org id"
+            label="Org ID"
             placeholder="Org ID"
             value={viewOrgId}
             onChange={e => setViewOrgId(e.target.value)}

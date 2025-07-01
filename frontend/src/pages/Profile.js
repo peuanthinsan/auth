@@ -19,12 +19,26 @@ export default function Profile() {
     <Box>
       <Typography variant="h6" gutterBottom>Profile</Typography>
       {profile && (
-        <>
+        <Box sx={{ border: '1px solid #ccc', p: 2, maxWidth: 400 }}>
           {profile.profilePicture && (
-            <Avatar src={profile.profilePicture} sx={{ width: 100, height: 100 }} />
+            <Avatar src={profile.profilePicture} sx={{ width: 100, height: 100, mb: 2 }} />
           )}
-          <pre>{JSON.stringify(profile, null, 2)}</pre>
-        </>
+          <Typography><strong>Username:</strong> {profile.username}</Typography>
+          <Typography><strong>Name:</strong> {profile.firstName} {profile.lastName}</Typography>
+          <Typography><strong>Role:</strong> {profile.role}</Typography>
+          <Typography sx={{ mt: 1 }}><strong>Balances:</strong></Typography>
+          <ul>
+            {profile.balances.map(b => (
+              <li key={b.orgId}>{b.orgName}: {b.amount}</li>
+            ))}
+          </ul>
+          <Typography sx={{ mt: 1 }}><strong>Organizations:</strong></Typography>
+          <ul>
+            {profile.organizations.map(o => (
+              <li key={o.id}>{o.name}</li>
+            ))}
+          </ul>
+        </Box>
       )}
     </Box>
   );
