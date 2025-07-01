@@ -40,7 +40,13 @@ export const styles = {
       textAlign: 'left',
       padding: '8px'
     },
-    '& th': { borderBottom: '1px solid', borderColor: 'divider' }
+    '& th': { borderBottom: '1px solid', borderColor: 'divider' },
+    '& th:first-of-type, & td:first-of-type': {
+      position: 'sticky',
+      left: 0,
+      backgroundColor: 'background.paper',
+      zIndex: 1
+    }
   },
   actionRow: { mt: 2 },
   ml1: { ml: 1 },

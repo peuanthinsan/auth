@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
-import { Box, Typography, TextField, IconButton, Button } from '@mui/material';
+import { Box, Typography, TextField, IconButton, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
@@ -59,31 +59,52 @@ export default function ManageRoles() {
     showToast('Role created', 'success');
   };
 
-  const columns = useMemo(() => [
-    { Header: 'ID', accessor: 'id' },
-    {
-      Header: 'Code',
-      accessor: 'code',
-      Cell: ({ row }) => (
+  const CodeCell = ({ row }) => {
+    const [value, setValue] = useState(row.original.code);
+    const save = () => updateRole(row.original.id, 'code', value);
+    const onKeyDown = (e) => { if (e.key === 'Enter') save(); };
+    return (
+      <Stack direction="row" spacing={1}>
         <TextField
           size="small"
           placeholder="Code"
-          value={row.original.code}
-          onChange={e => updateRole(row.original.id, 'code', e.target.value)}
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={onKeyDown}
         />
-      )
-    },
-    {
-      Header: 'Name',
-      accessor: 'name',
-      Cell: ({ row }) => (
+        <Button size="small" variant="contained" onClick={save}>Change</Button>
+      </Stack>
+    );
+  };
+
+  const NameCell = ({ row }) => {
+    const [value, setValue] = useState(row.original.name);
+    const save = () => updateRole(row.original.id, 'name', value);
+    const onKeyDown = (e) => { if (e.key === 'Enter') save(); };
+    return (
+      <Stack direction="row" spacing={1}>
         <TextField
           size="small"
           placeholder="Name"
-          value={row.original.name}
-          onChange={e => updateRole(row.original.id, 'name', e.target.value)}
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={onKeyDown}
         />
-      )
+        <Button size="small" variant="contained" onClick={save}>Change</Button>
+      </Stack>
+    );
+  };
+
+  const columns = useMemo(() => [
+    {
+      Header: 'Name',
+      accessor: 'name',
+      Cell: NameCell
+    },
+    {
+      Header: 'Code',
+      accessor: 'code',
+      Cell: CodeCell
     },
     {
       Header: 'Actions',
