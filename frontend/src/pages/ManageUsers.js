@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
-import api from '../api';
+import api, { API_ROOT } from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function ManageUsers() {
@@ -80,7 +80,9 @@ export default function ManageUsers() {
         Header: 'Profile Picture',
         accessor: 'profilePicture',
         Cell: ({ value }) =>
-          value ? <Avatar src={value} sx={{ width: 32, height: 32 }} /> : null
+          value ? (
+            <Avatar src={value.startsWith('http') ? value : `${API_ROOT}${value}`} sx={{ width: 32, height: 32 }} />
+          ) : null
       }
     ];
 

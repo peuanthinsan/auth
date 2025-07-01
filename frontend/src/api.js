@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const apiBase = process.env.API_URL || '/api';
+export const API_ROOT = apiBase.replace(/\/api\/?$/, '');
+
 const api = axios.create({
-  baseURL: process.env.API_URL || '/api'
+  baseURL: apiBase
 });
 
 let refreshTokenValue = '';
