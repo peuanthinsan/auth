@@ -178,7 +178,7 @@ export default function ManageUsers() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+        <Stack direction="row" sx={{ mt: 2 }}>
           <Autocomplete
             options={users}
             getOptionLabel={u => u.username || ''}
@@ -188,7 +188,7 @@ export default function ManageUsers() {
           />
           <Button variant="contained" onClick={addMember}>Add Member</Button>
         </Stack>
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+        <Stack direction="row" sx={{ mt: 2 }}>
           <Autocomplete
             options={users}
             getOptionLabel={u => u.username || ''}

@@ -22,7 +22,7 @@ export default function CreateOrganization() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Create Organization</Typography>
-      <Stack spacing={2} sx={styles.formStack}>
+      <Stack sx={styles.formStack}>
         <TextField
           label="Name"
           placeholder="Name"

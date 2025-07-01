@@ -44,7 +44,7 @@ export default function Transfer() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Transfer</Typography>
-      <Stack spacing={2} sx={styles.formStack}>
+      <Stack sx={styles.formStack}>
         <TextField
           label="To Username"
           placeholder="To Username"
