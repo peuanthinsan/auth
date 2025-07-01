@@ -11,6 +11,7 @@ export default function ManageRoles() {
   const [roles, setRoles] = useState([]);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   useEffect(() => {
     const load = async () => {
@@ -22,23 +23,38 @@ export default function ManageRoles() {
   }, [currentOrg]);
 
   const updateRole = async (id, field, value) => {
-    await api.patch(`/roles/${id}`, { [field]: value });
-    setRoles(roles.map(r => (r.id === id ? { ...r, [field]: value } : r)));
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setMessage({ text: `${field === 'code' ? 'Code' : 'Name'} is required`, error: true });
+      return;
+    }
+    await api.patch(`/roles/${id}`, { [field]: trimmed });
+    setRoles(roles.map(r => (r.id === id ? { ...r, [field]: trimmed } : r)));
+    setMessage({ text: 'Role updated', error: false });
   };
 
   const deleteRole = async (id) => {
     const role = roles.find(r => r.id === id);
     if (role?.system) return;
+    if (!window.confirm('Delete this role?')) return;
     await api.delete(`/roles/${id}`);
     setRoles(roles.filter(r => r.id !== id));
+    setMessage({ text: 'Role deleted', error: false });
   };
 
   const createRole = async () => {
     if (!currentOrg) return;
-    const res = await api.post('/roles', { code: newCode, name: newName, orgId: currentOrg });
-    setRoles([...roles, { id: res.data.id, code: newCode, name: newName, system: false }]);
+    const code = newCode.trim();
+    const name = newName.trim();
+    if (!code || !name) {
+      setMessage({ text: 'Code and name are required', error: true });
+      return;
+    }
+    const res = await api.post('/roles', { code, name, orgId: currentOrg });
+    setRoles([...roles, { id: res.data.id, code, name, system: false }]);
     setNewCode('');
     setNewName('');
+    setMessage({ text: 'Role created', error: false });
   };
 
   const columns = useMemo(() => [
@@ -124,6 +140,9 @@ export default function ManageRoles() {
           onChange={e => setNewName(e.target.value)}
         />
         <Button sx={styles.ml1} variant="contained" onClick={createRole}>Add</Button>
+        {message.text && (
+          <Typography role="status" aria-live="polite" sx={{ ml: 1 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
+        )}
       </Box>
     </Box>
   );
