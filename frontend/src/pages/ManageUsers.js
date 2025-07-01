@@ -50,7 +50,7 @@ export default function ManageUsers() {
   const changeRoles = async (id, roleIds) => {
     await api.post(`/users/${id}/roles`, { roleIds });
     const roleCodes = roles.filter(r => roleIds.includes(r.id)).map(r => r.code);
-    setUsers(users.map(u => (u.id === id ? { ...u, roleIds, roles: roleCodes } : u)));
+    setUsers(users.map(u => (u.id === id ? { ...u, roleIds, roleCodes } : u)));
   };
 
   const addMember = async () => {
@@ -115,7 +115,7 @@ export default function ManageUsers() {
       });
       base.push({
         Header: 'Roles',
-        accessor: 'roles',
+        accessor: 'roleCodes',
         Cell: ({ row }) => (
           <Select
             size="small"
@@ -160,7 +160,14 @@ export default function ManageUsers() {
   );
   const table = useTable({ columns, data: filtered });
 
-  const addOptions = useMemo(() => allUsers, [allUsers]);
+  const addOptions = useMemo(() => {
+    const orgId = currentOrg || addOrgId;
+    if (!orgId) return allUsers;
+    const memberIds = users
+      .filter(u => u.organizations.some(o => o.id === orgId))
+      .map(u => u.id);
+    return allUsers.filter(u => !memberIds.includes(u.id));
+  }, [allUsers, users, currentOrg, addOrgId]);
 
   const removeOptions = useMemo(
     () =>
