@@ -71,10 +71,9 @@ export default function App() {
   ];
   const adminNav = { text: 'Administration', path: '/admin', icon: <AdminPanelSettings /> };
   const showAdminNav =
-    profile && isAdmin && (
-      (profile.isSuperAdmin && !currentOrg) ||
-      (!profile.isSuperAdmin && currentOrg)
-    );
+    profile &&
+    isAdmin &&
+    (profile.isSuperAdmin || currentOrg);
   const navItems = token
     ? [...loggedInNav, ...(showAdminNav ? [adminNav] : [])]
     : loggedOutNav;
