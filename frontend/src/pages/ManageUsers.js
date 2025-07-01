@@ -40,7 +40,7 @@ export default function ManageUsers() {
   };
 
   const addMember = async () => {
-    const orgId = addOrgId;
+    const orgId = currentOrg || addOrgId;
     if (!addUserId || !orgId) {
       showToast('Select user and organization', 'error');
       return;
@@ -196,8 +196,8 @@ export default function ManageUsers() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
-        {!currentOrg && (
-          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          {!currentOrg && (
             <Autocomplete
               options={orgs}
               getOptionLabel={o => o.name || ''}
@@ -205,35 +205,28 @@ export default function ManageUsers() {
               renderInput={params => <TextField {...params} size="small" label="Organization" />}
               sx={{ width: 200 }}
             />
-            <Autocomplete
-              options={addOptions}
-              getOptionLabel={u => u.username || ''}
-              onChange={(_, v) => setAddUserId(v ? v.id : '')}
-              renderInput={params => <TextField {...params} size="small" label="User" />}
-              sx={{ width: 200 }}
-            />
-            <Button variant="contained" onClick={addMember}>Add Member</Button>
-          </Stack>
-        )}
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          {!currentOrg && (
-            <Autocomplete
-              options={orgs}
-              getOptionLabel={o => o.name || ''}
-              onChange={(_, v) => setRemoveOrgId(v ? v.id : '')}
-              renderInput={params => <TextField {...params} size="small" label="Organization" />}
-              sx={{ width: 200 }}
-            />
           )}
           <Autocomplete
-            options={removeOptions}
+            options={addOptions}
             getOptionLabel={u => u.username || ''}
-            onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
+            onChange={(_, v) => setAddUserId(v ? v.id : '')}
             renderInput={params => <TextField {...params} size="small" label="User" />}
             sx={{ width: 200 }}
           />
-          <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
+          <Button variant="contained" onClick={addMember}>Add Member</Button>
         </Stack>
+        {currentOrg && (
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+            <Autocomplete
+              options={removeOptions}
+              getOptionLabel={u => u.username || ''}
+              onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
+              renderInput={params => <TextField {...params} size="small" label="User" />}
+              sx={{ width: 200 }}
+            />
+            <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
+          </Stack>
+        )}
       </Box>
     </Box>
 );
