@@ -43,7 +43,7 @@ export default function Register() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Register</Typography>
-      <Stack spacing={2} sx={styles.formStack}>
+      <Stack sx={styles.formStack}>
         {['username','password','confirmPassword','email','firstName','lastName'].map(f => (
           <TextField
             key={f}

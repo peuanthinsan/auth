@@ -40,7 +40,7 @@ export default function RemoveMember() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Remove Member</Typography>
-      <Stack spacing={2} sx={styles.formStack}>
+      <Stack sx={styles.formStack}>
         <Autocomplete
           options={orgs}
           getOptionLabel={o => o.name || ''}

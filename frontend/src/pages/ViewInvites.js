@@ -15,7 +15,7 @@ export default function ViewInvites() {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>View Invites</Typography>
-      <Stack spacing={2} sx={styles.formStack}>
+      <Stack sx={styles.formStack}>
         <TextField label="Org ID" value={orgId} onChange={e => setOrgId(e.target.value)} />
         <Button variant="contained" onClick={load}>Load</Button>
       </Stack>
