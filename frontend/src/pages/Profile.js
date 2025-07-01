@@ -24,6 +24,7 @@ export default function Profile() {
             <Avatar src={profile.profilePicture} sx={{ width: 100, height: 100, mb: 2 }} />
           )}
           <Typography><strong>Username:</strong> {profile.username}</Typography>
+          <Typography><strong>Email:</strong> {profile.email}</Typography>
           <Typography><strong>Name:</strong> {profile.firstName} {profile.lastName}</Typography>
           <Typography><strong>Roles:</strong> {profile.roles.join(', ')}</Typography>
           <Typography sx={{ mt: 1 }}><strong>Balances:</strong></Typography>

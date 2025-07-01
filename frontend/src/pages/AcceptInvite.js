@@ -6,7 +6,7 @@ import { styles } from '../styles';
 import api from '../api';
 
 export default function AcceptInvite() {
-  const { refreshOrgs } = useContext(AuthContext);
+  const { refreshOrgs, loadProfile } = useContext(AuthContext);
   const [invites, setInvites] = useState([]);
   const [tokens, setTokens] = useState({});
   const [message, setMessage] = useState({ text: '', error: false });
@@ -25,6 +25,7 @@ export default function AcceptInvite() {
       setMessage({ text: 'Invite accepted', error: false });
       setInvites(invites.filter(i => i.id !== id));
       refreshOrgs();
+      loadProfile();
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Error accepting invite', error: true });
     }

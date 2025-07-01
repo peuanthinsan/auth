@@ -8,7 +8,7 @@ export default function Transfer() {
   const [toUsername, setTo] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState({ text: '', error: false });
-  const { currentOrg } = useContext(AuthContext);
+  const { currentOrg, loadProfile } = useContext(AuthContext);
   const [balance, setBalance] = useState(null);
 
   useEffect(() => {
@@ -34,6 +34,7 @@ export default function Transfer() {
       setMessage({ text: 'Transfer complete', error: false });
       const res = await api.get('/balance', { params: { orgId: currentOrg } });
       setBalance(res.data.balance);
+      loadProfile();
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Transfer failed', error: true });
     }
