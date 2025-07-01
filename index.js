@@ -357,7 +357,7 @@ apiRouter.get('/organizations', authenticateToken, requireSuperAdmin, async (req
 });
 
 
-apiRouter.post('/organizations/:id/members', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.post('/organizations/:id/members', authenticateToken, requireSuperAdmin, async (req, res) => {
   const { id } = req.params;
   const { userId } = req.body;
   const org = await Organization.findById(id);
@@ -580,7 +580,7 @@ apiRouter.get('/my-invites', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.id);
   if (!user) return res.sendStatus(404);
   const invites = await Invite.find({ email: user.email }).populate('orgId', 'name');
-  res.json(invites.map(i => ({ id: i._id, org: i.orgId?.name, token: i.token, role: i.role })));
+  res.json(invites.map(i => ({ id: i._id, org: i.orgId?.name, orgId: i.orgId?._id, token: i.token, role: i.role })));
 });
 
 apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
@@ -610,7 +610,7 @@ apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
     Organization.findByIdAndUpdate(org._id, { $pull: { invites: invite._id }, $addToSet: { members: req.user.id } }),
     Invite.findByIdAndDelete(id)
   ]);
-  res.json({ message: 'Invite accepted' });
+  res.json({ message: 'Invite accepted', orgId: org._id });
 });
 
 // currency transfer
