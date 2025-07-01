@@ -7,7 +7,7 @@ import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
 export default function UpdateProfile() {
-  const { loadProfile, profile } = useContext(AuthContext);
+  const { loadProfile, profile, logout } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', firstName: '', lastName: '' });
@@ -85,6 +85,23 @@ export default function UpdateProfile() {
           />
         )}
         <Button type="submit" variant="contained">Submit</Button>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={async () => {
+            if (!window.confirm('Delete your account?')) return;
+            try {
+              await api.delete('/profile');
+              showToast('Account deleted', 'success');
+              await logout();
+              navigate('/register');
+            } catch (err) {
+              showToast(err.response?.data?.message || 'Delete failed', 'error');
+            }
+          }}
+        >
+          Delete Account
+        </Button>
       </Stack>
     </Box>
   );

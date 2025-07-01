@@ -298,6 +298,14 @@ apiRouter.patch(
   }
 );
 
+// delete own profile
+apiRouter.delete('/profile', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) return res.sendStatus(404);
+  await user.deleteOne();
+  res.json({ message: 'Account deleted' });
+});
+
 // change password
 apiRouter.post('/password/change', authenticateToken, async (req, res) => {
   const { oldPassword, newPassword } = req.body;
