@@ -79,9 +79,7 @@ export default function App() {
     : loggedOutNav;
 
   useEffect(() => {
-    if (token) {
-      refreshOrgs();
-    } else {
+    if (!token) {
       setCurrentOrg('');
     }
   }, [token]);

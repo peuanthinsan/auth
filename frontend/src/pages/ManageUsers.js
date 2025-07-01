@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
-import api, { API_ROOT } from '../api';
+import api, { API_ROOT, getCached } from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
@@ -25,13 +25,13 @@ export default function ManageUsers() {
     const memberReq = currentOrg
       ? api.get('/users', { params: { orgId: currentOrg } })
       : api.get('/users');
-    const roleReq = api.get('/roles', {
+    const roleReq = getCached('/roles', {
       params: currentOrg ? { orgId: currentOrg } : {}
     });
     const orgReq = profile?.isSuperAdmin
-      ? api.get('/organizations')
+      ? getCached('/organizations')
       : Promise.resolve({ data: [] });
-    const allReq = api.get('/users');
+    const allReq = currentOrg ? api.get('/users') : Promise.resolve({ data: [] });
     const [uRes, rRes, oRes, aRes] = await Promise.all([
       memberReq,
       roleReq,
@@ -39,7 +39,7 @@ export default function ManageUsers() {
       allReq
     ]);
     setUsers(uRes.data);
-    setAllUsers(aRes.data);
+    setAllUsers(currentOrg ? aRes.data : uRes.data);
     setRoles(rRes.data);
     setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));
   };
@@ -52,7 +52,7 @@ export default function ManageUsers() {
     const fetchRoles = async () => {
       const orgId = currentOrg || addOrgId;
       if (!orgId) { setRoles([]); return; }
-      const res = await api.get('/roles', { params: { orgId } });
+      const res = await getCached('/roles', { params: { orgId } });
       setRoles(res.data);
     };
     fetchRoles();
