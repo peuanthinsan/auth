@@ -74,7 +74,6 @@ export default function ManageOrganizations() {
   };
 
   const columns = useMemo(() => [
-    { Header: 'ID', accessor: 'id' },
     {
       Header: 'Name',
       accessor: 'name',

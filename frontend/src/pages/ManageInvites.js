@@ -56,7 +56,6 @@ export default function ManageInvites() {
 
 
   const columns = useMemo(() => [
-    { Header: 'ID', accessor: 'id' },
     { Header: 'Email', accessor: 'email' },
     { Header: 'Token', accessor: 'token' },
     {
