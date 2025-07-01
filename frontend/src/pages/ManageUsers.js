@@ -207,8 +207,33 @@ export default function ManageUsers() {
   } = table;
 
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
       <Typography variant="h6" gutterBottom>Manage Users</Typography>
+      <Box sx={styles.tableContainer}>
+        <Box component="table" {...getTableProps()} sx={styles.table}>
+          <Box component="thead">
+            {headerGroups.map(hg => (
+              <Box component="tr" {...hg.getHeaderGroupProps()}>
+                {hg.headers.map(col => (
+                  <Box component="th" {...col.getHeaderProps()}>{col.render('Header')}</Box>
+                ))}
+              </Box>
+            ))}
+          </Box>
+          <Box component="tbody" {...getTableBodyProps()}>
+            {rows.map(row => {
+              prepareRow(row);
+              return (
+                <Box component="tr" {...row.getRowProps()}>
+                  {row.cells.map(cell => (
+                    <Box component="td" {...cell.getCellProps()}>{cell.render('Cell')}</Box>
+                  ))}
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      </Box>
       <Box sx={styles.actionRow}>
         {profile?.isSuperAdmin && (
           <Box component="form" onSubmit={addMember}>
@@ -266,30 +291,7 @@ export default function ManageUsers() {
             </Stack>
           </Box>
         )}
-      </Box>
-      <Box component="table" {...getTableProps()} sx={styles.table}>
-        <Box component="thead">
-          {headerGroups.map(hg => (
-            <Box component="tr" {...hg.getHeaderGroupProps()}>
-              {hg.headers.map(col => (
-                <Box component="th" {...col.getHeaderProps()}>{col.render('Header')}</Box>
-              ))}
-            </Box>
-          ))}
-        </Box>
-        <Box component="tbody" {...getTableBodyProps()}>
-          {rows.map(row => {
-            prepareRow(row);
-            return (
-              <Box component="tr" {...row.getRowProps()}>
-                {row.cells.map(cell => (
-                  <Box component="td" {...cell.getCellProps()}>{cell.render('Cell')}</Box>
-                ))}
-              </Box>
-            );
-          })}
         </Box>
       </Box>
-    </Box>
-  );
-}
+    );
+  }

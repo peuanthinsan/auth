@@ -2,7 +2,8 @@ export const drawerWidth = 240;
 
 export const styles = {
   root: {
-    display: 'flex'
+    display: 'flex',
+    minHeight: '100vh'
   },
   appBar: {
     zIndex: (theme) => theme.zIndex.drawer + 1,
@@ -17,10 +18,23 @@ export const styles = {
       backgroundColor: '#f7f7f7'
     }
   },
-  content: { flexGrow: 1, p: 3 },
+  content: {
+    flexGrow: 1,
+    p: 3,
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%'
+  },
+  tableContainer: {
+    flexGrow: 1,
+    overflowY: 'auto',
+    overflowX: 'auto',
+    mt: 2
+  },
   formStack: { maxWidth: 300 },
   table: {
-    width: '100%',
+    width: 'max-content',
+    minWidth: '100%',
     borderCollapse: 'collapse',
     '& th, & td': {
       textAlign: 'left',
