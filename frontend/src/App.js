@@ -61,30 +61,26 @@ export default function App() {
     { text: 'Accept Invite', path: '/accept-invite', icon: <HowToReg /> },
     { text: 'Transfer', path: '/transfer', icon: <SwapHoriz /> },
     { text: 'Balance', path: '/balance', icon: <AccountBalanceWallet /> },
-    { text: 'Administration', path: '/admin', icon: <AdminPanelSettings /> },
     { text: 'Logout', path: '/logout', icon: <Logout /> }
   ];
 
-  const { token, currentOrg, setCurrentOrg } = useContext(AuthContext);
-  const navItems = token ? loggedInNav : loggedOutNav;
+  const { token, currentOrg, setCurrentOrg, profile } = useContext(AuthContext);
+  const adminNav = { text: 'Administration', path: '/admin', icon: <AdminPanelSettings /> };
+  const navItems = token
+    ? [...loggedInNav, ...(profile && (profile.isSuperAdmin || profile.roles?.includes('ADMIN')) ? [adminNav] : [])]
+    : loggedOutNav;
   const [orgs, setOrgs] = useState([]);
-  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      const [orgRes, profRes] = await Promise.all([
-        api.get('/user/organizations'),
-        api.get('/profile')
-      ]);
-      setOrgs(orgRes.data.organizations);
-      setProfile(profRes.data);
+      const res = await api.get('/user/organizations');
+      setOrgs(res.data.organizations);
     };
     if (token) {
       load();
     } else {
       setOrgs([]);
       setCurrentOrg('');
-      setProfile(null);
     }
   }, [token]);
 
@@ -119,6 +115,7 @@ export default function App() {
                   label="Org"
                   onChange={changeOrg}
                 >
+                  <MenuItem value="">All</MenuItem>
                   {orgs.map(o => (
                     <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
                   ))}

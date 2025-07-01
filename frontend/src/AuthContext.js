@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [token, setTokenState] = useState(() => localStorage.getItem('token') || '');
   const [refreshToken, setRefreshTokenState] = useState(() => localStorage.getItem('refreshToken') || '');
   const [currentOrg, setCurrentOrgState] = useState(() => localStorage.getItem('currentOrg') || '');
+  const [profile, setProfileState] = useState(null);
 
   useEffect(() => {
     setAuthToken(token);
@@ -29,6 +30,20 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     setTokenRefreshHandler((newToken) => setTokenState(newToken));
   }, []);
+
+  const loadProfile = async () => {
+    if (!token) { setProfileState(null); return; }
+    try {
+      const res = await api.get('/profile');
+      setProfileState(res.data);
+    } catch (e) {
+      setProfileState(null);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, [token]);
 
 
   useEffect(() => {
@@ -65,7 +80,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, refreshAuth, setToken: setTokenState, currentOrg, setCurrentOrg: setCurrentOrgState }}>
+    <AuthContext.Provider value={{ token, login, logout, refreshAuth, setToken: setTokenState, currentOrg, setCurrentOrg: setCurrentOrgState, profile, loadProfile, setProfile: setProfileState }}>
       {children}
     </AuthContext.Provider>
   );

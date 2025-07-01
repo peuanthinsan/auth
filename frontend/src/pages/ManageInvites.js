@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
-import { Box, Typography, IconButton, TextField, Button, Stack } from '@mui/material';
+import { Box, Typography, IconButton, TextField, Button, Stack, Autocomplete } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
@@ -13,6 +13,7 @@ export default function ManageInvites() {
   const [email, setEmail] = useState('');
   const [viewOrgId, setViewOrgId] = useState('');
   const [orgInvites, setOrgInvites] = useState([]);
+  const [allOrgs, setAllOrgs] = useState([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -23,6 +24,14 @@ export default function ManageInvites() {
     };
     load();
   }, [currentOrg]);
+
+  useEffect(() => {
+    const loadOrgs = async () => {
+      const res = await api.get('/organizations');
+      setAllOrgs(res.data.map(o => ({ id: o.id, name: o.name })));
+    };
+    loadOrgs();
+  }, []);
 
   const deleteInvite = async (id) => {
     await api.delete(`/invites/${id}`);
@@ -94,13 +103,12 @@ export default function ManageInvites() {
       <Box sx={styles.actionRow}>
       <Box component="form" onSubmit={sendInvite} noValidate sx={{ mt: 2 }}>
         <Stack direction="row" spacing={1}>
-          <TextField
-            size="small"
-            label="Org ID"
-            placeholder="Org ID"
-            value={orgId}
-            onChange={e => setOrgId(e.target.value)}
-            required
+          <Autocomplete
+            options={allOrgs}
+            getOptionLabel={o => o.name || ''}
+            onChange={(_, v) => setOrgId(v ? v.id : '')}
+            renderInput={params => <TextField {...params} size="small" label="Organization" required />}
+            sx={{ width: 200 }}
           />
           <TextField
             size="small"
@@ -114,12 +122,12 @@ export default function ManageInvites() {
         </Stack>
       </Box>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <TextField
-            size="small"
-            label="Org ID"
-            placeholder="Org ID"
-            value={viewOrgId}
-            onChange={e => setViewOrgId(e.target.value)}
+          <Autocomplete
+            options={allOrgs}
+            getOptionLabel={o => o.name || ''}
+            onChange={(_, v) => setViewOrgId(v ? v.id : '')}
+            renderInput={params => <TextField {...params} size="small" label="Organization" />}
+            sx={{ width: 200 }}
           />
           <Button variant="contained" onClick={loadOrgInvites}>View Invites</Button>
         </Stack>

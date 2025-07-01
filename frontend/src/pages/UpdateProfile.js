@@ -1,13 +1,16 @@
 import React, { useState, useContext } from 'react';
-import { TextField, Button, Stack, Typography, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { TextField, Button, Stack, Typography, Box, Avatar } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function UpdateProfile() {
-  useContext(AuthContext);
+  const { loadProfile } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', firstName: '', lastName: '' });
   const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState('');
   const [message, setMessage] = useState('');
 
   const submit = async (e) => {
@@ -19,6 +22,8 @@ export default function UpdateProfile() {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     setMessage('Profile updated');
+    await loadProfile();
+    navigate('/profile');
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
@@ -35,8 +40,23 @@ export default function UpdateProfile() {
         ))}
         <Button variant="contained" component="label">
           Upload Picture
-          <input type="file" hidden onChange={e => setFile(e.target.files[0])} />
+          <input
+            type="file"
+            hidden
+            onChange={e => {
+              const f = e.target.files[0];
+              setFile(f);
+              if (f) {
+                const reader = new FileReader();
+                reader.onload = ev => setPreview(ev.target.result);
+                reader.readAsDataURL(f);
+              } else {
+                setPreview('');
+              }
+            }}
+          />
         </Button>
+        {preview && <Avatar src={preview} sx={{ width: 80, height: 80 }} />}
         <Button type="submit" variant="contained">Submit</Button>
         {message && (
           <Typography role="status" aria-live="polite">{message}</Typography>

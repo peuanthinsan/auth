@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import {
   TextField,
@@ -12,6 +13,7 @@ import { styles } from '../styles';
 export default function Register() {
   const [form, setForm] = useState({ username: '', password: '', email: '', firstName: '', lastName: '' });
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -22,7 +24,7 @@ export default function Register() {
     }
     try {
       await api.post('/register', trimmed);
-      setMessage('Registered');
+      navigate('/login');
     } catch (err) {
       setMessage(err.response?.data?.message || 'Registration failed');
     }

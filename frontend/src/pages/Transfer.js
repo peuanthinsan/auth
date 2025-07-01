@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
@@ -9,6 +9,17 @@ export default function Transfer() {
   const [toUsername, setTo] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
+  const [balance, setBalance] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      if (currentOrg) {
+        const res = await api.get('/balance', { params: { orgId: currentOrg } });
+        setBalance(res.data.balance);
+      }
+    };
+    load();
+  }, [currentOrg]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -19,6 +30,8 @@ export default function Transfer() {
     try {
       await api.post('/transfer', { toUsername: toUsername.trim(), amount, orgId: currentOrg });
       setMessage('Transfer complete');
+      const res = await api.get('/balance', { params: { orgId: currentOrg } });
+      setBalance(res.data.balance);
     } catch (err) {
       setMessage(err.response?.data?.message || 'Transfer failed');
     }
@@ -42,6 +55,9 @@ export default function Transfer() {
           required
         />
         <Button type="submit" variant="contained">Submit</Button>
+        {balance !== null && (
+          <Typography>Current Balance: {balance}</Typography>
+        )}
         {message && (
           <Typography role="status" aria-live="polite">{message}</Typography>
         )}
