@@ -430,7 +430,29 @@ apiRouter.get('/organizations/:id/invites', authenticateToken, async (req, res) 
 
 apiRouter.delete('/organizations/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
   const { id } = req.params;
-  await Organization.findByIdAndDelete(id);
+
+  const roles = await Role.find({ orgId: id });
+  const roleIds = roles.map(r => r._id);
+
+  const inviteIds = (await Invite.find({ orgId: id }).select('_id')).map(i => i._id);
+
+  await Promise.all([
+    Role.deleteMany({ orgId: id }),
+    Invite.deleteMany({ orgId: id }),
+    User.updateMany(
+      {},
+      {
+        $pull: {
+          organizations: id,
+          balances: { orgId: id },
+          roles: { $in: roleIds },
+          invites: { $in: inviteIds }
+        }
+      }
+    ),
+    Organization.findByIdAndDelete(id)
+  ]);
+
   res.json({ message: 'Organization deleted' });
 });
 
