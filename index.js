@@ -93,6 +93,58 @@ async function ensureDefaultRoles() {
 
 ensureDefaultRoles();
 
+async function ensureDefaultUsers() {
+  const count = await User.countDocuments();
+  if (count >= 100) return;
+  const passwordHash = await bcrypt.hash('password', 10);
+  const firstNames = [
+    'Bob',
+    'Alice',
+    'John',
+    'Jane',
+    'Michael',
+    'Sarah',
+    'David',
+    'Emily',
+    'Chris',
+    'Laura'
+  ];
+  const lastNames = [
+    'Saget',
+    'Smith',
+    'Johnson',
+    'Williams',
+    'Brown',
+    'Jones',
+    'Miller',
+    'Davis',
+    'Garcia',
+    'Martinez'
+  ];
+  const docs = [];
+  for (let i = count; i < 100; i++) {
+    const first = firstNames[i % firstNames.length];
+    const last = lastNames[Math.floor(i / firstNames.length)];
+    docs.push({
+      username: `${first.toLowerCase()}${last.toLowerCase()}${i + 1}`,
+      passwordHash,
+      email: `${first.toLowerCase()}.${last.toLowerCase()}${i + 1}@example.com`,
+      firstName: first,
+      lastName: last,
+      organizations: [],
+      invites: [],
+      balances: [],
+      roles: [],
+      isSuperAdmin: false
+    });
+  }
+  if (docs.length) {
+    await User.insertMany(docs);
+  }
+}
+
+ensureDefaultUsers();
+
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -169,6 +221,9 @@ apiRouter.post('/superadmin', async (req, res) => {
   }
   if (await User.findOne({ username })) {
     return res.status(400).json({ message: 'Username exists' });
+  }
+  if (await User.findOne({ email })) {
+    return res.status(400).json({ message: 'Email exists' });
   }
   const passwordHash = await bcrypt.hash(password, 10);
   const adminRole = await Role.findOne({ code: ROLE_CODES.ADMIN, orgId: null });
@@ -355,38 +410,46 @@ apiRouter.post('/organizations', authenticateToken, requireSuperAdmin, async (re
 
 apiRouter.get('/organizations', authenticateToken, requireSuperAdmin, async (req, res) => {
   const orgs = await Organization.find();
-  res.json(
-    orgs.map(o => ({
-      id: o._id,
-      name: o.name,
-      members: o.members.length,
-      invites: o.invites.length
-    }))
+  const result = await Promise.all(
+    orgs.map(async o => {
+      const count = await User.countDocuments({ _id: { $in: o.members } });
+      return { id: o._id, name: o.name, members: count, invites: o.invites.length };
+    })
   );
+  res.json(result);
 });
 
 
 apiRouter.post('/organizations/:id/members', authenticateToken, requireSuperAdmin, async (req, res) => {
   const { id } = req.params;
-  const { userId } = req.body;
+  const { userId, roleId } = req.body;
+  if (!userId) return res.status(400).json({ message: 'userId required' });
   const org = await Organization.findById(id);
   if (!org) return res.status(404).json({ message: 'Org not found' });
   const requesting = await User.findById(req.user.id);
   if (!requesting.isSuperAdmin && !org.members.some(m => m.toString() === req.user.id)) {
     return res.status(403).json({ message: 'Not authorized' });
   }
+  let user = await User.findById(userId);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
   if (!org.members.some(m => m.toString() === userId)) {
     org.members.push(userId);
-    const user = await User.findById(userId);
-    if (user && !user.organizations.includes(org._id)) {
-      user.organizations.push(org._id);
-    }
-    if (user && !user.balances.some(b => b.orgId.toString() === org._id.toString())) {
-      user.balances.push({ orgId: org._id, amount: 0 });
-    }
-    if (user) await user.save();
   }
-  await org.save();
+
+  if (!user.organizations.includes(org._id)) {
+    user.organizations.push(org._id);
+  }
+  if (!user.balances.some(b => b.orgId.toString() === org._id.toString())) {
+    user.balances.push({ orgId: org._id, amount: 0 });
+  }
+  if (roleId) {
+    const role = await Role.findOne({ _id: roleId, orgId: org._id });
+    if (role && !user.roles.includes(role._id)) {
+      user.roles.push(role._id);
+    }
+  }
+  await Promise.all([user.save(), org.save()]);
   res.json({ message: 'Member added' });
 });
 
@@ -404,6 +467,8 @@ apiRouter.delete('/organizations/:id/members/:userId', authenticateToken, requir
   if (user) {
     user.organizations = user.organizations.filter(o => o.toString() !== org._id.toString());
     user.balances = user.balances.filter(b => b.orgId.toString() !== org._id.toString());
+    const orgRoleIds = (await Role.find({ orgId: org._id }).select('_id')).map(r => r._id.toString());
+    user.roles = user.roles.filter(r => !orgRoleIds.includes(r.toString()));
     await user.save();
   }
   res.json({ message: 'Member removed' });
@@ -419,8 +484,12 @@ apiRouter.post('/organizations/:id/invite', authenticateToken, async (req, res) 
   if (!requesting.isSuperAdmin && !org.members.some(m => m.toString() === req.user.id)) {
     return res.status(403).json({ message: 'Not authorized' });
   }
+  const trimmed = email ? email.trim() : '';
+  if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
+    return res.status(400).json({ message: 'Invalid email' });
+  }
   const roleCode = role === ROLE_CODES.ADMIN ? ROLE_CODES.ADMIN : ROLE_CODES.USER;
-  const invite = new Invite({ orgId: org._id, email, role: roleCode, token: Math.random().toString(36).substring(2) });
+  const invite = new Invite({ orgId: org._id, email: trimmed, role: roleCode, token: Math.random().toString(36).substring(2) });
   await invite.save();
   org.invites.push(invite._id);
   await org.save();
@@ -507,6 +576,7 @@ apiRouter.delete('/users/:id', authenticateToken, requireSuperAdmin, async (req,
   if (user.isSuperAdmin) {
     return res.status(400).json({ message: 'Cannot delete super admin' });
   }
+  await Organization.updateMany({ members: id }, { $pull: { members: id } });
   await user.deleteOne();
   res.json({ message: 'User deleted' });
 });

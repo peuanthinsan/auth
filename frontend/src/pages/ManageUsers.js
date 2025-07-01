@@ -16,6 +16,7 @@ export default function ManageUsers() {
   const [roles, setRoles] = useState([]);
   const [orgs, setOrgs] = useState([]);
   const [addUserId, setAddUserId] = useState('');
+  const [addRoleId, setAddRoleId] = useState('');
   const [removeUserId, setRemoveUserId] = useState('');
   const [addOrgId, setAddOrgId] = useState('');
   const [removeOrgId, setRemoveOrgId] = useState('');
@@ -47,24 +48,44 @@ export default function ManageUsers() {
     load();
   }, [currentOrg]);
 
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const orgId = currentOrg || addOrgId;
+      if (!orgId) { setRoles([]); return; }
+      const res = await api.get('/roles', { params: { orgId } });
+      setRoles(res.data);
+    };
+    fetchRoles();
+  }, [currentOrg, addOrgId]);
+
+  useEffect(() => {
+    if (roles.length && !addRoleId) {
+      setAddRoleId(roles[0].id);
+    }
+  }, [roles]);
+
   const changeRoles = async (id, roleIds) => {
     await api.post(`/users/${id}/roles`, { roleIds });
     const roleCodes = roles.filter(r => roleIds.includes(r.id)).map(r => r.code);
     setUsers(users.map(u => (u.id === id ? { ...u, roleIds, roleCodes } : u)));
   };
 
-  const addMember = async () => {
+  const addMember = async (e) => {
+    if (e) e.preventDefault();
     const orgId = currentOrg || addOrgId;
-    if (!addUserId || !orgId) {
-      showToast('Select user and organization', 'error');
+    if (!addUserId || !orgId || !addRoleId) {
+      showToast('Select user, organization and role', 'error');
       return;
     }
-    await api.post(`/organizations/${orgId}/members`, { userId: addUserId });
+    await api.post(`/organizations/${orgId}/members`, { userId: addUserId, roleId: addRoleId });
     showToast('Member added', 'success');
+    setAddUserId('');
+    setAddRoleId('');
     load();
   };
 
-  const removeMember = async () => {
+  const removeMember = async (e) => {
+    if (e) e.preventDefault();
     const orgId = currentOrg || removeOrgId;
     if (!removeUserId || !orgId) {
       showToast('Select user and organization', 'error');
@@ -188,6 +209,64 @@ export default function ManageUsers() {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Manage Users</Typography>
+      <Box sx={styles.actionRow}>
+        {profile?.isSuperAdmin && (
+          <Box component="form" onSubmit={addMember}>
+            <Stack direction="row" spacing={1}>
+              <Autocomplete
+                options={addOptions}
+                getOptionLabel={u => u.username || ''}
+                onChange={(_, v) => setAddUserId(v ? v.id : '')}
+                renderInput={params => <TextField {...params} size="small" label="User" />}
+                sx={{ width: 200 }}
+              />
+              {!currentOrg && (
+                <Autocomplete
+                  options={orgs}
+                  getOptionLabel={o => o.name || ''}
+                  onChange={(_, v) => {
+                    setAddOrgId(v ? v.id : '');
+                    setAddRoleId('');
+                  }}
+                  renderInput={params => <TextField {...params} size="small" label="Organization" />}
+                  sx={{ width: 200 }}
+                />
+              )}
+              <Select
+                size="small"
+                value={addRoleId}
+                onChange={e => setAddRoleId(e.target.value)}
+                displayEmpty
+                sx={{ width: 160 }}
+              >
+                <MenuItem value="" disabled>
+                  Role
+                </MenuItem>
+                {roles.map(r => (
+                  <MenuItem key={r.id} value={r.id}>
+                    {r.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Button type="submit" variant="contained">Add Member</Button>
+            </Stack>
+          </Box>
+        )}
+        {currentOrg && (
+          <Box component="form" onSubmit={removeMember} sx={{ mt: 2 }}>
+            <Stack direction="row" spacing={1}>
+              <Autocomplete
+                options={removeOptions}
+                getOptionLabel={u => u.username || ''}
+                onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
+                renderInput={params => <TextField {...params} size="small" label="User" />}
+                sx={{ width: 200 }}
+              />
+              <Button type="submit" variant="contained" color="error">Remove Member</Button>
+            </Stack>
+          </Box>
+        )}
+      </Box>
       <Box component="table" {...getTableProps()} sx={styles.table}>
         <Box component="thead">
           {headerGroups.map(hg => (
@@ -211,41 +290,6 @@ export default function ManageUsers() {
           })}
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
-        {profile?.isSuperAdmin && (
-          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-            {!currentOrg && (
-              <Autocomplete
-                options={orgs}
-                getOptionLabel={o => o.name || ''}
-                onChange={(_, v) => setAddOrgId(v ? v.id : '')}
-                renderInput={params => <TextField {...params} size="small" label="Organization" />}
-                sx={{ width: 200 }}
-              />
-            )}
-            <Autocomplete
-              options={addOptions}
-              getOptionLabel={u => u.username || ''}
-              onChange={(_, v) => setAddUserId(v ? v.id : '')}
-              renderInput={params => <TextField {...params} size="small" label="User" />}
-              sx={{ width: 200 }}
-            />
-            <Button variant="contained" onClick={addMember}>Add Member</Button>
-          </Stack>
-        )}
-        {currentOrg && (
-          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-            <Autocomplete
-              options={removeOptions}
-              getOptionLabel={u => u.username || ''}
-              onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
-              renderInput={params => <TextField {...params} size="small" label="User" />}
-              sx={{ width: 200 }}
-            />
-            <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
-          </Stack>
-        )}
-      </Box>
     </Box>
-);
+  );
 }
