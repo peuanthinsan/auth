@@ -1,13 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
-import api from '../api';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function ResetPassword() {
   const [token, setToken] = useState('');
   const [password, setPassword] = useState('');
   const { showToast } = useContext(ToastContext);
+  const { resetPassword } = useContext(ApiContext);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -15,7 +16,7 @@ export default function ResetPassword() {
       showToast('Token and new password are required', 'error');
       return;
     }
-    await api.post('/password/reset', { token, newPassword: password });
+    await resetPassword(token, password);
     showToast('Password reset', 'success');
   };
 

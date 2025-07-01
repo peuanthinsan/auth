@@ -7,13 +7,13 @@ import { useTable } from 'react-table';
 import api, { API_ROOT } from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function ManageUsers() {
   const navigate = useNavigate();
   const { currentOrg, profile, logout } = useContext(AuthContext);
-  const [users, setUsers] = useState([]);
+  const { users, refreshUsers, roles, refreshRoles } = useContext(ApiContext);
   const [allUsers, setAllUsers] = useState([]);
-  const [roles, setRoles] = useState([]);
   const [orgs, setOrgs] = useState([]);
   const [addUserId, setAddUserId] = useState('');
   const [addRoleId, setAddRoleId] = useState('');
@@ -22,26 +22,14 @@ export default function ManageUsers() {
   const [removeOrgId, setRemoveOrgId] = useState('');
   const { showToast } = useContext(ToastContext);
   const load = async () => {
-    const memberReq = currentOrg
-      ? api.get('/users', { params: { orgId: currentOrg } })
-      : api.get('/users');
-    const roleReq = api.get('/roles', {
-      params: currentOrg ? { orgId: currentOrg } : {}
-    });
     const orgReq = profile?.isSuperAdmin
       ? api.get('/organizations')
       : Promise.resolve({ data: [] });
     const allReq = api.get('/users');
-    const [uRes, rRes, oRes, aRes] = await Promise.all([
-      memberReq,
-      roleReq,
-      orgReq,
-      allReq
-    ]);
-    setUsers(uRes.data);
+    const [oRes, aRes] = await Promise.all([orgReq, allReq]);
+    await Promise.all([refreshUsers(currentOrg || ''), refreshRoles(currentOrg || '')]);
     setAllUsers(aRes.data);
-    setRoles(rRes.data);
-    setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));
+    setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name }))); 
   };
 
   useEffect(() => {
@@ -51,12 +39,11 @@ export default function ManageUsers() {
   useEffect(() => {
     const fetchRoles = async () => {
       const orgId = currentOrg || addOrgId;
-      if (!orgId) { setRoles([]); return; }
-      const res = await api.get('/roles', { params: { orgId } });
-      setRoles(res.data);
+      if (!orgId) return;
+      await refreshRoles(orgId);
     };
     fetchRoles();
-  }, [currentOrg, addOrgId]);
+  }, [currentOrg, addOrgId, refreshRoles]);
 
   useEffect(() => {
     if (roles.length && !addRoleId) {
@@ -66,8 +53,7 @@ export default function ManageUsers() {
 
   const changeRoles = async (id, roleIds) => {
     await api.post(`/users/${id}/roles`, { roleIds });
-    const roleCodes = roles.filter(r => roleIds.includes(r.id)).map(r => r.code);
-    setUsers(users.map(u => (u.id === id ? { ...u, roleIds, roleCodes } : u)));
+    await refreshUsers(currentOrg || '');
   };
 
   const addMember = async (e) => {
@@ -100,7 +86,7 @@ export default function ManageUsers() {
     if (!window.confirm('Delete this user?')) return;
     try {
       await api.delete(`/users/${id}`);
-      setUsers(users.filter(u => u.id !== id));
+      await refreshUsers(currentOrg || '');
       if (profile?.id === id) {
         await logout();
         navigate('/login');

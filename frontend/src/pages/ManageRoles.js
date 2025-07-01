@@ -6,22 +6,22 @@ import { useTable } from 'react-table';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function ManageRoles() {
   const { currentOrg } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
-  const [roles, setRoles] = useState([]);
+  const { roles, refreshRoles } = useContext(ApiContext);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
     const load = async () => {
-      if (!currentOrg) { setRoles([]); return; }
-      const res = await api.get('/roles', { params: { orgId: currentOrg } });
-      setRoles(res.data);
+      if (!currentOrg) return;
+      await refreshRoles(currentOrg);
     };
     load();
-  }, [currentOrg]);
+  }, [currentOrg, refreshRoles]);
 
   const updateRole = async (id, field, value) => {
     const trimmed = value.trim();
@@ -30,7 +30,7 @@ export default function ManageRoles() {
       return;
     }
     await api.patch(`/roles/${id}`, { [field]: trimmed });
-    setRoles(roles.map(r => (r.id === id ? { ...r, [field]: trimmed } : r)));
+    await refreshRoles(currentOrg);
     showToast('Role updated', 'success');
   };
 
@@ -39,7 +39,7 @@ export default function ManageRoles() {
     if (role?.system) return;
     if (!window.confirm('Delete this role?')) return;
     await api.delete(`/roles/${id}`);
-    setRoles(roles.filter(r => r.id !== id));
+    await refreshRoles(currentOrg);
     showToast('Role deleted', 'success');
   };
 
@@ -52,8 +52,8 @@ export default function ManageRoles() {
       showToast('Code and name are required', 'error');
       return;
     }
-    const res = await api.post('/roles', { code, name, orgId: currentOrg });
-    setRoles([...roles, { id: res.data.id, code, name, system: false }]);
+    await api.post('/roles', { code, name, orgId: currentOrg });
+    await refreshRoles(currentOrg);
     setNewCode('');
     setNewName('');
     showToast('Role created', 'success');

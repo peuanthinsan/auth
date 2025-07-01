@@ -6,24 +6,19 @@ import { useTable } from 'react-table';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function ManageInvites() {
   const { currentOrg } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
-  const [invites, setInvites] = useState([]);
+  const { invites, refreshInvites, roles, refreshRoles } = useContext(ApiContext);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
-  const [roles, setRoles] = useState([]);
 
   const loadInvites = async () => {
-    if (!currentOrg) { setInvites([]); setRoles([]); return; }
-    const [iRes, rRes] = await Promise.all([
-      api.get(`/organizations/${currentOrg}/invites`),
-      api.get('/roles', { params: { orgId: currentOrg } })
-    ]);
-    setInvites(iRes.data.map(i => ({ id: i.id, email: i.email, token: i.token, role: i.role })));
-    setRoles(rRes.data);
-    if (rRes.data.length && !role) setRole(rRes.data[0].code);
+    if (!currentOrg) return;
+    await Promise.all([refreshInvites(currentOrg), refreshRoles(currentOrg)]);
+    if (roles.length && !role) setRole(roles[0].code);
   };
   useEffect(() => {
     loadInvites();
@@ -33,7 +28,7 @@ export default function ManageInvites() {
   const deleteInvite = async (id) => {
     if (!window.confirm('Delete this invite?')) return;
     await api.delete(`/invites/${id}`);
-    setInvites(invites.filter(i => i.id !== id));
+    await refreshInvites(currentOrg);
     showToast('Invite deleted', 'success');
   };
 

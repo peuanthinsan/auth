@@ -2,16 +2,16 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
-import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function Transfer() {
   const [toUsername, setTo] = useState('');
   const [amount, setAmount] = useState('');
   const { showToast } = useContext(ToastContext);
   const { currentOrg, loadProfile } = useContext(AuthContext);
-  const [balance, setBalance] = useState(null);
+  const { balance, refreshBalance, transfer } = useContext(ApiContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,16 +21,8 @@ export default function Transfer() {
   }, [currentOrg, navigate]);
 
   useEffect(() => {
-    const loadBal = async () => {
-      if (currentOrg) {
-        const res = await api.get('/balance', { params: { orgId: currentOrg } });
-        setBalance(res.data.balance);
-      } else {
-        setBalance(null);
-      }
-    };
-    loadBal();
-  }, [currentOrg]);
+    refreshBalance();
+  }, [currentOrg, refreshBalance]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -39,10 +31,9 @@ export default function Transfer() {
       return;
     }
     try {
-      await api.post('/transfer', { toUsername: toUsername.trim(), amount, orgId: currentOrg });
+      await transfer(toUsername.trim(), amount);
       showToast('Transfer complete', 'success');
-      const res = await api.get('/balance', { params: { orgId: currentOrg } });
-      setBalance(res.data.balance);
+      refreshBalance();
       loadProfile();
     } catch (err) {
       showToast(err.response?.data?.message || 'Transfer failed', 'error');

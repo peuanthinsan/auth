@@ -2,13 +2,15 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Stack, Typography, Box, Avatar } from '@mui/material';
 import { styles } from '../styles';
-import api, { API_ROOT } from '../api';
+import { API_ROOT } from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function UpdateProfile() {
   const { loadProfile, profile, logout } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
+  const { updateProfile, deleteAccount } = useContext(ApiContext);
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', firstName: '', lastName: '' });
   const [file, setFile] = useState(null);
@@ -32,11 +34,8 @@ export default function UpdateProfile() {
     Object.entries(form).forEach(([k, v]) => data.append(k, v));
     if (file) data.append('profilePicture', file);
     try {
-      await api.patch('/profile', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await updateProfile(data);
       showToast('Profile updated', 'success');
-      await loadProfile();
       navigate('/profile');
     } catch (err) {
       showToast(err.response?.data?.message || 'Update failed', 'error');
@@ -91,7 +90,7 @@ export default function UpdateProfile() {
           onClick={async () => {
             if (!window.confirm('Delete your account?')) return;
             try {
-              await api.delete('/profile');
+              await deleteAccount();
               showToast('Account deleted', 'success');
               await logout();
               navigate('/register');
