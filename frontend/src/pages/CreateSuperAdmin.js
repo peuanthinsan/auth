@@ -5,7 +5,7 @@ import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 
 export default function CreateSuperAdmin() {
-  const [form, setForm] = useState({ username: '', password: '', email: '', firstName: '', lastName: '' });
+  const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', email: '', firstName: '', lastName: '' });
   const [message, setMessage] = useState({ text: '', error: false });
   const navigate = useNavigate();
 
@@ -16,24 +16,35 @@ export default function CreateSuperAdmin() {
       setMessage({ text: 'All fields are required', error: true });
       return;
     }
+    if (trimmed.password !== trimmed.confirmPassword) {
+      setMessage({ text: 'Passwords do not match', error: true });
+      return;
+    }
+    const { confirmPassword, ...payload } = trimmed;
     try {
-      await api.post('/superadmin', trimmed);
+      await api.post('/superadmin', payload);
       navigate('/login');
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Creation failed', error: true });
     }
   };
 
+  const formatLabel = (field) =>
+    field
+      .replace(/^(.)/, (c) => c.toUpperCase())
+      .replace(/([A-Z])/g, ' $1')
+      .trim();
+
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Create Super Admin</Typography>
       <Stack spacing={2} sx={styles.formStack}>
-        {['username','password','email','firstName','lastName'].map(f => (
+        {['username','password','confirmPassword','email','firstName','lastName'].map(f => (
           <TextField
             key={f}
-            type={f === 'password' ? 'password' : 'text'}
-            label={f}
-            placeholder={f.replace(/^(.)/, c => c.toUpperCase()).replace(/([A-Z])/g, ' $1').trim()}
+            type={['password','confirmPassword'].includes(f) ? 'password' : 'text'}
+            label={formatLabel(f)}
+            placeholder={formatLabel(f)}
             inputProps={f === 'username' ? { maxLength: 20 } : undefined}
             helperText={f === 'username' ? 'max 20 characters' : ''}
             value={form[f]}
