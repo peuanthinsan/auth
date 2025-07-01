@@ -75,22 +75,16 @@ export default function ManageUsers() {
       { Header: 'Username', accessor: 'username' },
       { Header: 'Email', accessor: 'email' },
       { Header: 'First Name', accessor: 'firstName' },
-      { Header: 'Last Name', accessor: 'lastName' }
-    ];
-
-    if (!currentOrg) {
-      base.push({
+      { Header: 'Last Name', accessor: 'lastName' },
+      {
         Header: 'Profile Picture',
         accessor: 'profilePicture',
         Cell: ({ value }) =>
           value ? <Avatar src={value} sx={{ width: 32, height: 32 }} /> : null
-      });
-      base.push({
-        Header: 'Roles',
-        accessor: 'roles',
-        Cell: ({ value }) => value.join(', ')
-      });
-    } else {
+      }
+    ];
+
+    if (currentOrg) {
       base.push({ Header: 'Balance', accessor: 'balance' });
       base.push({
         Header: 'Organizations',
