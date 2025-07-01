@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
 import api from '../api';
-import { TextField, Button, Stack, Typography, Box } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Stack,
+  Typography,
+  Box
+} from '@mui/material';
 import { styles } from '../styles';
 
 export default function Register() {
   const [form, setForm] = useState({ username: '', password: '', email: '', firstName: '', lastName: '' });
-  const submit = async () => {
-    await api.post('/register', form);
-    alert('registered');
+  const [message, setMessage] = useState('');
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const trimmed = { ...form, username: form.username.trim() };
+    if (Object.values(trimmed).some(v => !v)) {
+      setMessage('All fields are required');
+      return;
+    }
+    await api.post('/register', trimmed);
+    setMessage('Registered');
   };
   return (
-    <Box>
+    <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Register</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         {['username','password','email','firstName','lastName'].map(f => (
@@ -18,11 +32,18 @@ export default function Register() {
             key={f}
             type={f === 'password' ? 'password' : 'text'}
             label={f}
+            placeholder={f.replace(/^(.)/, c => c.toUpperCase()).replace(/([A-Z])/g, ' $1').trim()}
+            inputProps={f === 'username' ? { maxLength: 20 } : undefined}
+            helperText={f === 'username' ? 'max 20 characters' : ''}
             value={form[f]}
             onChange={e => setForm({ ...form, [f]: e.target.value })}
+            required
           />
         ))}
-        <Button variant="contained" onClick={submit}>Submit</Button>
+        <Button type="submit" variant="contained">Submit</Button>
+        {message && (
+          <Typography role="status" aria-live="polite">{message}</Typography>
+        )}
       </Stack>
     </Box>
   );

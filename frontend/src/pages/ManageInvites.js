@@ -11,6 +11,7 @@ export default function ManageInvites() {
   const [email, setEmail] = useState('');
   const [viewOrgId, setViewOrgId] = useState('');
   const [orgInvites, setOrgInvites] = useState([]);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -25,9 +26,14 @@ export default function ManageInvites() {
     setInvites(invites.filter(i => i.id !== id));
   };
 
-  const sendInvite = async () => {
+  const sendInvite = async (e) => {
+    e.preventDefault();
+    if (!orgId || !email) {
+      setMessage('Org ID and email are required');
+      return;
+    }
     await api.post(`/organizations/${orgId}/invite`, { email });
-    alert('invite sent');
+    setMessage('Invite sent');
   };
 
   const loadOrgInvites = async () => {
@@ -81,17 +87,42 @@ export default function ManageInvites() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <TextField size="small" label="org id" value={orgId} onChange={e => setOrgId(e.target.value)} />
-          <TextField size="small" label="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <Button variant="contained" onClick={sendInvite}>Invite User</Button>
+      <Box component="form" onSubmit={sendInvite} noValidate sx={{ mt: 2 }}>
+        <Stack direction="row" spacing={1}>
+          <TextField
+            size="small"
+            label="org id"
+            placeholder="Org ID"
+            value={orgId}
+            onChange={e => setOrgId(e.target.value)}
+            required
+          />
+          <TextField
+            size="small"
+            label="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+          <Button type="submit" variant="contained">Invite User</Button>
         </Stack>
+      </Box>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <TextField size="small" label="org id" value={viewOrgId} onChange={e => setViewOrgId(e.target.value)} />
+          <TextField
+            size="small"
+            label="org id"
+            placeholder="Org ID"
+            value={viewOrgId}
+            onChange={e => setViewOrgId(e.target.value)}
+          />
           <Button variant="contained" onClick={loadOrgInvites}>View Invites</Button>
         </Stack>
         {orgInvites.length > 0 && (
           <Box component="pre" sx={{ mt: 2 }}>{JSON.stringify(orgInvites, null, 2)}</Box>
+        )}
+        {message && (
+          <Typography role="status" aria-live="polite" sx={{ mt: 2 }}>{message}</Typography>
         )}
       </Box>
     </Box>

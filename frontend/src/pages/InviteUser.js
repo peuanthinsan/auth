@@ -8,17 +8,39 @@ export default function InviteUser() {
   useContext(AuthContext);
   const [orgId, setOrgId] = useState('');
   const [email, setEmail] = useState('');
-  const submit = async () => {
+  const [message, setMessage] = useState('');
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!orgId || !email) {
+      setMessage('Org ID and email are required');
+      return;
+    }
     await api.post(`/organizations/${orgId}/invite`, { email });
-    alert('invite sent');
+    setMessage('Invite sent');
   };
   return (
-    <Box>
+    <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Invite User</Typography>
       <Stack spacing={2} sx={styles.formStack}>
-        <TextField label="org id" value={orgId} onChange={e => setOrgId(e.target.value)} />
-        <TextField label="email" value={email} onChange={e => setEmail(e.target.value)} />
-        <Button variant="contained" onClick={submit}>Submit</Button>
+        <TextField
+          label="org id"
+          placeholder="Org ID"
+          value={orgId}
+          onChange={e => setOrgId(e.target.value)}
+          required
+        />
+        <TextField
+          label="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
+        <Button type="submit" variant="contained">Submit</Button>
+        {message && (
+          <Typography role="status" aria-live="polite">{message}</Typography>
+        )}
       </Stack>
     </Box>
   );
