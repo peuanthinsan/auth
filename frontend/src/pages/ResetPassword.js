@@ -21,7 +21,7 @@ export default function ResetPassword() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Reset Password</Typography>
-      <Stack sx={styles.formStack}>
+      <Stack spacing={2} sx={styles.formStack}>
         <TextField
           label="Reset Token"
           placeholder="Reset Token"

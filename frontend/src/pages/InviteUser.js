@@ -27,7 +27,7 @@ export default function InviteUser() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Invite User</Typography>
-      <Stack sx={styles.formStack}>
+      <Stack spacing={2} sx={styles.formStack}>
         <TextField
           label="Org ID"
           placeholder="Org ID"

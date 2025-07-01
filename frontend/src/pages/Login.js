@@ -41,7 +41,7 @@ export default function Login() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Login</Typography>
-      <Stack sx={styles.formStack}>
+      <Stack spacing={2} sx={styles.formStack}>
         <TextField
           label="Username"
           placeholder="Username"

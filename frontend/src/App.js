@@ -133,7 +133,7 @@ export default function App() {
           <List>
             {navItems.map((item) => (
               <ListItem disablePadding key={item.text}>
-              <ListItemButton component={Link} to={item.path}>
+                <ListItemButton component={Link} to={item.path} sx={{ gap: 2 }}>
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.text} />
                 </ListItemButton>
