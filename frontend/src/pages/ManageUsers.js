@@ -12,17 +12,20 @@ export default function ManageUsers() {
   const { currentOrg, profile, logout } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [orgs, setOrgs] = useState([]);
   const [addUserId, setAddUserId] = useState('');
   const [removeUserId, setRemoveUserId] = useState('');
+  const [addOrgId, setAddOrgId] = useState('');
+  const [removeOrgId, setRemoveOrgId] = useState('');
   const [message, setMessage] = useState({ text: '', error: false });
   const load = async () => {
-    const userReq = currentOrg
-      ? api.get('/users', { params: { orgId: currentOrg } })
-      : api.get('/users');
+    const userReq = api.get('/users');
     const roleReq = api.get('/roles', { params: currentOrg ? { orgId: currentOrg } : {} });
-    const [uRes, rRes] = await Promise.all([userReq, roleReq]);
+    const orgReq = api.get('/organizations');
+    const [uRes, rRes, oRes] = await Promise.all([userReq, roleReq, orgReq]);
     setUsers(uRes.data);
     setRoles(rRes.data);
+    setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));
   };
 
   useEffect(() => {
@@ -36,21 +39,23 @@ export default function ManageUsers() {
   };
 
   const addMember = async () => {
-    if (!addUserId || !currentOrg) {
-      setMessage({ text: 'Select user', error: true });
+    const orgId = currentOrg || addOrgId;
+    if (!addUserId || !orgId) {
+      setMessage({ text: 'Select user and organization', error: true });
       return;
     }
-    await api.post(`/organizations/${currentOrg}/members`, { userId: addUserId });
+    await api.post(`/organizations/${orgId}/members`, { userId: addUserId });
     setMessage({ text: 'Member added', error: false });
     load();
   };
 
   const removeMember = async () => {
-    if (!removeUserId || !currentOrg) {
-      setMessage({ text: 'Select user', error: true });
+    const orgId = currentOrg || removeOrgId;
+    if (!removeUserId || !orgId) {
+      setMessage({ text: 'Select user and organization', error: true });
       return;
     }
-    await api.delete(`/organizations/${currentOrg}/members/${removeUserId}`);
+    await api.delete(`/organizations/${orgId}/members/${removeUserId}`);
     setMessage({ text: 'Member removed', error: false });
     load();
   };
@@ -139,6 +144,22 @@ export default function ManageUsers() {
   );
   const table = useTable({ columns, data: filtered });
 
+  const addOptions = useMemo(
+    () =>
+      currentOrg
+        ? users.filter(u => !u.organizations.some(o => o.id === currentOrg))
+        : users.filter(u => u.organizations.length === 0),
+    [users, currentOrg]
+  );
+
+  const removeOptions = useMemo(
+    () =>
+      currentOrg
+        ? users.filter(u => u.organizations.some(o => o.id === currentOrg))
+        : users.filter(u => u.organizations.length === 0),
+    [users, currentOrg]
+  );
+
   const {
     getTableProps,
     getTableBodyProps,
@@ -175,8 +196,17 @@ export default function ManageUsers() {
       </Box>
       <Box sx={styles.actionRow}>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          {!currentOrg && (
+            <Autocomplete
+              options={orgs}
+              getOptionLabel={o => o.name || ''}
+              onChange={(_, v) => setAddOrgId(v ? v.id : '')}
+              renderInput={params => <TextField {...params} size="small" label="Organization" />}
+              sx={{ width: 200 }}
+            />
+          )}
           <Autocomplete
-            options={users}
+            options={addOptions}
             getOptionLabel={u => u.username || ''}
             onChange={(_, v) => setAddUserId(v ? v.id : '')}
             renderInput={params => <TextField {...params} size="small" label="User" />}
@@ -185,8 +215,17 @@ export default function ManageUsers() {
           <Button variant="contained" onClick={addMember}>Add Member</Button>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          {!currentOrg && (
+            <Autocomplete
+              options={orgs}
+              getOptionLabel={o => o.name || ''}
+              onChange={(_, v) => setRemoveOrgId(v ? v.id : '')}
+              renderInput={params => <TextField {...params} size="small" label="Organization" />}
+              sx={{ width: 200 }}
+            />
+          )}
           <Autocomplete
-            options={users}
+            options={removeOptions}
             getOptionLabel={u => u.username || ''}
             onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
             renderInput={params => <TextField {...params} size="small" label="User" />}
