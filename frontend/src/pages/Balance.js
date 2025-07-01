@@ -6,29 +6,29 @@ import { AuthContext } from '../AuthContext';
 
 export default function Balance() {
   const { currentOrg } = useContext(AuthContext);
-  const [balances, setBalances] = useState([]);
+  const [balance, setBalance] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      const res = await api.get('/balance');
-      setBalances(res.data.balances);
+      if (!currentOrg) { setBalance(null); return; }
+      const res = await api.get('/balance', { params: { orgId: currentOrg } });
+      setBalance(res.data.balance);
     };
     load();
   }, [currentOrg]);
+
+  if (!currentOrg) return <Box />;
+
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Balance</Typography>
-      <Stack spacing={2} sx={styles.mt2}>
-        {balances.map(b => (
-          <Card key={b.orgId}>
-            <CardContent>
-              <Typography variant="h6">{b.orgName || b.orgId}</Typography>
-              <Typography>Balance: {b.amount}</Typography>
-              <Typography variant="caption">ID: {b.orgId}</Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
+      {balance !== null && (
+        <Card>
+          <CardContent>
+            <Typography>Balance: {balance}</Typography>
+          </CardContent>
+        </Card>
+      )}
     </Box>
   );
 }

@@ -1,61 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { TextField, Button, Stack, Typography, Box, Autocomplete } from '@mui/material';
+import React, { useState, useEffect, useContext } from 'react';
+import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
+import { AuthContext } from '../AuthContext';
 
 export default function Transfer() {
   const [toUsername, setTo] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
+  const { currentOrg } = useContext(AuthContext);
   const [balance, setBalance] = useState(null);
-  const [orgId, setOrgId] = useState('');
-  const [orgs, setOrgs] = useState([]);
-
-  useEffect(() => {
-    const load = async () => {
-      const res = await api.get('/user/organizations');
-      setOrgs(res.data.organizations);
-    };
-    load();
-  }, []);
 
   useEffect(() => {
     const loadBal = async () => {
-      if (orgId) {
-        const res = await api.get('/balance', { params: { orgId } });
+      if (currentOrg) {
+        const res = await api.get('/balance', { params: { orgId: currentOrg } });
         setBalance(res.data.balance);
       } else {
         setBalance(null);
       }
     };
     loadBal();
-  }, [orgId]);
+  }, [currentOrg]);
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!toUsername.trim() || !amount || !orgId) {
+    if (!toUsername.trim() || !amount || !currentOrg) {
       setMessage('Recipient, amount, and organization are required');
       return;
     }
     try {
-      await api.post('/transfer', { toUsername: toUsername.trim(), amount, orgId });
+      await api.post('/transfer', { toUsername: toUsername.trim(), amount, orgId: currentOrg });
       setMessage('Transfer complete');
-      const res = await api.get('/balance', { params: { orgId } });
+      const res = await api.get('/balance', { params: { orgId: currentOrg } });
       setBalance(res.data.balance);
     } catch (err) {
       setMessage(err.response?.data?.message || 'Transfer failed');
     }
   };
+  if (!currentOrg) return <Box />;
+
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Transfer</Typography>
       <Stack spacing={2} sx={styles.formStack}>
-        <Autocomplete
-          options={orgs}
-          getOptionLabel={o => o.name || ''}
-          onChange={(_, v) => setOrgId(v ? v.id : '')}
-          renderInput={params => <TextField {...params} label="Organization" required />}
-        />
         <TextField
           label="to username"
           placeholder="To Username"
