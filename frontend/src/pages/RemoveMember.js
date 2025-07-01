@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { TextField, Button, Stack, Typography, Box, Autocomplete } from '@mui/material';
 import { styles } from '../styles';
-import api, { getCached } from '../api';
+import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
@@ -16,7 +16,7 @@ export default function RemoveMember() {
   useEffect(() => {
     const load = async () => {
       const [oRes, uRes] = await Promise.all([
-        getCached('/organizations'),
+        api.get('/organizations'),
         api.get('/users')
       ]);
       setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));

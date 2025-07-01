@@ -3,7 +3,7 @@ import { Box, Typography, IconButton, TextField, Button, Stack, Select, MenuItem
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
-import api, { getCached } from '../api';
+import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
@@ -19,7 +19,7 @@ export default function ManageInvites() {
     if (!currentOrg) { setInvites([]); setRoles([]); return; }
     const [iRes, rRes] = await Promise.all([
       api.get(`/organizations/${currentOrg}/invites`),
-      getCached('/roles', { params: { orgId: currentOrg } })
+      api.get('/roles', { params: { orgId: currentOrg } })
     ]);
     setInvites(iRes.data.map(i => ({ id: i.id, email: i.email, token: i.token, role: i.role })));
     setRoles(rRes.data);

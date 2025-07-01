@@ -3,7 +3,7 @@ import { Box, Typography, TextField, Button, Stack, IconButton } from '@mui/mate
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
-import api, { getCached, clearCache } from '../api';
+import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
@@ -14,7 +14,7 @@ export default function ManageOrganizations() {
   const [newName, setNewName] = useState('');
 
   const loadOrgs = async () => {
-    const res = await getCached('/organizations');
+    const res = await api.get('/organizations');
     setOrgs(res.data);
   };
 
@@ -29,7 +29,6 @@ export default function ManageOrganizations() {
       return;
     }
     await api.patch(`/organizations/${id}`, { name: trimmed });
-    clearCache('/organizations');
     setOrgs(orgs.map(o => (o.id === id ? { ...o, name: trimmed } : o)));
     refreshOrgs();
     showToast('Organization updated', 'success');
@@ -44,7 +43,6 @@ export default function ManageOrganizations() {
     }
     await api.post('/organizations', { name: trimmed });
     setNewName('');
-    clearCache('/organizations');
     loadOrgs();
     refreshOrgs();
     showToast('Organization created', 'success');
@@ -53,7 +51,6 @@ export default function ManageOrganizations() {
   const deleteOrg = async (id) => {
     if (!window.confirm('Delete this organization?')) return;
     await api.delete(`/organizations/${id}`);
-    clearCache('/organizations');
     loadOrgs();
     refreshOrgs();
     setCurrentOrg('');

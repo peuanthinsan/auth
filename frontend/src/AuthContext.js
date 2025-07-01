@@ -20,10 +20,9 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const refreshOrgs = async () => {
-    if (!token) { setOrgs([]); return []; }
+    if (!token) { setOrgs([]); return; }
     const res = await api.get('/user/organizations');
     setOrgs(res.data.organizations);
-    return res.data.organizations;
   };
 
   useEffect(() => {
@@ -51,6 +50,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     loadProfile();
+    refreshOrgs();
   }, [token]);
 
 
