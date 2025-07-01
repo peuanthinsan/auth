@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
@@ -6,6 +7,7 @@ import { styles } from '../styles';
 export default function CreateSuperAdmin() {
   const [form, setForm] = useState({ username: '', password: '', email: '', firstName: '', lastName: '' });
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -16,7 +18,7 @@ export default function CreateSuperAdmin() {
     }
     try {
       await api.post('/superadmin', trimmed);
-      setMessage('Super admin created');
+      navigate('/login');
     } catch (err) {
       setMessage(err.response?.data?.message || 'Creation failed');
     }

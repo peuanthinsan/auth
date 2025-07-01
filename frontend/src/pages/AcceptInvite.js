@@ -1,51 +1,83 @@
-import React, { useState, useContext } from 'react';
-import { TextField, Button, Stack, Typography, Box } from '@mui/material';
+import React, { useEffect, useState, useContext } from 'react';
+import { Box, Typography, TextField, Button } from '@mui/material';
+import { useTable } from 'react-table';
 import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function AcceptInvite() {
   useContext(AuthContext);
-  const [inviteId, setInviteId] = useState('');
-  const [token, setToken] = useState('');
+  const [invites, setInvites] = useState([]);
+  const [tokens, setTokens] = useState({});
   const [message, setMessage] = useState('');
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!inviteId || !token) {
-      setMessage('Invite ID and token are required');
-      return;
-    }
+  useEffect(() => {
+    const load = async () => {
+      const res = await api.get('/my-invites');
+      setInvites(res.data);
+    };
+    load();
+  }, []);
+
+  const accept = async (id) => {
     try {
-      await api.post(`/invites/${inviteId}/accept`, { token });
+      await api.post(`/invites/${id}/accept`, { token: tokens[id] });
       setMessage('Invite accepted');
+      setInvites(invites.filter(i => i.id !== id));
     } catch (err) {
       setMessage(err.response?.data?.message || 'Error accepting invite');
     }
   };
+
+  const columns = React.useMemo(() => [
+    { Header: 'ID', accessor: 'id' },
+    { Header: 'Organization', accessor: 'org' },
+    {
+      Header: 'Token',
+      accessor: 'tokenInput',
+      Cell: ({ row }) => (
+        <TextField size="small" value={tokens[row.original.id] || ''} onChange={e => setTokens({ ...tokens, [row.original.id]: e.target.value })} />
+      )
+    },
+    {
+      Header: 'Actions',
+      accessor: 'actions',
+      Cell: ({ row }) => (
+        <Button variant="contained" onClick={() => accept(row.original.id)}>Accept</Button>
+      )
+    }
+  ], [tokens, invites]);
+
+  const table = useTable({ columns, data: invites });
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = table;
+
   return (
-    <Box component="form" onSubmit={submit} noValidate>
-      <Typography variant="h6" gutterBottom>Accept Invite</Typography>
-      <Stack spacing={2} sx={styles.formStack}>
-        <TextField
-          label="Invite ID"
-          placeholder="Invite ID"
-          value={inviteId}
-          onChange={e => setInviteId(e.target.value)}
-          required
-        />
-        <TextField
-          label="Token"
-          placeholder="Token"
-          value={token}
-          onChange={e => setToken(e.target.value)}
-          required
-        />
-        <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
-        )}
-      </Stack>
+    <Box>
+      <Typography variant="h6" gutterBottom>Accept Invites</Typography>
+      <Box component="table" {...getTableProps()} sx={styles.table}>
+        <Box component="thead">
+          {headerGroups.map(hg => (
+            <Box component="tr" {...hg.getHeaderGroupProps()}>
+              {hg.headers.map(col => (
+                <Box component="th" {...col.getHeaderProps()}>{col.render('Header')}</Box>
+              ))}
+            </Box>
+          ))}
+        </Box>
+        <Box component="tbody" {...getTableBodyProps()}>
+          {rows.map(row => {
+            prepareRow(row);
+            return (
+              <Box component="tr" {...row.getRowProps()}>
+                {row.cells.map(cell => (
+                  <Box component="td" {...cell.getCellProps()}>{cell.render('Cell')}</Box>
+                ))}
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+      {message && <Typography role="status" aria-live="polite" sx={{ mt: 2 }}>{message}</Typography>}
     </Box>
   );
 }

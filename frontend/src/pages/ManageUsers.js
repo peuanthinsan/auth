@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
-import { Box, Typography, Select, MenuItem, Button, Stack, IconButton } from '@mui/material';
+import { Box, Typography, Select, MenuItem, Button, Stack, IconButton, Autocomplete, TextField } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
@@ -31,10 +31,10 @@ export default function ManageUsers() {
     load();
   }, [currentOrg]);
 
-  const changeRole = async (id, roleId) => {
-    await api.post(`/users/${id}/role`, { roleId });
-    const role = roles.find(r => r.id === roleId);
-    setUsers(users.map(u => (u.id === id ? { ...u, role: role.code, roleId } : u)));
+  const changeRoles = async (id, roleIds) => {
+    await api.post(`/users/${id}/roles`, { roleIds });
+    const roleCodes = roles.filter(r => roleIds.includes(r.id)).map(r => r.code);
+    setUsers(users.map(u => (u.id === id ? { ...u, roleIds, roles: roleCodes } : u)));
   };
 
   const addMember = async () => {
@@ -73,13 +73,15 @@ export default function ManageUsers() {
       Cell: ({ value }) => value.map(o => o.name).join(', ')
     },
     {
-      Header: 'Role',
-      accessor: 'role',
+      Header: 'Roles',
+      accessor: 'roles',
       Cell: ({ row }) => (
         <Select
           size="small"
-          value={row.original.roleId}
-          onChange={e => changeRole(row.original.id, e.target.value)}
+          multiple
+          value={row.original.roleIds}
+          onChange={e => changeRoles(row.original.id, e.target.value)}
+          renderValue={selected => roles.filter(r => selected.includes(r.id)).map(r => r.code).join(', ')}
         >
           {roles.map(r => (
             <MenuItem key={r.id} value={r.id}>{r.code}</MenuItem>
@@ -143,61 +145,37 @@ export default function ManageUsers() {
       </Box>
       <Box sx={styles.actionRow}>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <Select
-            size="small"
-            displayEmpty
-            value={addOrgId}
-            onChange={e => setAddOrgId(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>Select Org</em>
-            </MenuItem>
-            {allOrgs.map(o => (
-              <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
-            ))}
-          </Select>
-          <Select
-            size="small"
-            displayEmpty
-            value={addUserId}
-            onChange={e => setAddUserId(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>Select User</em>
-            </MenuItem>
-            {users.map(u => (
-              <MenuItem key={u.id} value={u.id}>{u.username}</MenuItem>
-            ))}
-          </Select>
+          <Autocomplete
+            options={allOrgs}
+            getOptionLabel={o => o.name || ''}
+            onChange={(_, v) => setAddOrgId(v ? v.id : '')}
+            renderInput={params => <TextField {...params} size="small" label="Organization" />}
+            sx={{ width: 200 }}
+          />
+          <Autocomplete
+            options={users}
+            getOptionLabel={u => u.username || ''}
+            onChange={(_, v) => setAddUserId(v ? v.id : '')}
+            renderInput={params => <TextField {...params} size="small" label="User" />}
+            sx={{ width: 200 }}
+          />
           <Button variant="contained" onClick={addMember}>Add Member</Button>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <Select
-            size="small"
-            displayEmpty
-            value={removeOrgId}
-            onChange={e => setRemoveOrgId(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>Select Org</em>
-            </MenuItem>
-            {allOrgs.map(o => (
-              <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
-            ))}
-          </Select>
-          <Select
-            size="small"
-            displayEmpty
-            value={removeUserId}
-            onChange={e => setRemoveUserId(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>Select User</em>
-            </MenuItem>
-            {users.map(u => (
-              <MenuItem key={u.id} value={u.id}>{u.username}</MenuItem>
-            ))}
-          </Select>
+          <Autocomplete
+            options={allOrgs}
+            getOptionLabel={o => o.name || ''}
+            onChange={(_, v) => setRemoveOrgId(v ? v.id : '')}
+            renderInput={params => <TextField {...params} size="small" label="Organization" />}
+            sx={{ width: 200 }}
+          />
+          <Autocomplete
+            options={users}
+            getOptionLabel={u => u.username || ''}
+            onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
+            renderInput={params => <TextField {...params} size="small" label="User" />}
+            sx={{ width: 200 }}
+          />
       <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
     </Stack>
       {message && (

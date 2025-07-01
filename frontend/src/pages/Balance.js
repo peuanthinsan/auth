@@ -6,21 +6,21 @@ import { AuthContext } from '../AuthContext';
 
 export default function Balance() {
   const { currentOrg } = useContext(AuthContext);
-  const [balance, setBalance] = useState(null);
+  const [balances, setBalances] = useState([]);
 
   useEffect(() => {
     const load = async () => {
-      const res = await api.get('/balance', { params: { orgId: currentOrg } });
-      setBalance(res.data.balance);
+      const res = await api.get('/balance');
+      setBalances(res.data.balances);
     };
-    if (currentOrg) {
-      load();
-    }
+    load();
   }, [currentOrg]);
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Balance</Typography>
-      {balance !== null && <Typography>Balance: {balance}</Typography>}
+      {balances.map(b => (
+        <Typography key={b.orgId}>{b.orgName || b.orgId}: {b.amount}</Typography>
+      ))}
     </Box>
   );
 }
