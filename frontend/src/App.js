@@ -97,13 +97,15 @@ export default function App() {
                 {profile.profilePicture && (
                   <Avatar src={profile.profilePicture} sx={{ width: 32, height: 32, mr: 1 }} />
                 )}
-                {profile.firstName} {profile.lastName} | {profile.username} |
-                Current Balance: {profile.balances.find(b => b.orgId === currentOrg)?.amount ?? 0}
+                {profile.firstName} {profile.lastName} | {profile.username}
+                {currentOrg && (
+                  <> | Current Balance: {profile.balances.find(b => b.orgId === currentOrg)?.amount ?? 0}</>
+                )}
               </Typography>
             )}
             {token && (
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel id="org-select-label">Organizations</InputLabel>
+                <InputLabel id="org-select-label" shrink>Organizations</InputLabel>
                 <Select
                   labelId="org-select-label"
                   value={currentOrg}

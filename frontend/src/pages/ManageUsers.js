@@ -16,11 +16,11 @@ export default function ManageUsers() {
   const [removeUserId, setRemoveUserId] = useState('');
   const [message, setMessage] = useState({ text: '', error: false });
   const load = async () => {
-    if (!currentOrg) { setUsers([]); setRoles([]); return; }
-    const [uRes, rRes] = await Promise.all([
-      api.get('/users', { params: { orgId: currentOrg } }),
-      api.get('/roles', { params: { orgId: currentOrg } })
-    ]);
+    const userReq = currentOrg
+      ? api.get('/users', { params: { orgId: currentOrg } })
+      : api.get('/users');
+    const roleReq = api.get('/roles', { params: currentOrg ? { orgId: currentOrg } : {} });
+    const [uRes, rRes] = await Promise.all([userReq, roleReq]);
     setUsers(uRes.data);
     setRoles(rRes.data);
   };
