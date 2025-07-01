@@ -13,20 +13,20 @@ export default function Administration() {
   const showOrgs = profile?.isSuperAdmin;
   const isAdmin = profile?.isSuperAdmin || profile?.roles?.includes('ADMIN');
   if (!isAdmin) return <Box>Not authorized</Box>;
+  const tabs = [];
+  if (currentOrg) tabs.push({ label: 'Users', component: <ManageUsers /> });
+  if (currentOrg) tabs.push({ label: 'Roles', component: <ManageRoles /> });
+  if (showOrgs) tabs.push({ label: 'Organizations', component: <ManageOrganizations /> });
+  if (currentOrg) tabs.push({ label: 'Invites', component: <ManageInvites /> });
+
   return (
     <Box>
       <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-        <Tab label="Users" />
-        {currentOrg && <Tab label="Roles" />}
-        {showOrgs && <Tab label="Organizations" />}
-        {currentOrg && <Tab label="Invites" />}
+        {tabs.map(t => (
+          <Tab key={t.label} label={t.label} />
+        ))}
       </Tabs>
-      <Box sx={styles.actionRow}>
-        {tab === 0 && <ManageUsers />}
-        {currentOrg && tab === 1 && <ManageRoles />}
-        {showOrgs && ((currentOrg ? tab === 2 : tab === 1)) && <ManageOrganizations />}
-        {currentOrg && ((showOrgs ? tab === 3 : tab === 2)) && <ManageInvites />}
-      </Box>
+      <Box sx={styles.actionRow}>{tabs[tab]?.component}</Box>
     </Box>
   );
 }

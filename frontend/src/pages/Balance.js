@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Typography, Box, Card, CardContent, Stack } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
@@ -23,11 +23,7 @@ export default function Balance() {
     <Box>
       <Typography variant="h6" gutterBottom>Balance</Typography>
       {balance !== null && (
-        <Card>
-          <CardContent>
-            <Typography>Balance: {balance}</Typography>
-          </CardContent>
-        </Card>
+        <Typography>Balance: {balance}</Typography>
       )}
     </Box>
   );

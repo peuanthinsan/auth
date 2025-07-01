@@ -110,13 +110,14 @@ export default function App() {
             )}
             {token && (
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel id="org-select-label">Org</InputLabel>
+                <InputLabel id="org-select-label">Organizations</InputLabel>
                 <Select
                   labelId="org-select-label"
                   value={currentOrg}
-                  label="Org"
+                  label="Organizations"
                   onChange={changeOrg}
                 >
+                  <MenuItem value="">None</MenuItem>
                   {orgs.map(o => (
                     <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
                   ))}

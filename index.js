@@ -69,7 +69,8 @@ const organizationSchema = new Schema({
 const inviteSchema = new Schema({
   orgId: { type: Schema.Types.ObjectId, ref: 'Organization' },
   email: String,
-  token: String
+  token: String,
+  role: { type: String, default: ROLE_CODES.USER }
 });
 
 const Role = mongoose.model('Role', roleSchema);
@@ -275,7 +276,13 @@ apiRouter.patch(
     const { username, firstName, lastName } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) return res.sendStatus(404);
-    if (username) user.username = username;
+    if (username && username !== user.username) {
+      const existing = await User.findOne({ username });
+      if (existing && !existing._id.equals(user._id)) {
+        return res.status(400).json({ message: 'Username exists' });
+      }
+      user.username = username;
+    }
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (req.file) {
@@ -392,14 +399,15 @@ apiRouter.delete('/organizations/:id/members/:userId', authenticateToken, requir
 // invite user (dummy implementation)
 apiRouter.post('/organizations/:id/invite', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { email } = req.body;
+  const { email, role } = req.body;
   const org = await Organization.findById(id);
   if (!org) return res.status(404).json({ message: 'Org not found' });
   const requesting = await User.findById(req.user.id);
   if (!requesting.isSuperAdmin && !org.members.some(m => m.toString() === req.user.id)) {
     return res.status(403).json({ message: 'Not authorized' });
   }
-  const invite = new Invite({ orgId: org._id, email, token: Math.random().toString(36).substring(2) });
+  const roleCode = role === ROLE_CODES.ADMIN ? ROLE_CODES.ADMIN : ROLE_CODES.USER;
+  const invite = new Invite({ orgId: org._id, email, role: roleCode, token: Math.random().toString(36).substring(2) });
   await invite.save();
   org.invites.push(invite._id);
   await org.save();
@@ -410,7 +418,9 @@ apiRouter.get('/organizations/:id/invites', authenticateToken, async (req, res) 
   const { id } = req.params;
   const org = await Organization.findById(id).populate('invites');
   if (!org) return res.status(404).json({ message: 'Org not found' });
-  res.json(org.invites);
+  res.json(
+    org.invites.map(i => ({ id: i._id, email: i.email, token: i.token, role: i.role }))
+  );
 });
 
 
@@ -518,7 +528,8 @@ apiRouter.get('/invites', authenticateToken, requireAdmin, async (req, res) => {
     id: i._id,
     email: i.email,
     org: i.orgId?.name,
-    token: i.token
+    token: i.token,
+    role: i.role
   })));
 });
 
@@ -535,7 +546,7 @@ apiRouter.get('/my-invites', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.id);
   if (!user) return res.sendStatus(404);
   const invites = await Invite.find({ email: user.email }).populate('orgId', 'name');
-  res.json(invites.map(i => ({ id: i._id, org: i.orgId?.name, token: i.token })));
+  res.json(invites.map(i => ({ id: i._id, org: i.orgId?.name, token: i.token, role: i.role })));
 });
 
 apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
@@ -553,6 +564,8 @@ apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
   if (!user.balances.some(b => b.orgId.toString() === org._id.toString())) {
     user.balances.push({ orgId: org._id, amount: 0 });
   }
+  const role = await Role.findOne({ code: invite.role || ROLE_CODES.USER, orgId: org._id });
+  if (role && !user.roles.includes(role._id)) user.roles.push(role._id);
   if (!org.members.includes(req.user.id)) org.members.push(req.user.id);
   await Promise.all([
     user.save(),

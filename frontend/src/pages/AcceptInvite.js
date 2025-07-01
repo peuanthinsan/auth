@@ -9,7 +9,7 @@ export default function AcceptInvite() {
   useContext(AuthContext);
   const [invites, setInvites] = useState([]);
   const [tokens, setTokens] = useState({});
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   useEffect(() => {
     const load = async () => {
@@ -22,16 +22,17 @@ export default function AcceptInvite() {
   const accept = async (id) => {
     try {
       await api.post(`/invites/${id}/accept`, { token: tokens[id] });
-      setMessage('Invite accepted');
+      setMessage({ text: 'Invite accepted', error: false });
       setInvites(invites.filter(i => i.id !== id));
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Error accepting invite');
+      setMessage({ text: err.response?.data?.message || 'Error accepting invite', error: true });
     }
   };
 
   const columns = React.useMemo(() => [
     { Header: 'ID', accessor: 'id' },
     { Header: 'Organization', accessor: 'org' },
+    { Header: 'Role', accessor: 'role' },
     {
       Header: 'Token',
       accessor: 'tokenInput',
@@ -77,7 +78,7 @@ export default function AcceptInvite() {
           })}
         </Box>
       </Box>
-      {message && <Typography role="status" aria-live="polite" sx={{ mt: 2 }}>{message}</Typography>}
+      {message.text && <Typography role="status" aria-live="polite" sx={{ mt: 2 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>}
     </Box>
   );
 }

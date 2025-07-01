@@ -10,7 +10,7 @@ export default function AddMember() {
   const [userId, setUserId] = useState('');
   const [orgs, setOrgs] = useState([]);
   const [users, setUsers] = useState([]);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   useEffect(() => {
     const load = async () => {
@@ -27,14 +27,14 @@ export default function AddMember() {
   const submit = async (e) => {
     e.preventDefault();
     if (!orgId || !userId) {
-      setMessage('Org and user IDs are required');
+      setMessage({ text: 'Org and user IDs are required', error: true });
       return;
     }
     try {
       await api.post(`/organizations/${orgId}/members`, { userId });
-      setMessage('Member added');
+      setMessage({ text: 'Member added', error: false });
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Error adding member');
+      setMessage({ text: err.response?.data?.message || 'Error adding member', error: true });
     }
   };
   return (
@@ -54,8 +54,8 @@ export default function AddMember() {
           renderInput={params => <TextField {...params} label="User" required />}
         />
         <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>

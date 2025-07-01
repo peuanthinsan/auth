@@ -7,31 +7,31 @@ import { AuthContext } from '../AuthContext';
 export default function CreateOrganization() {
   useContext(AuthContext);
   const [name, setName] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   const submit = async (e) => {
     e.preventDefault();
     if (!name) {
-      setMessage('Name is required');
+      setMessage({ text: 'Name is required', error: true });
       return;
     }
     await api.post('/organizations', { name });
-    setMessage('Organization created');
+    setMessage({ text: 'Organization created', error: false });
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Create Organization</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
-          label="name"
+          label="Name"
           placeholder="Name"
           value={name}
           onChange={e => setName(e.target.value)}
           required
         />
         <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>
