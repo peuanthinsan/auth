@@ -18,6 +18,7 @@ import {
   InputLabel,
   Avatar
 } from '@mui/material';
+import { API_ROOT } from './api';
 import {
   PersonAdd,
   Login as LoginIcon,
@@ -97,7 +98,10 @@ export default function App() {
             {token && profile && (
               <Typography sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
                 {profile.profilePicture && (
-                  <Avatar src={profile.profilePicture} sx={{ width: 32, height: 32, mr: 1 }} />
+                  <Avatar
+                    src={profile.profilePicture.startsWith('http') ? profile.profilePicture : `${API_ROOT}${profile.profilePicture}`}
+                    sx={{ width: 32, height: 32, mr: 1 }}
+                  />
                 )}
                 {profile.firstName} {profile.lastName} | {profile.username}
                 {currentOrg && (

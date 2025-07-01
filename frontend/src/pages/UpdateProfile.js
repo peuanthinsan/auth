@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Stack, Typography, Box, Avatar } from '@mui/material';
 import { styles } from '../styles';
-import api from '../api';
+import api, { API_ROOT } from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function UpdateProfile() {
@@ -72,7 +72,17 @@ export default function UpdateProfile() {
             }}
           />
         </Button>
-        {preview && <Avatar src={preview} sx={{ width: 80, height: 80 }} />}
+        {(preview || profile?.profilePicture) && (
+          <Avatar
+            src={
+              preview ||
+              (profile.profilePicture?.startsWith('http')
+                ? profile.profilePicture
+                : `${API_ROOT}${profile.profilePicture}`)
+            }
+            sx={{ width: 80, height: 80 }}
+          />
+        )}
         <Button type="submit" variant="contained">Submit</Button>
         {message.text && (
           <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
