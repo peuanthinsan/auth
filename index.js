@@ -243,6 +243,7 @@ apiRouter.get('/profile', authenticateToken, async (req, res) => {
     .lean();
   if (!user) return res.sendStatus(404);
   res.json({
+    id: user._id,
     username: user.username,
     email: user.email,
     firstName: user.firstName,
@@ -451,7 +452,12 @@ apiRouter.get('/users', authenticateToken, requireAdmin, async (req, res) => {
 
 apiRouter.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
-  await User.findByIdAndDelete(id);
+  const user = await User.findById(id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  if (user.isSuperAdmin) {
+    return res.status(400).json({ message: 'Cannot delete super admin' });
+  }
+  await user.deleteOne();
   res.json({ message: 'User deleted' });
 });
 

@@ -54,17 +54,19 @@ export default function App() {
     { text: 'Create SuperAdmin', path: '/create-superadmin', icon: <AdminPanelSettings /> }
   ];
 
+  const { token, currentOrg, setCurrentOrg, profile } = useContext(AuthContext);
+
   const loggedInNav = [
     { text: 'Profile', path: '/profile', icon: <AccountCircle /> },
     { text: 'Update Profile', path: '/update-profile', icon: <Edit /> },
     { text: 'Change Password', path: '/change-password', icon: <Lock /> },
     { text: 'Accept Invite', path: '/accept-invite', icon: <HowToReg /> },
-    { text: 'Transfer', path: '/transfer', icon: <SwapHoriz /> },
-    { text: 'Balance', path: '/balance', icon: <AccountBalanceWallet /> },
+    ...(currentOrg ? [
+      { text: 'Transfer', path: '/transfer', icon: <SwapHoriz /> },
+      { text: 'Balance', path: '/balance', icon: <AccountBalanceWallet /> }
+    ] : []),
     { text: 'Logout', path: '/logout', icon: <Logout /> }
   ];
-
-  const { token, currentOrg, setCurrentOrg, profile } = useContext(AuthContext);
   const adminNav = { text: 'Administration', path: '/admin', icon: <AdminPanelSettings /> };
   const navItems = token
     ? [...loggedInNav, ...(profile && (profile.isSuperAdmin || profile.roles?.includes('ADMIN')) ? [adminNav] : [])]
@@ -115,7 +117,6 @@ export default function App() {
                   label="Org"
                   onChange={changeOrg}
                 >
-                  <MenuItem value="">All Organizations</MenuItem>
                   {orgs.map(o => (
                     <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
                   ))}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
 import { Box, Typography, Select, MenuItem, Button, Stack, IconButton, Autocomplete, TextField } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
@@ -7,7 +8,8 @@ import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function ManageUsers() {
-  const { currentOrg } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { currentOrg, profile, logout } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [allOrgs, setAllOrgs] = useState([]);
@@ -19,11 +21,14 @@ export default function ManageUsers() {
 
   useEffect(() => {
     const load = async () => {
-      const [uRes, rRes, oRes] = await Promise.all([
-        api.get('/users', { params: { orgId: currentOrg } }),
-        api.get('/roles', { params: { orgId: currentOrg } }),
-        api.get('/organizations')
-      ]);
+      const userReq = currentOrg
+        ? api.get('/users', { params: { orgId: currentOrg } })
+        : api.get('/users');
+      const rolesReq = currentOrg
+        ? api.get('/roles', { params: { orgId: currentOrg } })
+        : Promise.resolve({ data: [] });
+      const orgReq = api.get('/organizations');
+      const [uRes, rRes, oRes] = await Promise.all([userReq, rolesReq, orgReq]);
       setUsers(uRes.data);
       setRoles(rRes.data);
       setAllOrgs(oRes.data);
@@ -56,8 +61,16 @@ export default function ManageUsers() {
   };
 
   const deleteUser = async (id) => {
-    await api.delete(`/users/${id}`);
-    setUsers(users.filter(u => u.id !== id));
+    try {
+      await api.delete(`/users/${id}`);
+      setUsers(users.filter(u => u.id !== id));
+      if (profile?.id === id) {
+        await logout();
+        navigate('/login');
+      }
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Delete failed');
+    }
   };
 
   const columns = useMemo(() => [
