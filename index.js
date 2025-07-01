@@ -105,7 +105,10 @@ function authenticateToken(req, res, next) {
 
 async function requireAdmin(req, res, next) {
   const user = await User.findById(req.user.id).populate('roles');
-  if (!user || !user.roles.some(r => r.code === ROLE_CODES.ADMIN)) {
+  if (
+    !user ||
+    (!user.isSuperAdmin && !user.roles.some(r => r.code === ROLE_CODES.ADMIN))
+  ) {
     return res.status(403).json({ message: 'Admin only' });
   }
   next();
@@ -455,7 +458,8 @@ apiRouter.delete('/users/:id', authenticateToken, requireAdmin, async (req, res)
 apiRouter.post('/users/:id/roles', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { roleIds } = req.body;
-  if (!Array.isArray(roleIds)) return res.status(400).json({ message: 'roleIds array required' });
+  if (!Array.isArray(roleIds) || roleIds.length === 0)
+    return res.status(400).json({ message: 'roleIds array required and cannot be empty' });
   const roles = await Role.find({ _id: { $in: roleIds } });
   if (roles.length !== roleIds.length) return res.status(400).json({ message: 'Invalid roles' });
   const user = await User.findById(id);
