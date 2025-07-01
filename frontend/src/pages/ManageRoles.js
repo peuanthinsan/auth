@@ -1,45 +1,40 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
-import { Box, Typography, TextField, IconButton, Button, Stack } from '@mui/material';
+import { Box, Typography, TextField, IconButton, Button } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
-import api from '../api';
+import { useDispatch, useSelector } from 'react-redux';
+import { loadRoles, createRole, updateRole as updateRoleAction, deleteRole } from '../actions';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
 export default function ManageRoles() {
   const { currentOrg } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
-  const [roles, setRoles] = useState([]);
+  const dispatch = useDispatch();
+  const roles = useSelector(state => state.roles);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
-    const load = async () => {
-      if (!currentOrg) { setRoles([]); return; }
-      const res = await api.get('/roles', { params: { orgId: currentOrg } });
-      setRoles(res.data);
-    };
-    load();
-  }, [currentOrg]);
+    dispatch(loadRoles(currentOrg));
+  }, [currentOrg, dispatch]);
 
-  const updateRole = async (id, field, value) => {
+  const updateRoleField = async (id, field, value) => {
     const trimmed = value.trim();
     if (!trimmed) {
       showToast(`${field === 'code' ? 'Code' : 'Name'} is required`, 'error');
       return;
     }
-    await api.patch(`/roles/${id}`, { [field]: trimmed });
-    setRoles(roles.map(r => (r.id === id ? { ...r, [field]: trimmed } : r)));
+    dispatch(updateRoleAction(id, { [field]: trimmed }));
     showToast('Role updated', 'success');
   };
 
-  const deleteRole = async (id) => {
+  const deleteRoleHandler = async (id) => {
     const role = roles.find(r => r.id === id);
     if (role?.system) return;
     if (!window.confirm('Delete this role?')) return;
-    await api.delete(`/roles/${id}`);
-    setRoles(roles.filter(r => r.id !== id));
+    await dispatch(deleteRole(id));
     showToast('Role deleted', 'success');
   };
 
@@ -52,8 +47,7 @@ export default function ManageRoles() {
       showToast('Code and name are required', 'error');
       return;
     }
-    const res = await api.post('/roles', { code, name, orgId: currentOrg });
-    setRoles([...roles, { id: res.data.id, code, name, system: false }]);
+    dispatch(createRole(code, name, currentOrg));
     setNewCode('');
     setNewName('');
     showToast('Role created', 'success');
@@ -61,37 +55,33 @@ export default function ManageRoles() {
 
   const CodeCell = ({ row }) => {
     const [value, setValue] = useState(row.original.code);
-    const save = () => updateRole(row.original.id, 'code', value);
-    const onKeyDown = (e) => { if (e.key === 'Enter') save(); };
+    const save = () => updateRoleField(row.original.id, 'code', value);
+    const onKeyDown = (e) => { if (e.key === 'Enter') e.target.blur(); };
     return (
-      <Stack direction="row" spacing={1}>
-        <TextField
-          size="small"
-          placeholder="Code"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          onKeyDown={onKeyDown}
-        />
-        <Button size="small" variant="contained" onClick={save}>Change</Button>
-      </Stack>
+      <TextField
+        size="small"
+        placeholder="Code"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onBlur={save}
+        onKeyDown={onKeyDown}
+      />
     );
   };
 
   const NameCell = ({ row }) => {
     const [value, setValue] = useState(row.original.name);
-    const save = () => updateRole(row.original.id, 'name', value);
-    const onKeyDown = (e) => { if (e.key === 'Enter') save(); };
+    const save = () => updateRoleField(row.original.id, 'name', value);
+    const onKeyDown = (e) => { if (e.key === 'Enter') e.target.blur(); };
     return (
-      <Stack direction="row" spacing={1}>
-        <TextField
-          size="small"
-          placeholder="Name"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          onKeyDown={onKeyDown}
-        />
-        <Button size="small" variant="contained" onClick={save}>Change</Button>
-      </Stack>
+      <TextField
+        size="small"
+        placeholder="Name"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onBlur={save}
+        onKeyDown={onKeyDown}
+      />
     );
   };
 
@@ -110,7 +100,7 @@ export default function ManageRoles() {
       Header: 'Actions',
       accessor: 'actions',
       Cell: ({ row }) => (
-        <IconButton color="error" disabled={row.original.system} onClick={() => deleteRole(row.original.id)}>
+        <IconButton color="error" disabled={row.original.system} onClick={() => deleteRoleHandler(row.original.id)}>
           <DeleteIcon />
         </IconButton>
       )

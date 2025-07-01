@@ -3,24 +3,22 @@ import { Box, Typography, TextField, Button, Stack, IconButton } from '@mui/mate
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
-import api from '../api';
+import { useDispatch, useSelector } from 'react-redux';
+import { loadOrganizations, createOrganization, updateOrganization, deleteOrganization } from '../actions';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 
 export default function ManageOrganizations() {
   const { refreshOrgs, setCurrentOrg } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
-  const [orgs, setOrgs] = useState([]);
+  const dispatch = useDispatch();
+  const orgs = useSelector(state => state.organizations);
   const [newName, setNewName] = useState('');
 
-  const loadOrgs = async () => {
-    const res = await api.get('/organizations');
-    setOrgs(res.data);
-  };
 
   useEffect(() => {
-    loadOrgs();
-  }, []);
+    dispatch(loadOrganizations());
+  }, [dispatch]);
 
   const updateName = async (id, name) => {
     const trimmed = name.trim();
@@ -28,8 +26,7 @@ export default function ManageOrganizations() {
       showToast('Name is required', 'error');
       return;
     }
-    await api.patch(`/organizations/${id}`, { name: trimmed });
-    setOrgs(orgs.map(o => (o.id === id ? { ...o, name: trimmed } : o)));
+    dispatch(updateOrganization(id, trimmed));
     refreshOrgs();
     showToast('Organization updated', 'success');
   };
@@ -41,17 +38,15 @@ export default function ManageOrganizations() {
       showToast('Name is required', 'error');
       return;
     }
-    await api.post('/organizations', { name: trimmed });
+    dispatch(createOrganization(trimmed));
     setNewName('');
-    loadOrgs();
     refreshOrgs();
     showToast('Organization created', 'success');
   };
 
   const deleteOrg = async (id) => {
     if (!window.confirm('Delete this organization?')) return;
-    await api.delete(`/organizations/${id}`);
-    loadOrgs();
+    await dispatch(deleteOrganization(id));
     refreshOrgs();
     setCurrentOrg('');
     showToast('Organization deleted', 'success');
@@ -60,16 +55,16 @@ export default function ManageOrganizations() {
   const NameCell = ({ row }) => {
     const [value, setValue] = useState(row.original.name);
     const save = () => updateName(row.original.id, value);
+    const onKeyDown = (e) => { if (e.key === 'Enter') e.target.blur(); };
     return (
-      <Stack direction="row" spacing={1}>
-        <TextField
-          size="small"
-          placeholder="Name"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-        />
-        <Button size="small" variant="contained" onClick={save}>Change</Button>
-      </Stack>
+      <TextField
+        size="small"
+        placeholder="Name"
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onBlur={save}
+        onKeyDown={onKeyDown}
+      />
     );
   };
 
