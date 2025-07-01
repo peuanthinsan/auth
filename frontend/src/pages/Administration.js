@@ -18,7 +18,7 @@ export default function Administration() {
       navigate('/profile');
     }
   }, [currentOrg, isAdmin, profile, navigate]);
-  if (!isAdmin) return <Box>Not authorized</Box>;
+  if (!isAdmin) return null;
   const tabs = [];
   if (currentOrg || profile?.isSuperAdmin) {
     const label = currentOrg ? 'Users' : 'Unassigned Users';

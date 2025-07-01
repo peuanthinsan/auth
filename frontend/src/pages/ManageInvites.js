@@ -44,6 +44,10 @@ export default function ManageInvites() {
       showToast('Organization, email and role are required', 'error');
       return;
     }
+    if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
+      showToast('Invalid email address', 'error');
+      return;
+    }
     await api.post(`/organizations/${currentOrg}/invite`, { email: trimmed, role });
     showToast('Invite sent', 'success');
     setEmail('');
@@ -77,6 +81,30 @@ export default function ManageInvites() {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Manage Invites</Typography>
+      <Box sx={styles.actionRow}>
+        <Box component="form" onSubmit={sendInvite} noValidate>
+          <Stack direction="row" spacing={1}>
+            <TextField
+              size="small"
+              label="Email"
+              placeholder="Email"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+            <Select
+              size="small"
+              value={role}
+              onChange={e => setRole(e.target.value)}
+            >
+              {roles.map(r => (
+                <MenuItem key={r.id} value={r.code}>{r.name}</MenuItem>
+              ))}
+            </Select>
+            <Button type="submit" variant="contained">Invite User</Button>
+          </Stack>
+        </Box>
+      </Box>
       <Box component="table" {...getTableProps()} sx={styles.table}>
         <Box component="thead">
           {headerGroups.map(hg => (
@@ -98,30 +126,6 @@ export default function ManageInvites() {
               </Box>
             );
           })}
-        </Box>
-      </Box>
-      <Box sx={styles.actionRow}>
-        <Box component="form" onSubmit={sendInvite} noValidate sx={{ mt: 2 }}>
-          <Stack direction="row" spacing={1}>
-            <TextField
-              size="small"
-              label="Email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-            <Select
-              size="small"
-              value={role}
-              onChange={e => setRole(e.target.value)}
-            >
-              {roles.map(r => (
-                <MenuItem key={r.id} value={r.code}>{r.name}</MenuItem>
-              ))}
-            </Select>
-            <Button type="submit" variant="contained">Invite User</Button>
-          </Stack>
         </Box>
       </Box>
     </Box>

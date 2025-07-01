@@ -34,7 +34,8 @@ export default function ManageOrganizations() {
     showToast('Organization updated', 'success');
   };
 
-  const createOrg = async () => {
+  const createOrg = async (e) => {
+    if (e) e.preventDefault();
     const trimmed = newName.trim();
     if (!trimmed) {
       showToast('Name is required', 'error');
@@ -98,6 +99,20 @@ export default function ManageOrganizations() {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Manage Organizations</Typography>
+      <Box sx={styles.actionRow}>
+        <Box component="form" onSubmit={createOrg}>
+          <Stack direction="row" spacing={1}>
+            <TextField
+              size="small"
+              label="Name"
+              placeholder="Name"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+            />
+            <Button type="submit" variant="contained">Create Organization</Button>
+          </Stack>
+        </Box>
+      </Box>
       <Box component="table" {...getTableProps()} sx={styles.table}>
         <Box component="thead">
           {headerGroups.map(hg => (
@@ -121,16 +136,6 @@ export default function ManageOrganizations() {
           })}
         </Box>
       </Box>
-      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-        <TextField
-          size="small"
-          label="Name"
-          placeholder="Name"
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
-        />
-        <Button variant="contained" onClick={createOrg}>Create Organization</Button>
-      </Stack>
     </Box>
   );
 }

@@ -43,7 +43,8 @@ export default function ManageRoles() {
     showToast('Role deleted', 'success');
   };
 
-  const createRole = async () => {
+  const createRole = async (e) => {
+    if (e) e.preventDefault();
     if (!currentOrg) return;
     const code = newCode.trim();
     const name = newName.trim();
@@ -101,6 +102,26 @@ export default function ManageRoles() {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Manage Roles</Typography>
+      <Box sx={styles.actionRow}>
+        <Box component="form" onSubmit={createRole}>
+          <TextField
+            label="Code"
+            placeholder="Code"
+            size="small"
+            value={newCode}
+            onChange={e => setNewCode(e.target.value)}
+          />
+          <TextField
+            label="Name"
+            placeholder="Name"
+            size="small"
+            sx={styles.ml1}
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+          />
+          <Button sx={styles.ml1} type="submit" variant="contained">Add</Button>
+        </Box>
+      </Box>
       <Box component="table" {...getTableProps()} sx={styles.table}>
         <Box component="thead">
           {headerGroups.map(hg => (
@@ -123,24 +144,6 @@ export default function ManageRoles() {
             );
           })}
         </Box>
-      </Box>
-      <Box sx={styles.actionRow}>
-        <TextField
-          label="Code"
-          placeholder="Code"
-          size="small"
-          value={newCode}
-          onChange={e => setNewCode(e.target.value)}
-        />
-        <TextField
-          label="Name"
-          placeholder="Name"
-          size="small"
-          sx={styles.ml1}
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
-        />
-        <Button sx={styles.ml1} variant="contained" onClick={createRole}>Add</Button>
       </Box>
     </Box>
   );
