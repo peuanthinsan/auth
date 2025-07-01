@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import {
@@ -9,21 +9,22 @@ import {
   Box
 } from '@mui/material';
 import { styles } from '../styles';
+import { ToastContext } from '../ToastContext';
 
 export default function Register() {
+  const { showToast } = useContext(ToastContext);
   const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', email: '', firstName: '', lastName: '' });
-  const [message, setMessage] = useState({ text: '', error: false });
   const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
     const trimmed = { ...form, username: form.username.trim() };
     if (Object.values(trimmed).some(v => !v)) {
-      setMessage({ text: 'All fields are required', error: true });
+      showToast('All fields are required', 'error');
       return;
     }
     if (trimmed.password !== trimmed.confirmPassword) {
-      setMessage({ text: 'Passwords do not match', error: true });
+      showToast('Passwords do not match', 'error');
       return;
     }
     const { confirmPassword, ...payload } = trimmed;
@@ -31,7 +32,7 @@ export default function Register() {
       await api.post('/register', payload);
       navigate('/login');
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Registration failed', error: true });
+      showToast(err.response?.data?.message || 'Registration failed', 'error');
     }
   };
   const formatLabel = (field) =>
@@ -58,9 +59,6 @@ export default function Register() {
           />
         ))}
         <Button type="submit" variant="contained">Submit</Button>
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Stack>
     </Box>
   );

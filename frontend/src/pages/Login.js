@@ -11,31 +11,32 @@ import {
 import { styles } from '../styles';
 import { AuthContext } from '../AuthContext';
 import api from '../api';
+import { ToastContext } from '../ToastContext';
 
 export default function Login() {
   const { login } = useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState({ text: '', error: false });
 
   const submit = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password) {
-      setMessage({ text: 'Username and password are required', error: true });
+      showToast('Username and password are required', 'error');
       return;
     }
     try {
       await login(username.trim(), password);
       const orgRes = await api.get('/user/organizations');
-      setMessage({ text: 'Logged in', error: false });
+      showToast('Logged in', 'success');
       if (orgRes.data.organizations.length === 0) {
         navigate('/accept-invite');
       } else {
         navigate('/balance');
       }
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Login failed', error: true });
+      showToast(err.response?.data?.message || 'Login failed', 'error');
     }
   };
   return (
@@ -60,9 +61,6 @@ export default function Login() {
         />
         <Button type="submit" variant="contained">Submit</Button>
         <Link href="/forgot-password" underline="hover">Forgot password?</Link>
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Stack>
     </Box>
   );

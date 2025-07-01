@@ -5,14 +5,15 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function ManageInvites() {
   const { currentOrg } = useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const [invites, setInvites] = useState([]);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [roles, setRoles] = useState([]);
-  const [message, setMessage] = useState({ text: '', error: false });
 
   const loadInvites = async () => {
     if (!currentOrg) { setInvites([]); setRoles([]); return; }
@@ -33,18 +34,18 @@ export default function ManageInvites() {
     if (!window.confirm('Delete this invite?')) return;
     await api.delete(`/invites/${id}`);
     setInvites(invites.filter(i => i.id !== id));
-    setMessage({ text: 'Invite deleted', error: false });
+    showToast('Invite deleted', 'success');
   };
 
   const sendInvite = async (e) => {
     e.preventDefault();
     const trimmed = email.trim();
     if (!currentOrg || !trimmed || !role) {
-      setMessage({ text: 'Organization, email and role are required', error: true });
+      showToast('Organization, email and role are required', 'error');
       return;
     }
     await api.post(`/organizations/${currentOrg}/invite`, { email: trimmed, role });
-    setMessage({ text: 'Invite sent', error: false });
+    showToast('Invite sent', 'success');
     setEmail('');
     loadInvites();
   };
@@ -122,9 +123,6 @@ export default function ManageInvites() {
             <Button type="submit" variant="contained">Invite User</Button>
           </Stack>
         </Box>
-        {message.text && (
-          <Typography role="status" aria-live="polite" sx={{ mt: 2 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Box>
     </Box>
   );

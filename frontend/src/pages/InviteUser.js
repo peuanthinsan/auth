@@ -3,25 +3,26 @@ import { TextField, Button, Stack, Typography, Box, Select, MenuItem } from '@mu
 import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function InviteUser() {
   useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const [orgId, setOrgId] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('USER');
-  const [message, setMessage] = useState({ text: '', error: false });
 
   const submit = async (e) => {
     e.preventDefault();
     if (!orgId || !email) {
-      setMessage({ text: 'Org ID and email are required', error: true });
+      showToast('Org ID and email are required', 'error');
       return;
     }
     try {
       await api.post(`/organizations/${orgId}/invite`, { email, role });
-      setMessage({ text: 'Invite sent', error: false });
+      showToast('Invite sent', 'success');
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Error sending invite', error: true });
+      showToast(err.response?.data?.message || 'Error sending invite', 'error');
     }
   };
   return (
@@ -51,9 +52,6 @@ export default function InviteUser() {
           <MenuItem value="ADMIN">ADMIN</MenuItem>
         </Select>
         <Button type="submit" variant="contained">Submit</Button>
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Stack>
     </Box>
   );

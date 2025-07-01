@@ -5,12 +5,13 @@ import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function ManageOrganizations() {
   const { refreshOrgs, setCurrentOrg } = useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const [orgs, setOrgs] = useState([]);
   const [newName, setNewName] = useState('');
-  const [message, setMessage] = useState({ text: '', error: false });
 
   const loadOrgs = async () => {
     const res = await api.get('/organizations');
@@ -24,26 +25,26 @@ export default function ManageOrganizations() {
   const updateName = async (id, name) => {
     const trimmed = name.trim();
     if (!trimmed) {
-      setMessage({ text: 'Name is required', error: true });
+      showToast('Name is required', 'error');
       return;
     }
     await api.patch(`/organizations/${id}`, { name: trimmed });
     setOrgs(orgs.map(o => (o.id === id ? { ...o, name: trimmed } : o)));
     refreshOrgs();
-    setMessage({ text: 'Organization updated', error: false });
+    showToast('Organization updated', 'success');
   };
 
   const createOrg = async () => {
     const trimmed = newName.trim();
     if (!trimmed) {
-      setMessage({ text: 'Name is required', error: true });
+      showToast('Name is required', 'error');
       return;
     }
     await api.post('/organizations', { name: trimmed });
     setNewName('');
     loadOrgs();
     refreshOrgs();
-    setMessage({ text: 'Organization created', error: false });
+    showToast('Organization created', 'success');
   };
 
   const deleteOrg = async (id) => {
@@ -52,7 +53,7 @@ export default function ManageOrganizations() {
     loadOrgs();
     refreshOrgs();
     setCurrentOrg('');
-    setMessage({ text: 'Organization deleted', error: false });
+    showToast('Organization deleted', 'success');
   };
 
   const NameCell = ({ row }) => {
@@ -130,9 +131,6 @@ export default function ManageOrganizations() {
         />
         <Button variant="contained" onClick={createOrg}>Create Organization</Button>
       </Stack>
-      {message.text && (
-        <Typography role="status" aria-live="polite" sx={{ mt: 2 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
-      )}
     </Box>
   );
 }

@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
+import { ToastContext } from '../ToastContext';
 
 export default function ForgotPassword() {
   const [username, setUsername] = useState('');
   const [token, setToken] = useState('');
-  const [message, setMessage] = useState({ text: '', error: false });
+  const { showToast } = useContext(ToastContext);
 
   const submit = async (e) => {
     e.preventDefault();
     if (!username.trim()) {
-      setMessage({ text: 'Username is required', error: true });
+      showToast('Username is required', 'error');
       return;
     }
     const res = await api.post('/password/forgot', { username: username.trim() });
     setToken(res.data.token);
-    setMessage({ text: 'Token created', error: false });
+    showToast('Token created', 'success');
   };
 
   return (
@@ -33,9 +34,6 @@ export default function ForgotPassword() {
         />
         <Button type="submit" variant="contained">Request Reset Token</Button>
         {token && <Typography>Reset Token: {token}</Typography>}
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Stack>
     </Box>
   );

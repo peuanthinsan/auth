@@ -3,14 +3,15 @@ import { TextField, Button, Stack, Typography, Box, Autocomplete } from '@mui/ma
 import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function RemoveMember() {
   useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const [orgId, setOrgId] = useState('');
   const [userId, setUserId] = useState('');
   const [orgs, setOrgs] = useState([]);
   const [users, setUsers] = useState([]);
-  const [message, setMessage] = useState({ text: '', error: false });
 
   useEffect(() => {
     const load = async () => {
@@ -27,14 +28,14 @@ export default function RemoveMember() {
   const submit = async (e) => {
     e.preventDefault();
     if (!orgId || !userId) {
-      setMessage({ text: 'Org and user IDs are required', error: true });
+      showToast('Org and user IDs are required', 'error');
       return;
     }
     try {
       await api.delete(`/organizations/${orgId}/members/${userId}`);
-      setMessage({ text: 'Member removed', error: false });
+      showToast('Member removed', 'success');
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Error removing member', error: true });
+      showToast(err.response?.data?.message || 'Error removing member', 'error');
     }
   };
   return (
@@ -54,9 +55,6 @@ export default function RemoveMember() {
           renderInput={params => <TextField {...params} label="User" required />}
         />
         <Button type="submit" variant="contained">Submit</Button>
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Stack>
     </Box>
   );

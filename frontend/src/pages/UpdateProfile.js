@@ -4,14 +4,15 @@ import { TextField, Button, Stack, Typography, Box, Avatar } from '@mui/material
 import { styles } from '../styles';
 import api, { API_ROOT } from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function UpdateProfile() {
   const { loadProfile, profile } = useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', firstName: '', lastName: '' });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
-  const [message, setMessage] = useState({ text: '', error: false });
 
   const formatLabel = (field) =>
     field
@@ -34,11 +35,11 @@ export default function UpdateProfile() {
       await api.patch('/profile', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setMessage({ text: 'Profile updated', error: false });
+      showToast('Profile updated', 'success');
       await loadProfile();
       navigate('/profile');
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Update failed', error: true });
+      showToast(err.response?.data?.message || 'Update failed', 'error');
     }
   };
   return (
@@ -84,9 +85,6 @@ export default function UpdateProfile() {
           />
         )}
         <Button type="submit" variant="contained">Submit</Button>
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Stack>
     </Box>
   );

@@ -3,21 +3,22 @@ import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function ChangePassword() {
   useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const [oldPassword, setOld] = useState('');
   const [newPassword, setNew] = useState('');
-  const [message, setMessage] = useState({ text: '', error: false });
 
   const submit = async (e) => {
     e.preventDefault();
     if (!oldPassword || !newPassword) {
-      setMessage({ text: 'Both fields are required', error: true });
+      showToast('Both fields are required', 'error');
       return;
     }
     await api.post('/password/change', { oldPassword, newPassword });
-    setMessage({ text: 'Password changed', error: false });
+    showToast('Password changed', 'success');
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
@@ -40,9 +41,6 @@ export default function ChangePassword() {
           required
         />
         <Button type="submit" variant="contained">Submit</Button>
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Stack>
     </Box>
   );

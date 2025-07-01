@@ -4,12 +4,13 @@ import { AuthContext } from '../AuthContext';
 import { useTable } from 'react-table';
 import { styles } from '../styles';
 import api from '../api';
+import { ToastContext } from '../ToastContext';
 
 export default function AcceptInvite() {
   const { refreshOrgs, loadProfile } = useContext(AuthContext);
+  const { showToast } = useContext(ToastContext);
   const [invites, setInvites] = useState([]);
   const [tokens, setTokens] = useState({});
-  const [message, setMessage] = useState({ text: '', error: false });
 
   useEffect(() => {
     const load = async () => {
@@ -22,12 +23,12 @@ export default function AcceptInvite() {
   const accept = async (id) => {
     try {
       await api.post(`/invites/${id}/accept`, { token: tokens[id] });
-      setMessage({ text: 'Invite accepted', error: false });
+      showToast('Invite accepted', 'success');
       setInvites(invites.filter(i => i.id !== id));
       refreshOrgs();
       loadProfile();
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Error accepting invite', error: true });
+      showToast(err.response?.data?.message || 'Error accepting invite', 'error');
     }
   };
 
@@ -80,7 +81,7 @@ export default function AcceptInvite() {
           })}
         </Box>
       </Box>
-      {message.text && <Typography role="status" aria-live="polite" sx={{ mt: 2 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>}
+      
     </Box>
   );
 }
