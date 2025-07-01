@@ -5,7 +5,7 @@ import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function CreateOrganization() {
-  useContext(AuthContext);
+  const { refreshOrgs } = useContext(AuthContext);
   const [name, setName] = useState('');
   const [message, setMessage] = useState({ text: '', error: false });
 
@@ -17,6 +17,7 @@ export default function CreateOrganization() {
     }
     await api.post('/organizations', { name });
     setMessage({ text: 'Organization created', error: false });
+    refreshOrgs();
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>

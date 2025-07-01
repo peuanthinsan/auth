@@ -252,7 +252,11 @@ apiRouter.get('/profile', authenticateToken, async (req, res) => {
     profilePicture: user.profilePicture,
     roles: user.roles.map(r => r.code),
     isSuperAdmin: user.isSuperAdmin,
-    balances: user.balances.map(b => ({ orgId: b.orgId._id ?? b.orgId, orgName: b.orgId.name ?? undefined, amount: b.amount })),
+    balances: user.balances.map(b => ({
+      orgId: b.orgId?._id ?? b.orgId,
+      orgName: b.orgId?.name,
+      amount: b.amount
+    })),
     organizations: user.organizations.map(o => ({ id: o._id, name: o.name }))
   });
 });
@@ -362,7 +366,7 @@ apiRouter.post('/organizations/:id/members', authenticateToken, requireAdmin, as
   if (!requesting.isSuperAdmin && !org.members.some(m => m.toString() === req.user.id)) {
     return res.status(403).json({ message: 'Not authorized' });
   }
-  if (!org.members.includes(userId)) {
+  if (!org.members.some(m => m.toString() === userId)) {
     org.members.push(userId);
     const user = await User.findById(userId);
     if (user && !user.organizations.includes(org._id)) {
@@ -560,13 +564,17 @@ apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
   const org = await Organization.findById(invite.orgId);
   if (!org) return res.status(404).json({ message: 'Org not found' });
   const user = await User.findById(req.user.id);
-  if (!user.organizations.includes(org._id)) user.organizations.push(org._id);
+  if (!user.organizations.some(o => o.toString() === org._id.toString())) {
+    user.organizations.push(org._id);
+  }
   if (!user.balances.some(b => b.orgId.toString() === org._id.toString())) {
     user.balances.push({ orgId: org._id, amount: 0 });
   }
   const role = await Role.findOne({ code: invite.role || ROLE_CODES.USER, orgId: org._id });
   if (role && !user.roles.includes(role._id)) user.roles.push(role._id);
-  if (!org.members.includes(req.user.id)) org.members.push(req.user.id);
+  if (!org.members.some(m => m.toString() === req.user.id)) {
+    org.members.push(req.user.id);
+  }
   await Promise.all([
     user.save(),
     Organization.findByIdAndUpdate(org._id, { $pull: { invites: invite._id }, $addToSet: { members: req.user.id } }),

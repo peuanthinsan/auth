@@ -112,7 +112,7 @@ export default function ManageUsers() {
     () =>
       currentOrg
         ? users.filter(u => u.organizations.some(o => o.id === currentOrg))
-        : users,
+        : users.filter(u => u.organizations.length === 0),
     [users, currentOrg]
   );
   const table = useTable({ columns, data: filtered });
