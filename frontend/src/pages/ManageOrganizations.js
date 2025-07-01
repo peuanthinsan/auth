@@ -7,7 +7,7 @@ import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function ManageOrganizations() {
-  const { refreshOrgs } = useContext(AuthContext);
+  const { refreshOrgs, setCurrentOrg, currentOrg } = useContext(AuthContext);
   const [orgs, setOrgs] = useState([]);
   const [newName, setNewName] = useState('');
   const [message, setMessage] = useState({ text: '', error: false });
@@ -51,6 +51,7 @@ export default function ManageOrganizations() {
     await api.delete(`/organizations/${id}`);
     loadOrgs();
     refreshOrgs();
+    if (currentOrg === id) setCurrentOrg('');
     setMessage({ text: 'Organization deleted', error: false });
   };
 
