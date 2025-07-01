@@ -4,8 +4,7 @@ export const styles = {
   root: {
     display: 'grid',
     gridTemplateColumns: `${drawerWidth}px 1fr`,
-    minHeight: '100vh',
-    fontSize: '0.875rem'
+    minHeight: '100vh'
   },
   appBar: {
     zIndex: (theme) => theme.zIndex.drawer + 1,

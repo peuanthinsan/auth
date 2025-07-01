@@ -478,6 +478,7 @@ apiRouter.get('/users', authenticateToken, requireAdmin, async (req, res) => {
       email: u.email,
       firstName: u.firstName,
       lastName: u.lastName,
+      profilePicture: u.profilePicture,
       balance: orgId ? (u.balances.find(b => b.orgId.toString() === orgId)?.amount || 0) : 0,
       organizations: u.organizations.map(o => ({ id: o._id, name: o.name })),
       roleIds: u.roles.map(r => r._id),
