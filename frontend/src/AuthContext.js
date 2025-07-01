@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [refreshToken, setRefreshTokenState] = useState(() => localStorage.getItem('refreshToken') || '');
   const [currentOrg, setCurrentOrgState] = useState(() => localStorage.getItem('currentOrg') || '');
   const [profile, setProfileState] = useState(null);
+  const [orgs, setOrgs] = useState([]);
 
   useEffect(() => {
     setAuthToken(token);
@@ -17,6 +18,12 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('token');
     }
   }, [token]);
+
+  const refreshOrgs = async () => {
+    if (!token) { setOrgs([]); return; }
+    const res = await api.get('/user/organizations');
+    setOrgs(res.data.organizations);
+  };
 
   useEffect(() => {
     setRefreshToken(refreshToken);
@@ -43,6 +50,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     loadProfile();
+    refreshOrgs();
   }, [token]);
 
 
@@ -58,6 +66,7 @@ export function AuthProvider({ children }) {
     const res = await api.post('/login', { username, password });
     setTokenState(res.data.token);
     setRefreshTokenState(res.data.refreshToken);
+    setCurrentOrgState('');
   };
 
   const logout = async () => {
@@ -80,7 +89,20 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, refreshAuth, setToken: setTokenState, currentOrg, setCurrentOrg: setCurrentOrgState, profile, loadProfile, setProfile: setProfileState }}>
+    <AuthContext.Provider value={{
+      token,
+      login,
+      logout,
+      refreshAuth,
+      setToken: setTokenState,
+      currentOrg,
+      setCurrentOrg: setCurrentOrgState,
+      profile,
+      loadProfile,
+      setProfile: setProfileState,
+      orgs,
+      refreshOrgs
+    }}>
       {children}
     </AuthContext.Provider>
   );

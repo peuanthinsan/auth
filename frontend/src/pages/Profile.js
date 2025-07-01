@@ -25,11 +25,11 @@ export default function Profile() {
           )}
           <Typography><strong>Username:</strong> {profile.username}</Typography>
           <Typography><strong>Name:</strong> {profile.firstName} {profile.lastName}</Typography>
-          <Typography><strong>Role:</strong> {profile.role}</Typography>
+          <Typography><strong>Roles:</strong> {profile.roles.join(', ')}</Typography>
           <Typography sx={{ mt: 1 }}><strong>Balances:</strong></Typography>
           <ul>
             {profile.balances.map(b => (
-              <li key={b.orgId}>{b.orgName}: {b.amount}</li>
+              <li key={b.orgId}>{b.orgName || 'No organization'}: {b.amount}</li>
             ))}
           </ul>
           <Typography sx={{ mt: 1 }}><strong>Organizations:</strong></Typography>

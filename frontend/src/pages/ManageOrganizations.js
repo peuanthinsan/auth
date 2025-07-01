@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useContext } from 'react';
 import { Box, Typography, TextField, Button, Stack, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api from '../api';
+import { AuthContext } from '../AuthContext';
 
 export default function ManageOrganizations() {
+  const { refreshOrgs } = useContext(AuthContext);
   const [orgs, setOrgs] = useState([]);
   const [newName, setNewName] = useState('');
 
@@ -21,17 +23,20 @@ export default function ManageOrganizations() {
   const updateName = async (id, name) => {
     await api.patch(`/organizations/${id}`, { name });
     setOrgs(orgs.map(o => (o.id === id ? { ...o, name } : o)));
+    refreshOrgs();
   };
 
   const createOrg = async () => {
     await api.post('/organizations', { name: newName });
     setNewName('');
     loadOrgs();
+    refreshOrgs();
   };
 
   const deleteOrg = async (id) => {
     await api.delete(`/organizations/${id}`);
     loadOrgs();
+    refreshOrgs();
   };
 
   const NameCell = ({ row }) => {

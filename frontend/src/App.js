@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import {
   AppBar,
@@ -44,7 +44,6 @@ import Administration from './pages/Administration';
 import ResetPassword from './pages/ResetPassword';
 import ForgotPassword from './pages/ForgotPassword';
 import LogoutPage from './pages/Logout';
-import api from './api';
 import { AuthContext } from './AuthContext';
 
 export default function App() {
@@ -54,7 +53,7 @@ export default function App() {
     { text: 'Create SuperAdmin', path: '/create-superadmin', icon: <AdminPanelSettings /> }
   ];
 
-  const { token, currentOrg, setCurrentOrg, profile } = useContext(AuthContext);
+  const { token, currentOrg, setCurrentOrg, profile, orgs, refreshOrgs } = useContext(AuthContext);
 
   const loggedInNav = [
     { text: 'Profile', path: '/profile', icon: <AccountCircle /> },
@@ -71,17 +70,11 @@ export default function App() {
   const navItems = token
     ? [...loggedInNav, ...(profile && (profile.isSuperAdmin || profile.roles?.includes('ADMIN')) ? [adminNav] : [])]
     : loggedOutNav;
-  const [orgs, setOrgs] = useState([]);
 
   useEffect(() => {
-    const load = async () => {
-      const res = await api.get('/user/organizations');
-      setOrgs(res.data.organizations);
-    };
     if (token) {
-      load();
+      refreshOrgs();
     } else {
-      setOrgs([]);
       setCurrentOrg('');
     }
   }, [token]);
@@ -105,7 +98,7 @@ export default function App() {
                   <Avatar src={profile.profilePicture} sx={{ width: 32, height: 32, mr: 1 }} />
                 )}
                 {profile.firstName} {profile.lastName} | {profile.username} |
-                Balance: {profile.balances.find(b => b.orgId === currentOrg)?.amount ?? 0}
+                Current Balance: {profile.balances.find(b => b.orgId === currentOrg)?.amount ?? 0}
               </Typography>
             )}
             {token && (
@@ -116,8 +109,10 @@ export default function App() {
                   value={currentOrg}
                   label="Organizations"
                   onChange={changeOrg}
+                  displayEmpty
+                  renderValue={selected => selected ? orgs.find(o => o.id === selected)?.name : 'No organization'}
                 >
-                  <MenuItem value="">None</MenuItem>
+                  <MenuItem value="">No organization</MenuItem>
                   {orgs.map(o => (
                     <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
                   ))}

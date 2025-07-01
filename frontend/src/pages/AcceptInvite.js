@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Box, Typography, TextField, Button } from '@mui/material';
+import { AuthContext } from '../AuthContext';
 import { useTable } from 'react-table';
 import { styles } from '../styles';
 import api from '../api';
-import { AuthContext } from '../AuthContext';
 
 export default function AcceptInvite() {
-  useContext(AuthContext);
+  const { refreshOrgs } = useContext(AuthContext);
   const [invites, setInvites] = useState([]);
   const [tokens, setTokens] = useState({});
   const [message, setMessage] = useState({ text: '', error: false });
@@ -24,6 +24,7 @@ export default function AcceptInvite() {
       await api.post(`/invites/${id}/accept`, { token: tokens[id] });
       setMessage({ text: 'Invite accepted', error: false });
       setInvites(invites.filter(i => i.id !== id));
+      refreshOrgs();
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Error accepting invite', error: true });
     }
