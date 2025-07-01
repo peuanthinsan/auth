@@ -6,6 +6,7 @@ import { styles } from '../styles';
 import { useTable } from 'react-table';
 import api, { API_ROOT } from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function ManageUsers() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function ManageUsers() {
   const [removeUserId, setRemoveUserId] = useState('');
   const [addOrgId, setAddOrgId] = useState('');
   const [removeOrgId, setRemoveOrgId] = useState('');
-  const [message, setMessage] = useState({ text: '', error: false });
+  const { showToast } = useContext(ToastContext);
   const load = async () => {
     const userReq = api.get('/users');
     const roleReq = api.get('/roles', { params: currentOrg ? { orgId: currentOrg } : {} });
@@ -39,24 +40,24 @@ export default function ManageUsers() {
   };
 
   const addMember = async () => {
-    const orgId = currentOrg || addOrgId;
+    const orgId = addOrgId;
     if (!addUserId || !orgId) {
-      setMessage({ text: 'Select user and organization', error: true });
+      showToast('Select user and organization', 'error');
       return;
     }
     await api.post(`/organizations/${orgId}/members`, { userId: addUserId });
-    setMessage({ text: 'Member added', error: false });
+    showToast('Member added', 'success');
     load();
   };
 
   const removeMember = async () => {
     const orgId = currentOrg || removeOrgId;
     if (!removeUserId || !orgId) {
-      setMessage({ text: 'Select user and organization', error: true });
+      showToast('Select user and organization', 'error');
       return;
     }
     await api.delete(`/organizations/${orgId}/members/${removeUserId}`);
-    setMessage({ text: 'Member removed', error: false });
+    showToast('Member removed', 'success');
     load();
   };
 
@@ -70,7 +71,7 @@ export default function ManageUsers() {
         navigate('/login');
       }
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Delete failed', error: true });
+      showToast(err.response?.data?.message || 'Delete failed', 'error');
     }
   };
 
@@ -195,8 +196,8 @@ export default function ManageUsers() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          {!currentOrg && (
+        {!currentOrg && (
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
             <Autocomplete
               options={orgs}
               getOptionLabel={o => o.name || ''}
@@ -204,16 +205,16 @@ export default function ManageUsers() {
               renderInput={params => <TextField {...params} size="small" label="Organization" />}
               sx={{ width: 200 }}
             />
-          )}
-          <Autocomplete
-            options={addOptions}
-            getOptionLabel={u => u.username || ''}
-            onChange={(_, v) => setAddUserId(v ? v.id : '')}
-            renderInput={params => <TextField {...params} size="small" label="User" />}
-            sx={{ width: 200 }}
-          />
-          <Button variant="contained" onClick={addMember}>Add Member</Button>
-        </Stack>
+            <Autocomplete
+              options={addOptions}
+              getOptionLabel={u => u.username || ''}
+              onChange={(_, v) => setAddUserId(v ? v.id : '')}
+              renderInput={params => <TextField {...params} size="small" label="User" />}
+              sx={{ width: 200 }}
+            />
+            <Button variant="contained" onClick={addMember}>Add Member</Button>
+          </Stack>
+        )}
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           {!currentOrg && (
             <Autocomplete
@@ -233,9 +234,6 @@ export default function ManageUsers() {
           />
           <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
         </Stack>
-        {message.text && (
-          <Typography role="status" aria-live="polite" sx={{ mt: 1 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
-        )}
       </Box>
     </Box>
 );
