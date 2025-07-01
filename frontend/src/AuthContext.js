@@ -88,6 +88,8 @@ export function AuthProvider({ children }) {
     setTokenState(res.data.token);
   };
 
+  const isAdmin = profile?.isSuperAdmin || profile?.roles?.includes('ADMIN');
+
   return (
     <AuthContext.Provider value={{
       token,
@@ -98,6 +100,7 @@ export function AuthProvider({ children }) {
       currentOrg,
       setCurrentOrg: setCurrentOrgState,
       profile,
+      isAdmin,
       loadProfile,
       setProfile: setProfileState,
       orgs,

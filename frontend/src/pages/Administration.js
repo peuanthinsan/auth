@@ -8,10 +8,9 @@ import ManageInvites from './ManageInvites';
 import { AuthContext } from '../AuthContext';
 
 export default function Administration() {
-  const { profile, currentOrg } = useContext(AuthContext);
+  const { profile, currentOrg, isAdmin } = useContext(AuthContext);
   const [tab, setTab] = useState(0);
   const showOrgs = profile?.isSuperAdmin;
-  const isAdmin = profile?.isSuperAdmin || profile?.roles?.includes('ADMIN');
   if (!isAdmin) return <Box>Not authorized</Box>;
   const tabs = [];
   if (currentOrg) tabs.push({ label: 'Users', component: <ManageUsers /> });

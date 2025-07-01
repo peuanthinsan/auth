@@ -1,5 +1,5 @@
 import React, { useEffect, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -53,7 +53,7 @@ export default function App() {
     { text: 'Create SuperAdmin', path: '/create-superadmin', icon: <AdminPanelSettings /> }
   ];
 
-  const { token, currentOrg, setCurrentOrg, profile, orgs, refreshOrgs } = useContext(AuthContext);
+  const { token, currentOrg, setCurrentOrg, profile, orgs, refreshOrgs, isAdmin } = useContext(AuthContext);
 
   const loggedInNav = [
     { text: 'Profile', path: '/profile', icon: <AccountCircle /> },
@@ -68,7 +68,7 @@ export default function App() {
   ];
   const adminNav = { text: 'Administration', path: '/admin', icon: <AdminPanelSettings /> };
   const navItems = token
-    ? [...loggedInNav, ...(profile && (profile.isSuperAdmin || profile.roles?.includes('ADMIN')) ? [adminNav] : [])]
+    ? [...loggedInNav, ...(profile && isAdmin ? [adminNav] : [])]
     : loggedOutNav;
 
   useEffect(() => {
@@ -153,7 +153,8 @@ export default function App() {
             <Route path="/logout" element={<LogoutPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="*" element={<div>Home</div>} />
+            <Route path="/" element={token ? <Balance /> : <Login />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
       </Box>
