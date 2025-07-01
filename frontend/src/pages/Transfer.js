@@ -3,11 +3,12 @@ import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
+import { ToastContext } from '../ToastContext';
 
 export default function Transfer() {
   const [toUsername, setTo] = useState('');
   const [amount, setAmount] = useState('');
-  const [message, setMessage] = useState({ text: '', error: false });
+  const { showToast } = useContext(ToastContext);
   const { currentOrg, loadProfile } = useContext(AuthContext);
   const [balance, setBalance] = useState(null);
 
@@ -26,17 +27,17 @@ export default function Transfer() {
   const submit = async (e) => {
     e.preventDefault();
     if (!toUsername.trim() || !amount || !currentOrg) {
-      setMessage({ text: 'Recipient, amount, and organization are required', error: true });
+      showToast('Recipient, amount, and organization are required', 'error');
       return;
     }
     try {
       await api.post('/transfer', { toUsername: toUsername.trim(), amount, orgId: currentOrg });
-      setMessage({ text: 'Transfer complete', error: false });
+      showToast('Transfer complete', 'success');
       const res = await api.get('/balance', { params: { orgId: currentOrg } });
       setBalance(res.data.balance);
       loadProfile();
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Transfer failed', error: true });
+      showToast(err.response?.data?.message || 'Transfer failed', 'error');
     }
   };
   if (!currentOrg) return <Box />;
@@ -62,9 +63,6 @@ export default function Transfer() {
         <Button type="submit" variant="contained">Submit</Button>
         {balance !== null && (
           <Typography>Current Balance: {balance}</Typography>
-        )}
-        {message.text && (
-          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>
