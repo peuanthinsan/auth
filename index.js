@@ -468,7 +468,8 @@ apiRouter.patch('/organizations/:id', authenticateToken, requireSuperAdmin, asyn
 
 apiRouter.get('/users', authenticateToken, requireAdmin, async (req, res) => {
   const { orgId } = req.query;
-  const users = await User.find()
+  const filter = orgId ? { organizations: orgId } : {};
+  const users = await User.find(filter)
     .populate('roles', 'code name')
     .populate('organizations', 'name');
   res.json(
