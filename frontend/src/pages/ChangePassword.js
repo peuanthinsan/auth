@@ -8,23 +8,23 @@ export default function ChangePassword() {
   useContext(AuthContext);
   const [oldPassword, setOld] = useState('');
   const [newPassword, setNew] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   const submit = async (e) => {
     e.preventDefault();
     if (!oldPassword || !newPassword) {
-      setMessage('Both fields are required');
+      setMessage({ text: 'Both fields are required', error: true });
       return;
     }
     await api.post('/password/change', { oldPassword, newPassword });
-    setMessage('Password changed');
+    setMessage({ text: 'Password changed', error: false });
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Change Password</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
-          label="old password"
+          label="Old Password"
           placeholder="Old Password"
           type="password"
           value={oldPassword}
@@ -32,7 +32,7 @@ export default function ChangePassword() {
           required
         />
         <TextField
-          label="new password"
+          label="New Password"
           placeholder="New Password"
           type="password"
           value={newPassword}
@@ -40,8 +40,8 @@ export default function ChangePassword() {
           required
         />
         <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>

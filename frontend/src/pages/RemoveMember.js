@@ -10,7 +10,7 @@ export default function RemoveMember() {
   const [userId, setUserId] = useState('');
   const [orgs, setOrgs] = useState([]);
   const [users, setUsers] = useState([]);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   useEffect(() => {
     const load = async () => {
@@ -27,14 +27,14 @@ export default function RemoveMember() {
   const submit = async (e) => {
     e.preventDefault();
     if (!orgId || !userId) {
-      setMessage('Org and user IDs are required');
+      setMessage({ text: 'Org and user IDs are required', error: true });
       return;
     }
     try {
       await api.delete(`/organizations/${orgId}/members/${userId}`);
-      setMessage('Member removed');
+      setMessage({ text: 'Member removed', error: false });
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Error removing member');
+      setMessage({ text: err.response?.data?.message || 'Error removing member', error: true });
     }
   };
   return (
@@ -54,8 +54,8 @@ export default function RemoveMember() {
           renderInput={params => <TextField {...params} label="User" required />}
         />
         <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>

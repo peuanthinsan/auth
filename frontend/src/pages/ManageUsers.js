@@ -12,27 +12,20 @@ export default function ManageUsers() {
   const { currentOrg, profile, logout } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [allOrgs, setAllOrgs] = useState([]);
-  const [addOrgId, setAddOrgId] = useState('');
   const [addUserId, setAddUserId] = useState('');
-  const [removeOrgId, setRemoveOrgId] = useState('');
   const [removeUserId, setRemoveUserId] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
+  const load = async () => {
+    if (!currentOrg) { setUsers([]); setRoles([]); return; }
+    const [uRes, rRes] = await Promise.all([
+      api.get('/users', { params: { orgId: currentOrg } }),
+      api.get('/roles', { params: { orgId: currentOrg } })
+    ]);
+    setUsers(uRes.data);
+    setRoles(rRes.data);
+  };
 
   useEffect(() => {
-    const load = async () => {
-      const userReq = currentOrg
-        ? api.get('/users', { params: { orgId: currentOrg } })
-        : api.get('/users');
-      const rolesReq = currentOrg
-        ? api.get('/roles', { params: { orgId: currentOrg } })
-        : Promise.resolve({ data: [] });
-      const orgReq = api.get('/organizations');
-      const [uRes, rRes, oRes] = await Promise.all([userReq, rolesReq, orgReq]);
-      setUsers(uRes.data);
-      setRoles(rRes.data);
-      setAllOrgs(oRes.data);
-    };
     load();
   }, [currentOrg]);
 
@@ -43,21 +36,23 @@ export default function ManageUsers() {
   };
 
   const addMember = async () => {
-    if (!addOrgId || !addUserId) {
-      setMessage('Select organization and user');
+    if (!addUserId || !currentOrg) {
+      setMessage({ text: 'Select user', error: true });
       return;
     }
-    await api.post(`/organizations/${addOrgId}/members`, { userId: addUserId });
-    setMessage('Member added');
+    await api.post(`/organizations/${currentOrg}/members`, { userId: addUserId });
+    setMessage({ text: 'Member added', error: false });
+    load();
   };
 
   const removeMember = async () => {
-    if (!removeOrgId || !removeUserId) {
-      setMessage('Select organization and user');
+    if (!removeUserId || !currentOrg) {
+      setMessage({ text: 'Select user', error: true });
       return;
     }
-    await api.delete(`/organizations/${removeOrgId}/members/${removeUserId}`);
-    setMessage('Member removed');
+    await api.delete(`/organizations/${currentOrg}/members/${removeUserId}`);
+    setMessage({ text: 'Member removed', error: false });
+    load();
   };
 
   const deleteUser = async (id) => {
@@ -69,7 +64,7 @@ export default function ManageUsers() {
         navigate('/login');
       }
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Delete failed');
+      setMessage({ text: err.response?.data?.message || 'Delete failed', error: true });
     }
   };
 
@@ -159,13 +154,6 @@ export default function ManageUsers() {
       <Box sx={styles.actionRow}>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           <Autocomplete
-            options={allOrgs}
-            getOptionLabel={o => o.name || ''}
-            onChange={(_, v) => setAddOrgId(v ? v.id : '')}
-            renderInput={params => <TextField {...params} size="small" label="Organization" />}
-            sx={{ width: 200 }}
-          />
-          <Autocomplete
             options={users}
             getOptionLabel={u => u.username || ''}
             onChange={(_, v) => setAddUserId(v ? v.id : '')}
@@ -176,25 +164,18 @@ export default function ManageUsers() {
         </Stack>
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
           <Autocomplete
-            options={allOrgs}
-            getOptionLabel={o => o.name || ''}
-            onChange={(_, v) => setRemoveOrgId(v ? v.id : '')}
-            renderInput={params => <TextField {...params} size="small" label="Organization" />}
-            sx={{ width: 200 }}
-          />
-          <Autocomplete
             options={users}
             getOptionLabel={u => u.username || ''}
             onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
             renderInput={params => <TextField {...params} size="small" label="User" />}
             sx={{ width: 200 }}
           />
-      <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
-    </Stack>
-      {message && (
-        <Typography role="status" aria-live="polite" sx={{ mt: 1 }}>{message}</Typography>
-      )}
+          <Button variant="contained" color="error" onClick={removeMember}>Remove Member</Button>
+        </Stack>
+        {message.text && (
+          <Typography role="status" aria-live="polite" sx={{ mt: 1 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
+        )}
+      </Box>
     </Box>
-  </Box>
 );
 }

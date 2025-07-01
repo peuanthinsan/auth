@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Stack, Typography, Box, Avatar } from '@mui/material';
 import { styles } from '../styles';
@@ -6,24 +6,34 @@ import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function UpdateProfile() {
-  const { loadProfile } = useContext(AuthContext);
+  const { loadProfile, profile } = useContext(AuthContext);
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', firstName: '', lastName: '' });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
+
+  useEffect(() => {
+    if (profile) {
+      setForm({ username: profile.username || '', firstName: profile.firstName || '', lastName: profile.lastName || '' });
+    }
+  }, [profile]);
 
   const submit = async (e) => {
     e.preventDefault();
     const data = new FormData();
     Object.entries(form).forEach(([k, v]) => data.append(k, v));
     if (file) data.append('profilePicture', file);
-    await api.patch('/profile', data, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    setMessage('Profile updated');
-    await loadProfile();
-    navigate('/profile');
+    try {
+      await api.patch('/profile', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setMessage({ text: 'Profile updated', error: false });
+      await loadProfile();
+      navigate('/profile');
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || 'Update failed', error: true });
+    }
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
@@ -58,8 +68,8 @@ export default function UpdateProfile() {
         </Button>
         {preview && <Avatar src={preview} sx={{ width: 80, height: 80 }} />}
         <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>

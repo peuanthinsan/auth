@@ -6,16 +6,16 @@ import api from '../api';
 export default function ResetPassword() {
   const [token, setToken] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
 
   const submit = async (e) => {
     e.preventDefault();
     if (!token || !password) {
-      setMessage('Token and new password are required');
+      setMessage({ text: 'Token and new password are required', error: true });
       return;
     }
     await api.post('/password/reset', { token, newPassword: password });
-    setMessage('Password reset');
+    setMessage({ text: 'Password reset', error: false });
   };
 
   return (
@@ -23,7 +23,7 @@ export default function ResetPassword() {
       <Typography variant="h6" gutterBottom>Reset Password</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
-          label="reset token"
+          label="Reset Token"
           placeholder="Reset Token"
           value={token}
           onChange={e => setToken(e.target.value)}
@@ -31,15 +31,15 @@ export default function ResetPassword() {
         />
         <TextField
           type="password"
-          label="new password"
+          label="New Password"
           placeholder="New Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
         />
         <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>

@@ -12,21 +12,21 @@ import { styles } from '../styles';
 
 export default function Register() {
   const [form, setForm] = useState({ username: '', password: '', email: '', firstName: '', lastName: '' });
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', error: false });
   const navigate = useNavigate();
 
   const submit = async (e) => {
     e.preventDefault();
     const trimmed = { ...form, username: form.username.trim() };
     if (Object.values(trimmed).some(v => !v)) {
-      setMessage('All fields are required');
+      setMessage({ text: 'All fields are required', error: true });
       return;
     }
     try {
       await api.post('/register', trimmed);
       navigate('/login');
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Registration failed');
+      setMessage({ text: err.response?.data?.message || 'Registration failed', error: true });
     }
   };
   return (
@@ -47,8 +47,8 @@ export default function Register() {
           />
         ))}
         <Button type="submit" variant="contained">Submit</Button>
-        {message && (
-          <Typography role="status" aria-live="polite">{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Stack>
     </Box>

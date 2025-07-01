@@ -102,7 +102,7 @@ export default function ManageOrganizations() {
       <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
         <TextField
           size="small"
-          label="name"
+          label="Name"
           placeholder="Name"
           value={newName}
           onChange={e => setNewName(e.target.value)}

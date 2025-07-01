@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react';
-import { Box, Typography, IconButton, TextField, Button, Stack } from '@mui/material';
+import { Box, Typography, IconButton, TextField, Button, Stack, Select, MenuItem } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
@@ -10,15 +10,16 @@ export default function ManageInvites() {
   const { currentOrg } = useContext(AuthContext);
   const [invites, setInvites] = useState([]);
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const [role, setRole] = useState('USER');
+  const [message, setMessage] = useState({ text: '', error: false });
 
+  const loadInvites = async () => {
+    if (!currentOrg) { setInvites([]); return; }
+    const res = await api.get(`/organizations/${currentOrg}/invites`);
+    setInvites(res.data.map(i => ({ id: i.id, email: i.email, token: i.token, role: i.role })));
+  };
   useEffect(() => {
-    const load = async () => {
-      if (!currentOrg) { setInvites([]); return; }
-      const res = await api.get(`/organizations/${currentOrg}/invites`);
-      setInvites(res.data.map(i => ({ id: i._id, email: i.email, token: i.token })));
-    };
-    load();
+    loadInvites();
   }, [currentOrg]);
 
 
@@ -30,11 +31,13 @@ export default function ManageInvites() {
   const sendInvite = async (e) => {
     e.preventDefault();
     if (!currentOrg || !email) {
-      setMessage('Organization and email are required');
+      setMessage({ text: 'Organization and email are required', error: true });
       return;
     }
-    await api.post(`/organizations/${currentOrg}/invite`, { email });
-    setMessage('Invite sent');
+    await api.post(`/organizations/${currentOrg}/invite`, { email, role });
+    setMessage({ text: 'Invite sent', error: false });
+    setEmail('');
+    loadInvites();
   };
 
 
@@ -42,6 +45,7 @@ export default function ManageInvites() {
     { Header: 'ID', accessor: 'id' },
     { Header: 'Email', accessor: 'email' },
     { Header: 'Token', accessor: 'token' },
+    { Header: 'Role', accessor: 'role' },
     {
       Header: 'Actions',
       accessor: 'actions',
@@ -93,11 +97,19 @@ export default function ManageInvites() {
               onChange={e => setEmail(e.target.value)}
               required
             />
+            <Select
+              size="small"
+              value={role}
+              onChange={e => setRole(e.target.value)}
+            >
+              <MenuItem value="USER">USER</MenuItem>
+              <MenuItem value="ADMIN">ADMIN</MenuItem>
+            </Select>
             <Button type="submit" variant="contained">Invite User</Button>
           </Stack>
         </Box>
-        {message && (
-          <Typography role="status" aria-live="polite" sx={{ mt: 2 }}>{message}</Typography>
+        {message.text && (
+          <Typography role="status" aria-live="polite" sx={{ mt: 2 }} color={message.error ? 'error' : undefined}>{message.text}</Typography>
         )}
       </Box>
     </Box>
