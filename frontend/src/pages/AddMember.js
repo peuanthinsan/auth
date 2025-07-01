@@ -16,22 +16,26 @@ export default function AddMember() {
       setMessage('Org and user IDs are required');
       return;
     }
-    await api.post(`/organizations/${orgId}/members`, { userId });
-    setMessage('Member added');
+    try {
+      await api.post(`/organizations/${orgId}/members`, { userId });
+      setMessage('Member added');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Error adding member');
+    }
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Add Member</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
-          label="org id"
+          label="Org ID"
           placeholder="Org ID"
           value={orgId}
           onChange={e => setOrgId(e.target.value)}
           required
         />
         <TextField
-          label="user id"
+          label="User ID"
           placeholder="User ID"
           value={userId}
           onChange={e => setUserId(e.target.value)}

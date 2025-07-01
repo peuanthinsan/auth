@@ -1,22 +1,25 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useContext } from 'react';
 import { Box, Typography, TextField, IconButton, Button } from '@mui/material';
 import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
 import api from '../api';
+import { AuthContext } from '../AuthContext';
 
 export default function ManageRoles() {
+  const { currentOrg } = useContext(AuthContext);
   const [roles, setRoles] = useState([]);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
     const load = async () => {
-      const res = await api.get('/roles');
+      if (!currentOrg) { setRoles([]); return; }
+      const res = await api.get('/roles', { params: { orgId: currentOrg } });
       setRoles(res.data);
     };
     load();
-  }, []);
+  }, [currentOrg]);
 
   const updateRole = async (id, field, value) => {
     await api.patch(`/roles/${id}`, { [field]: value });
@@ -24,13 +27,16 @@ export default function ManageRoles() {
   };
 
   const deleteRole = async (id) => {
+    const role = roles.find(r => r.id === id);
+    if (role?.system) return;
     await api.delete(`/roles/${id}`);
     setRoles(roles.filter(r => r.id !== id));
   };
 
   const createRole = async () => {
-    const res = await api.post('/roles', { code: newCode, name: newName });
-    setRoles([...roles, { id: res.data.id, code: newCode, name: newName }]);
+    if (!currentOrg) return;
+    const res = await api.post('/roles', { code: newCode, name: newName, orgId: currentOrg });
+    setRoles([...roles, { id: res.data.id, code: newCode, name: newName, system: false }]);
     setNewCode('');
     setNewName('');
   };
@@ -65,7 +71,7 @@ export default function ManageRoles() {
       Header: 'Actions',
       accessor: 'actions',
       Cell: ({ row }) => (
-        <IconButton color="error" onClick={() => deleteRole(row.original.id)}>
+        <IconButton color="error" disabled={row.original.system} onClick={() => deleteRole(row.original.id)}>
           <DeleteIcon />
         </IconButton>
       )

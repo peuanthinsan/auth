@@ -9,12 +9,13 @@ export default function ManageOrganizations() {
   const [orgs, setOrgs] = useState([]);
   const [newName, setNewName] = useState('');
 
+  const loadOrgs = async () => {
+    const res = await api.get('/organizations');
+    setOrgs(res.data);
+  };
+
   useEffect(() => {
-    const load = async () => {
-      const res = await api.get('/organizations');
-      setOrgs(res.data);
-    };
-    load();
+    loadOrgs();
   }, []);
 
   const updateName = async (id, name) => {
@@ -23,14 +24,14 @@ export default function ManageOrganizations() {
   };
 
   const createOrg = async () => {
-    const res = await api.post('/organizations', { name: newName });
-    setOrgs([...orgs, { id: res.data.orgId, name: newName, members: 1, invites: 0 }]);
+    await api.post('/organizations', { name: newName });
     setNewName('');
+    loadOrgs();
   };
 
   const deleteOrg = async (id) => {
     await api.delete(`/organizations/${id}`);
-    setOrgs(orgs.filter(o => o.id !== id));
+    loadOrgs();
   };
 
   const NameCell = ({ row }) => {

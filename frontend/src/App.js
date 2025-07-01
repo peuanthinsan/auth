@@ -33,6 +33,7 @@ import {
 import { styles } from './styles';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import CreateSuperAdmin from './pages/CreateSuperAdmin';
 import Profile from './pages/Profile';
 import UpdateProfile from './pages/UpdateProfile';
 import ChangePassword from './pages/ChangePassword';
@@ -49,7 +50,8 @@ import { AuthContext } from './AuthContext';
 export default function App() {
   const loggedOutNav = [
     { text: 'Register', path: '/register', icon: <PersonAdd /> },
-    { text: 'Login', path: '/login', icon: <LoginIcon /> }
+    { text: 'Login', path: '/login', icon: <LoginIcon /> },
+    { text: 'Create SuperAdmin', path: '/create-superadmin', icon: <AdminPanelSettings /> }
   ];
 
   const loggedInNav = [
@@ -104,7 +106,8 @@ export default function App() {
                 {profile.profilePicture && (
                   <Avatar src={profile.profilePicture} sx={{ width: 32, height: 32, mr: 1 }} />
                 )}
-                {profile.firstName} {profile.lastName} | {profile.username} | Balance: {profile.balance}
+                {profile.firstName} {profile.lastName} | {profile.username} |
+                Balance: {profile.balances.find(b => b.orgId === currentOrg)?.amount ?? 0}
               </Typography>
             )}
             {token && (
@@ -145,6 +148,7 @@ export default function App() {
           <Routes>
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/create-superadmin" element={<CreateSuperAdmin />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/update-profile" element={<UpdateProfile />} />
             <Route path="/change-password" element={<ChangePassword />} />

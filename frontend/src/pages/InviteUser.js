@@ -16,22 +16,26 @@ export default function InviteUser() {
       setMessage('Org ID and email are required');
       return;
     }
-    await api.post(`/organizations/${orgId}/invite`, { email });
-    setMessage('Invite sent');
+    try {
+      await api.post(`/organizations/${orgId}/invite`, { email });
+      setMessage('Invite sent');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Error sending invite');
+    }
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Invite User</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
-          label="org id"
+          label="Org ID"
           placeholder="Org ID"
           value={orgId}
           onChange={e => setOrgId(e.target.value)}
           required
         />
         <TextField
-          label="email"
+          label="Email"
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}

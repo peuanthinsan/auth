@@ -5,16 +5,18 @@ import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function Balance() {
-  useContext(AuthContext);
+  const { currentOrg } = useContext(AuthContext);
   const [balance, setBalance] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      const res = await api.get('/balance');
+      const res = await api.get('/balance', { params: { orgId: currentOrg } });
       setBalance(res.data.balance);
     };
-    load();
-  }, []);
+    if (currentOrg) {
+      load();
+    }
+  }, [currentOrg]);
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Balance</Typography>

@@ -5,19 +5,19 @@ import api from '../api';
 import { AuthContext } from '../AuthContext';
 
 export default function Transfer() {
-  useContext(AuthContext);
+  const { currentOrg } = useContext(AuthContext);
   const [toUsername, setTo] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!toUsername.trim() || !amount) {
-      setMessage('Recipient and amount are required');
+    if (!toUsername.trim() || !amount || !currentOrg) {
+      setMessage('Recipient, amount, and organization are required');
       return;
     }
     try {
-      await api.post('/transfer', { toUsername: toUsername.trim(), amount });
+      await api.post('/transfer', { toUsername: toUsername.trim(), amount, orgId: currentOrg });
       setMessage('Transfer complete');
     } catch (err) {
       setMessage(err.response?.data?.message || 'Transfer failed');

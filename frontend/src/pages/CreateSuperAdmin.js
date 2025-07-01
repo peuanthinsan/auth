@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import api from '../api';
-import {
-  TextField,
-  Button,
-  Stack,
-  Typography,
-  Box
-} from '@mui/material';
+import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 
-export default function Register() {
+export default function CreateSuperAdmin() {
   const [form, setForm] = useState({ username: '', password: '', email: '', firstName: '', lastName: '' });
   const [message, setMessage] = useState('');
 
@@ -21,15 +15,16 @@ export default function Register() {
       return;
     }
     try {
-      await api.post('/register', trimmed);
-      setMessage('Registered');
+      await api.post('/superadmin', trimmed);
+      setMessage('Super admin created');
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Registration failed');
+      setMessage(err.response?.data?.message || 'Creation failed');
     }
   };
+
   return (
     <Box component="form" onSubmit={submit} noValidate>
-      <Typography variant="h6" gutterBottom>Register</Typography>
+      <Typography variant="h6" gutterBottom>Create Super Admin</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         {['username','password','email','firstName','lastName'].map(f => (
           <TextField
