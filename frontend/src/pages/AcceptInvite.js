@@ -4,7 +4,6 @@ import { AuthContext } from '../AuthContext';
 import { useTable } from 'react-table';
 import { styles } from '../styles';
 import api from '../api';
-import { AuthContext } from '../AuthContext';
 
 export default function AcceptInvite() {
   const { refreshOrgs } = useContext(AuthContext);
