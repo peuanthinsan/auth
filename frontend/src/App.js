@@ -115,7 +115,7 @@ export default function App() {
                   label="Org"
                   onChange={changeOrg}
                 >
-                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="">All Organizations</MenuItem>
                   {orgs.map(o => (
                     <MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>
                   ))}

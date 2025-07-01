@@ -21,5 +21,6 @@ export const styles = {
   },
   actionRow: { mt: 2 },
   ml1: { ml: 1 },
-  mb2: { mb: 2 }
+  mb2: { mb: 2 },
+  mt2: { mt: 2 }
 };

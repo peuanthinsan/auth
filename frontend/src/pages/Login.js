@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { styles } from '../styles';
 import { AuthContext } from '../AuthContext';
+import api from '../api';
 
 export default function Login() {
   const { login } = useContext(AuthContext);
@@ -26,8 +27,13 @@ export default function Login() {
     }
     try {
       await login(username.trim(), password);
+      const orgRes = await api.get('/user/organizations');
       setMessage('Logged in');
-      navigate('/balance');
+      if (orgRes.data.organizations.length === 0) {
+        navigate('/accept-invite');
+      } else {
+        navigate('/balance');
+      }
     } catch (err) {
       setMessage(err.response?.data?.message || 'Login failed');
     }
