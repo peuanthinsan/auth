@@ -2,7 +2,6 @@ export const drawerWidth = 240;
 
 export const styles = {
   root: {
-    display: 'grid',
     gridTemplateColumns: `${drawerWidth}px 1fr`,
     minHeight: '100vh'
   },
@@ -19,8 +18,8 @@ export const styles = {
       backgroundColor: '#f7f7f7'
     }
   },
-  content: { flexGrow: 1, p: 2, display: 'grid', gap: 2 },
-  formStack: { maxWidth: 300, display: 'grid', gap: 2 },
+  content: { flexGrow: 1, p: 3 },
+  formStack: { maxWidth: 300 },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
@@ -30,7 +29,7 @@ export const styles = {
     },
     '& th': { borderBottom: '1px solid', borderColor: 'divider' }
   },
-  actionRow: { mt: 2, display: 'grid', gap: 1 },
+  actionRow: { mt: 2 },
   ml1: { ml: 1 },
   mb2: { mb: 2 },
   mt2: { mt: 2 }
