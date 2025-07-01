@@ -100,8 +100,33 @@ export default function ManageRoles() {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = table;
 
   return (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
       <Typography variant="h6" gutterBottom>Manage Roles</Typography>
+      <Box sx={styles.tableContainer}>
+        <Box component="table" {...getTableProps()} sx={styles.table}>
+          <Box component="thead">
+            {headerGroups.map(hg => (
+              <Box component="tr" {...hg.getHeaderGroupProps()}>
+                {hg.headers.map(col => (
+                  <Box component="th" {...col.getHeaderProps()}>{col.render('Header')}</Box>
+                ))}
+              </Box>
+            ))}
+          </Box>
+          <Box component="tbody" {...getTableBodyProps()}>
+            {rows.map(row => {
+              prepareRow(row);
+              return (
+                <Box component="tr" {...row.getRowProps()}>
+                  {row.cells.map(cell => (
+                    <Box component="td" {...cell.getCellProps()}>{cell.render('Cell')}</Box>
+                  ))}
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      </Box>
       <Box sx={styles.actionRow}>
         <Box component="form" onSubmit={createRole}>
           <TextField
@@ -120,29 +145,6 @@ export default function ManageRoles() {
             onChange={e => setNewName(e.target.value)}
           />
           <Button sx={styles.ml1} type="submit" variant="contained">Add</Button>
-        </Box>
-      </Box>
-      <Box component="table" {...getTableProps()} sx={styles.table}>
-        <Box component="thead">
-          {headerGroups.map(hg => (
-            <Box component="tr" {...hg.getHeaderGroupProps()}>
-              {hg.headers.map(col => (
-                <Box component="th" {...col.getHeaderProps()}>{col.render('Header')}</Box>
-              ))}
-            </Box>
-          ))}
-        </Box>
-        <Box component="tbody" {...getTableBodyProps()}>
-          {rows.map(row => {
-            prepareRow(row);
-            return (
-              <Box component="tr" {...row.getRowProps()}>
-                {row.cells.map(cell => (
-                  <Box component="td" {...cell.getCellProps()}>{cell.render('Cell')}</Box>
-                ))}
-              </Box>
-            );
-          })}
         </Box>
       </Box>
     </Box>
