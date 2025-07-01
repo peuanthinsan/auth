@@ -239,7 +239,7 @@ apiRouter.post('/refresh', async (req, res) => {
 apiRouter.get('/profile', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.id)
     .populate('organizations', 'name')
-    .populate('roles', 'code')
+    .populate('roles', 'code name')
     .populate('balances.orgId', 'name')
     .lean();
   if (!user) return res.sendStatus(404);
@@ -250,7 +250,8 @@ apiRouter.get('/profile', authenticateToken, async (req, res) => {
     firstName: user.firstName,
     lastName: user.lastName,
     profilePicture: user.profilePicture,
-    roles: user.roles.map(r => r.code),
+    roleCodes: user.roles.map(r => r.code),
+    roles: user.roles.map(r => r.name),
     isSuperAdmin: user.isSuperAdmin,
     balances: user.balances.map(b => ({
       orgId: b.orgId?._id ?? b.orgId,
@@ -296,6 +297,14 @@ apiRouter.patch(
     res.json({ message: 'Profile updated' });
   }
 );
+
+// delete own profile
+apiRouter.delete('/profile', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) return res.sendStatus(404);
+  await user.deleteOne();
+  res.json({ message: 'Account deleted' });
+});
 
 // change password
 apiRouter.post('/password/change', authenticateToken, async (req, res) => {
@@ -491,7 +500,7 @@ apiRouter.get('/users', authenticateToken, requireAdmin, async (req, res) => {
   );
 });
 
-apiRouter.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.delete('/users/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
   const { id } = req.params;
   const user = await User.findById(id);
   if (!user) return res.status(404).json({ message: 'User not found' });
