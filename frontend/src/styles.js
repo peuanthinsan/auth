@@ -19,8 +19,8 @@ export const styles = {
       backgroundColor: '#f7f7f7'
     }
   },
-  content: { flexGrow: 1, p: 2, display: 'grid' },
-  formStack: { maxWidth: 300, display: 'grid' },
+  content: { flexGrow: 1, p: 2, display: 'grid', gap: 2 },
+  formStack: { maxWidth: 300, display: 'grid', gap: 2 },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
@@ -30,7 +30,7 @@ export const styles = {
     },
     '& th': { borderBottom: '1px solid', borderColor: 'divider' }
   },
-  actionRow: { mt: 2, display: 'grid' },
+  actionRow: { mt: 2, display: 'grid', gap: 1 },
   ml1: { ml: 1 },
   mb2: { mb: 2 },
   mt2: { mt: 2 }

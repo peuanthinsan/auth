@@ -44,7 +44,7 @@ export default function UpdateProfile() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Update Profile</Typography>
-      <Stack sx={styles.formStack}>
+      <Stack spacing={2} sx={styles.formStack}>
         {['username','firstName','lastName'].map(f => (
           <TextField
             key={f}

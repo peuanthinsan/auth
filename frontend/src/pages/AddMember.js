@@ -40,7 +40,7 @@ export default function AddMember() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Add Member</Typography>
-      <Stack sx={styles.formStack}>
+      <Stack spacing={2} sx={styles.formStack}>
         <Autocomplete
           options={orgs}
           getOptionLabel={o => o.name || ''}

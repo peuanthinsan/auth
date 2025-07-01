@@ -59,7 +59,7 @@ export default function ManageOrganizations() {
     const [value, setValue] = useState(row.original.name);
     const save = () => updateName(row.original.id, value);
     return (
-      <Stack direction="row">
+      <Stack direction="row" spacing={1}>
         <TextField
           size="small"
           placeholder="Name"
@@ -120,7 +120,7 @@ export default function ManageOrganizations() {
           })}
         </Box>
       </Box>
-      <Stack direction="row" sx={{ mt: 2 }}>
+      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
         <TextField
           size="small"
           label="Name"

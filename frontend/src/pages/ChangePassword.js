@@ -22,7 +22,7 @@ export default function ChangePassword() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Typography variant="h6" gutterBottom>Change Password</Typography>
-      <Stack sx={styles.formStack}>
+      <Stack spacing={2} sx={styles.formStack}>
         <TextField
           label="Old Password"
           placeholder="Old Password"
