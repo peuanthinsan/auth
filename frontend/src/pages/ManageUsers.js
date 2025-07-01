@@ -20,9 +20,16 @@ export default function ManageUsers() {
   const [removeOrgId, setRemoveOrgId] = useState('');
   const { showToast } = useContext(ToastContext);
   const load = async () => {
-    const userReq = api.get('/users');
-    const roleReq = api.get('/roles', { params: currentOrg ? { orgId: currentOrg } : {} });
-    const orgReq = api.get('/organizations');
+    const userReq =
+      currentOrg && !profile?.isSuperAdmin
+        ? api.get('/users', { params: { orgId: currentOrg } })
+        : api.get('/users');
+    const roleReq = api.get('/roles', {
+      params: currentOrg ? { orgId: currentOrg } : {}
+    });
+    const orgReq = profile?.isSuperAdmin
+      ? api.get('/organizations')
+      : Promise.resolve({ data: [] });
     const [uRes, rRes, oRes] = await Promise.all([userReq, roleReq, orgReq]);
     setUsers(uRes.data);
     setRoles(rRes.data);
@@ -196,25 +203,27 @@ export default function ManageUsers() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
-        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          {!currentOrg && (
+        {profile?.isSuperAdmin && (
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+            {!currentOrg && (
+              <Autocomplete
+                options={orgs}
+                getOptionLabel={o => o.name || ''}
+                onChange={(_, v) => setAddOrgId(v ? v.id : '')}
+                renderInput={params => <TextField {...params} size="small" label="Organization" />}
+                sx={{ width: 200 }}
+              />
+            )}
             <Autocomplete
-              options={orgs}
-              getOptionLabel={o => o.name || ''}
-              onChange={(_, v) => setAddOrgId(v ? v.id : '')}
-              renderInput={params => <TextField {...params} size="small" label="Organization" />}
+              options={addOptions}
+              getOptionLabel={u => u.username || ''}
+              onChange={(_, v) => setAddUserId(v ? v.id : '')}
+              renderInput={params => <TextField {...params} size="small" label="User" />}
               sx={{ width: 200 }}
             />
-          )}
-          <Autocomplete
-            options={addOptions}
-            getOptionLabel={u => u.username || ''}
-            onChange={(_, v) => setAddUserId(v ? v.id : '')}
-            renderInput={params => <TextField {...params} size="small" label="User" />}
-            sx={{ width: 200 }}
-          />
-          <Button variant="contained" onClick={addMember}>Add Member</Button>
-        </Stack>
+            <Button variant="contained" onClick={addMember}>Add Member</Button>
+          </Stack>
+        )}
         {currentOrg && (
           <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
             <Autocomplete

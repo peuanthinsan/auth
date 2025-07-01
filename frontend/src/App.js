@@ -70,8 +70,13 @@ export default function App() {
     { text: 'Logout', path: '/logout', icon: <Logout /> }
   ];
   const adminNav = { text: 'Administration', path: '/admin', icon: <AdminPanelSettings /> };
+  const showAdminNav =
+    profile && isAdmin && (
+      (profile.isSuperAdmin && !currentOrg) ||
+      (!profile.isSuperAdmin && currentOrg)
+    );
   const navItems = token
-    ? [...loggedInNav, ...(profile && isAdmin ? [adminNav] : [])]
+    ? [...loggedInNav, ...(showAdminNav ? [adminNav] : [])]
     : loggedOutNav;
 
   useEffect(() => {

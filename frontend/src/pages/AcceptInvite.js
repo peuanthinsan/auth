@@ -7,7 +7,7 @@ import api from '../api';
 import { ToastContext } from '../ToastContext';
 
 export default function AcceptInvite() {
-  const { refreshOrgs, loadProfile } = useContext(AuthContext);
+  const { refreshOrgs, loadProfile, setCurrentOrg } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
   const [invites, setInvites] = useState([]);
   const [tokens, setTokens] = useState({});
@@ -20,13 +20,15 @@ export default function AcceptInvite() {
     load();
   }, []);
 
-  const accept = async (id) => {
+  const accept = async (id, orgId) => {
     try {
-      await api.post(`/invites/${id}/accept`, { token: tokens[id] });
+      const res = await api.post(`/invites/${id}/accept`, { token: tokens[id] });
       showToast('Invite accepted', 'success');
       setInvites(invites.filter(i => i.id !== id));
       refreshOrgs();
       loadProfile();
+      const newOrgId = res.data.orgId || orgId;
+      if (newOrgId) setCurrentOrg(newOrgId);
     } catch (err) {
       showToast(err.response?.data?.message || 'Error accepting invite', 'error');
     }
@@ -47,7 +49,7 @@ export default function AcceptInvite() {
       Header: 'Actions',
       accessor: 'actions',
       Cell: ({ row }) => (
-        <Button variant="contained" onClick={() => accept(row.original.id)}>Accept</Button>
+        <Button variant="contained" onClick={() => accept(row.original.id, row.original.orgId)}>Accept</Button>
       )
     }
   ], [tokens, invites]);
