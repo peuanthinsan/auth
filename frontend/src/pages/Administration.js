@@ -1,4 +1,5 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, Tab, Box } from '@mui/material';
 import { styles } from '../styles';
 import ManageUsers from './ManageUsers';
@@ -9,8 +10,14 @@ import { AuthContext } from '../AuthContext';
 
 export default function Administration() {
   const { profile, currentOrg, isAdmin } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [tab, setTab] = useState(0);
   const showOrgs = profile?.isSuperAdmin;
+  useEffect(() => {
+    if (isAdmin && !profile?.isSuperAdmin && !currentOrg) {
+      navigate('/profile');
+    }
+  }, [currentOrg, isAdmin, profile, navigate]);
   if (!isAdmin) return <Box>Not authorized</Box>;
   const tabs = [];
   if (currentOrg || profile?.isSuperAdmin) {

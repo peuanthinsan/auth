@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TextField, Button, Stack, Typography, Box } from '@mui/material';
 import { styles } from '../styles';
 import api from '../api';
@@ -11,6 +12,13 @@ export default function Transfer() {
   const { showToast } = useContext(ToastContext);
   const { currentOrg, loadProfile } = useContext(AuthContext);
   const [balance, setBalance] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!currentOrg) {
+      navigate('/profile');
+    }
+  }, [currentOrg, navigate]);
 
   useEffect(() => {
     const loadBal = async () => {
