@@ -1,13 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { styles } from '../styles';
-import api from '../api';
+import { ApiContext } from '../ApiContext';
 import { ToastContext } from '../ToastContext';
 
 export default function ForgotPassword() {
   const [username, setUsername] = useState('');
   const [token, setToken] = useState('');
   const { showToast } = useContext(ToastContext);
+  const { forgotPassword } = useContext(ApiContext);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -15,8 +16,8 @@ export default function ForgotPassword() {
       showToast('Username is required', 'error');
       return;
     }
-    const res = await api.post('/password/forgot', { username: username.trim() });
-    setToken(res.data.token);
+    const t = await forgotPassword(username.trim());
+    setToken(t);
     showToast('Token created', 'success');
   };
 

@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography, Box } from '@mui/material';
 import { styles } from '../styles';
-import api from '../api';
 import { AuthContext } from '../AuthContext';
+import { ApiContext } from '../ApiContext';
 
 export default function Balance() {
   const { currentOrg } = useContext(AuthContext);
-  const [balance, setBalance] = useState(null);
+  const { balance, refreshBalance } = useContext(ApiContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,13 +17,8 @@ export default function Balance() {
   }, [currentOrg, navigate]);
 
   useEffect(() => {
-    const load = async () => {
-      if (!currentOrg) { setBalance(null); return; }
-      const res = await api.get('/balance', { params: { orgId: currentOrg } });
-      setBalance(res.data.balance);
-    };
-    load();
-  }, [currentOrg]);
+    refreshBalance();
+  }, [currentOrg, refreshBalance]);
 
   if (!currentOrg) return <Box />;
 

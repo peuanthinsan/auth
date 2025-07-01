@@ -1,20 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import { Typography, Box, Avatar } from '@mui/material';
 import { styles } from '../styles';
 import { AuthContext } from '../AuthContext';
-import api, { API_ROOT } from '../api';
+import { API_ROOT } from '../api';
 
 export default function Profile() {
-  useContext(AuthContext);
-  const [profile, setProfile] = useState(null);
-
-  useEffect(() => {
-    const load = async () => {
-      const res = await api.get('/profile');
-      setProfile(res.data);
-    };
-    load();
-  }, []);
+  const { profile } = useContext(AuthContext);
   return (
     <Box>
       <Typography variant="h6" gutterBottom>Profile</Typography>

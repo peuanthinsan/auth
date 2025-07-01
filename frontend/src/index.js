@@ -3,12 +3,15 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AuthProvider } from './AuthContext';
 import { ToastProvider } from './ToastContext';
+import { ApiProvider } from './ApiContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <AuthProvider>
     <ToastProvider>
-      <App />
+      <ApiProvider>
+        <App />
+      </ApiProvider>
     </ToastProvider>
   </AuthProvider>
 );

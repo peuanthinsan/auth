@@ -4,6 +4,7 @@ import { styles } from '../styles';
 import api from '../api';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function RemoveMember() {
   useContext(AuthContext);
@@ -11,16 +12,13 @@ export default function RemoveMember() {
   const [orgId, setOrgId] = useState('');
   const [userId, setUserId] = useState('');
   const [orgs, setOrgs] = useState([]);
-  const [users, setUsers] = useState([]);
+  const { users, refreshUsers } = useContext(ApiContext);
 
   useEffect(() => {
     const load = async () => {
-      const [oRes, uRes] = await Promise.all([
-        api.get('/organizations'),
-        api.get('/users')
-      ]);
+      const oRes = await api.get('/organizations');
       setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));
-      setUsers(uRes.data.map(u => ({ id: u.id, username: u.username })));
+      await refreshUsers('');
     };
     load();
   }, []);

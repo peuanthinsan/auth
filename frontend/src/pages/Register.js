@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api';
 import {
   TextField,
   Button,
@@ -10,9 +9,11 @@ import {
 } from '@mui/material';
 import { styles } from '../styles';
 import { ToastContext } from '../ToastContext';
+import { ApiContext } from '../ApiContext';
 
 export default function Register() {
   const { showToast } = useContext(ToastContext);
+  const { register } = useContext(ApiContext);
   const [form, setForm] = useState({ username: '', password: '', confirmPassword: '', email: '', firstName: '', lastName: '' });
   const navigate = useNavigate();
 
@@ -29,7 +30,7 @@ export default function Register() {
     }
     const { confirmPassword, ...payload } = trimmed;
     try {
-      await api.post('/register', payload);
+      await register(payload);
       navigate('/login');
     } catch (err) {
       showToast(err.response?.data?.message || 'Registration failed', 'error');
