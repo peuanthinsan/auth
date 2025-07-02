@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -101,8 +101,7 @@ export default function App() {
     setMobileOpen(!mobileOpen);
   };
   return (
-    <Router>
-      <Box sx={styles.root}>
+    <Box sx={styles.root}>
         <AppBar position="fixed" sx={styles.appBar}>
           <Toolbar>
             {isSmall && (
@@ -192,6 +191,5 @@ export default function App() {
           </Routes>
         </Box>
       </Box>
-    </Router>
   );
 }
