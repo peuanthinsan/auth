@@ -11,7 +11,7 @@ import { ApiContext } from '../ApiContext';
 
 export default function ManageUsers() {
   const navigate = useNavigate();
-  const { currentOrg, profile, logout, loadProfile } = useContext(AuthContext);
+  const { currentOrg, profile, logout } = useContext(AuthContext);
   const { users, refreshUsers, roles, refreshRoles } = useContext(ApiContext);
   const [allUsers, setAllUsers] = useState([]);
   const [orgs, setOrgs] = useState([]);
@@ -54,12 +54,6 @@ export default function ManageUsers() {
   const changeRoles = async (id, roleIds) => {
     await api.post(`/users/${id}/roles`, { roleIds });
     await refreshUsers(currentOrg || '');
-    if (profile?.id === id) {
-      await loadProfile();
-      const adminRoleIds = roles.filter(r => r.code === 'ADMIN').map(r => r.id);
-      const stillAdmin = profile.isSuperAdmin || roleIds.some(rid => adminRoleIds.includes(rid));
-      if (!stillAdmin) navigate('/profile');
-    }
   };
 
   const addMember = async (e) => {
@@ -85,10 +79,6 @@ export default function ManageUsers() {
     }
     await api.delete(`/organizations/${orgId}/members/${removeUserId}`);
     showToast('Member removed', 'success');
-    if (profile?.id === removeUserId) {
-      await loadProfile();
-      navigate('/profile');
-    }
     load();
   };
 
