@@ -35,7 +35,7 @@ export default function Administration() {
           <Tab key={t.label} label={t.label} />
         ))}
       </Tabs>
-      <Box sx={styles.actionRow}>{tabs[tab]?.component}</Box>
+      <Box sx={styles.adminContent}>{tabs[tab]?.component}</Box>
     </Box>
   );
 }

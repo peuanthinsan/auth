@@ -1,4 +1,7 @@
 node_modules/
 frontend/node_modules/
 
+# Ignore built files
+frontend/dist/
+
 .env

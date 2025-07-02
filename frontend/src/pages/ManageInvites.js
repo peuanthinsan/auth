@@ -115,7 +115,12 @@ export default function ManageInvites() {
               size="small"
               value={role}
               onChange={e => setRole(e.target.value)}
+              displayEmpty
+              sx={{ width: 160 }}
             >
+              <MenuItem value="" disabled>
+                Role
+              </MenuItem>
               {roles.map(r => (
                 <MenuItem key={r.id} value={r.code}>{r.name}</MenuItem>
               ))}
