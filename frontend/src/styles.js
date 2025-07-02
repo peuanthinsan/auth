@@ -26,7 +26,7 @@ export const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    maxWidth: `calc(100vw - ${drawerWidth}px)`
+    maxWidth: { sm: `calc(100vw - ${drawerWidth}px)` }
   },
   tableContainer: {
     flexGrow: 1,
