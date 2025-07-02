@@ -40,13 +40,7 @@ export const styles = {
     overflowX: 'auto',
     mt: 2,
     height: '100%',
-    width: {
-      xs: '100%',
-      sm: `calc(100vw - ${drawerWidth}px - 48px)`,
-      md: `calc(100vw - ${drawerWidth}px - 48px)`,
-      lg: `calc(100vw - ${drawerWidth}px - 48px)`,
-      xl: `calc(100vw - ${drawerWidth}px - 48px)`
-    },
+    width: '100%',
     border: '1px solid',
     borderColor: 'divider',
     borderRadius: 1,

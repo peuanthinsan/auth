@@ -3,7 +3,7 @@ import { grey } from '@mui/material/colors';
 
 export const fonts = {
   body: `'Inter', sans-serif`,
-  heading: `'Lora', serif`
+  heading: `'Inter', sans-serif`
 };
 
 const theme = createTheme({
@@ -46,6 +46,15 @@ const theme = createTheme({
           '::placeholder': {
             color: grey[500],
             opacity: 1
+          }
+        }
+      }
+    },
+    MuiCardContent: {
+      styleOverrides: {
+        root: {
+          '&:last-child': {
+            paddingBottom: '16px'
           }
         }
       }
