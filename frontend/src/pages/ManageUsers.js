@@ -226,7 +226,7 @@ export default function ManageUsers() {
           </Box>
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
+      <Box sx={styles.bottomForm}>
         {profile?.isSuperAdmin && (
           <Box component="form" onSubmit={addMember}>
             <Stack direction="row" spacing={1}>

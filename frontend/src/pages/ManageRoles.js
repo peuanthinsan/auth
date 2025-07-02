@@ -148,7 +148,7 @@ export default function ManageRoles() {
           </Box>
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
+      <Box sx={styles.bottomForm}>
         <Box component="form" onSubmit={createRole}>
           <TextField
             label="Name"

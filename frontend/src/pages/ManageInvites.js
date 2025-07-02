@@ -100,7 +100,7 @@ export default function ManageInvites() {
           </Box>
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
+      <Box sx={styles.bottomForm}>
         <Box component="form" onSubmit={sendInvite} noValidate>
           <Stack direction="row" spacing={1}>
             <TextField
