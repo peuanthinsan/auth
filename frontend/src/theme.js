@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import { grey } from '@mui/material/colors';
 
 export const fonts = {
   body: `'Inter', sans-serif`,
@@ -31,11 +32,23 @@ const theme = createTheme({
     success: { main: '#4CAF50' },
     text: {
       primary: '#333',
-      secondary: '#555'
+      secondary: '#666'
     },
     background: {
       default: '#fafafa',
       paper: '#fff'
+    }
+  },
+  components: {
+    MuiInputBase: {
+      styleOverrides: {
+        input: {
+          '::placeholder': {
+            color: grey[500],
+            opacity: 1
+          }
+        }
+      }
     }
   },
   spacing: 8
