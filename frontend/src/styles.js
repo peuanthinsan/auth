@@ -30,7 +30,8 @@ export const styles = {
     overflowY: 'auto',
     overflowX: 'auto',
     mt: 2,
-    height: '100%'
+    height: '100%',
+    width: `calc(100vw - ${drawerWidth}px - 48px)`
   },
   formStack: { maxWidth: 300 },
   table: {
@@ -59,7 +60,7 @@ export const styles = {
     borderTop: '1px solid',
     borderColor: 'divider'
   },
-  adminContent: { mt: 2 },
+  adminContent: { mt: 2, zIndex: 1 },
   ml1: { ml: 1 },
   mb2: { mb: 2 },
   mt2: { mt: 2 }
