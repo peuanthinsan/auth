@@ -31,18 +31,36 @@ export const styles = {
     overflowX: 'auto',
     mt: 2,
     height: '100%',
-    width: `calc(100vw - ${drawerWidth}px - 48px)`
+    width: `calc(100vw - ${drawerWidth}px - 48px)`,
+    border: '1px solid',
+    borderColor: 'divider',
+    borderRadius: 1,
+    backgroundColor: 'background.paper',
+    boxShadow: 1
   },
   formStack: { maxWidth: 300 },
   table: {
     width: '100%',
     height: '100%',
     borderCollapse: 'collapse',
+    border: '1px solid',
+    borderColor: 'divider',
     '& th, & td': {
       textAlign: 'left',
-      padding: '8px'
+      padding: '8px',
+      borderBottom: '1px solid',
+      borderColor: 'divider'
     },
-    '& th': { borderBottom: '1px solid', borderColor: 'divider' },
+    '& thead th': {
+      backgroundColor: 'grey.100',
+      borderBottomWidth: '2px'
+    },
+    '& tbody tr:nth-of-type(odd)': {
+      backgroundColor: 'grey.50'
+    },
+    '& tbody tr:hover': {
+      backgroundColor: 'action.hover'
+    },
     '& th:first-of-type, & td:first-of-type': {
       position: 'sticky',
       left: 0,
