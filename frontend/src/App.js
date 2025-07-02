@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import {
   AppBar,
@@ -16,8 +16,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Avatar
+  Avatar,
+  IconButton
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { API_ROOT } from './api';
 import {
   PersonAdd,
@@ -30,7 +33,8 @@ import {
   AccountBalanceWallet,
   AdminPanelSettings,
   Logout,
-  LockReset
+  LockReset,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import { styles } from './styles';
 import Register from './pages/Register';
@@ -49,6 +53,9 @@ import LogoutPage from './pages/Logout';
 import { AuthContext } from './AuthContext';
 
 export default function App() {
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const [mobileOpen, setMobileOpen] = useState(false);
   const loggedOutNav = [
     { text: 'Register', path: '/register', icon: <PersonAdd /> },
     { text: 'Login', path: '/login', icon: <LoginIcon /> },
@@ -90,12 +97,25 @@ export default function App() {
     const id = e.target.value;
     setCurrentOrg(id);
   };
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
   return (
     <Router>
       <Box sx={styles.root}>
         <CssBaseline />
         <AppBar position="fixed" sx={styles.appBar}>
           <Toolbar>
+            {isSmall && (
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
             <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
               Dashboard
             </Typography>
@@ -134,7 +154,10 @@ export default function App() {
           </Toolbar>
         </AppBar>
         <Drawer
-          variant="permanent"
+          variant={isSmall ? 'temporary' : 'permanent'}
+          open={isSmall ? mobileOpen : true}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
           sx={styles.drawer}
         >
           <Toolbar />

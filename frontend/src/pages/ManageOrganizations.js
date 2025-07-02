@@ -61,7 +61,7 @@ export default function ManageOrganizations() {
     const [value, setValue] = useState(row.original.name);
     const save = () => updateName(row.original.id, value);
     return (
-      <Stack direction="row" spacing={1}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <TextField
           size="small"
           placeholder="Name"
@@ -125,7 +125,7 @@ export default function ManageOrganizations() {
       </Box>
       <Box sx={styles.actionRow}>
         <Box component="form" onSubmit={createOrg}>
-          <Stack direction="row" spacing={1}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <TextField
               size="small"
               label="Name"

@@ -64,7 +64,7 @@ export default function ManageRoles() {
     const save = () => updateRole(row.original.id, 'code', value);
     const onKeyDown = (e) => { if (e.key === 'Enter') save(); };
     return (
-      <Stack direction="row" spacing={1}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <TextField
           size="small"
           placeholder="Code"
@@ -82,7 +82,7 @@ export default function ManageRoles() {
     const save = () => updateRole(row.original.id, 'name', value);
     const onKeyDown = (e) => { if (e.key === 'Enter') save(); };
     return (
-      <Stack direction="row" spacing={1}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
         <TextField
           size="small"
           placeholder="Name"
@@ -149,7 +149,7 @@ export default function ManageRoles() {
         </Box>
       </Box>
       <Box sx={styles.actionRow}>
-        <Box component="form" onSubmit={createRole}>
+        <Stack component="form" onSubmit={createRole} direction={{ xs: 'column', sm: 'row' }} spacing={1}>
           <TextField
             label="Name"
             placeholder="Name"
@@ -161,12 +161,11 @@ export default function ManageRoles() {
             label="Code"
             placeholder="Code"
             size="small"
-            sx={styles.ml1}
             value={newCode}
             onChange={e => setNewCode(e.target.value)}
           />
-          <Button sx={styles.ml1} type="submit" variant="contained">Add</Button>
-        </Box>
+          <Button type="submit" variant="contained">Add</Button>
+        </Stack>
       </Box>
     </Box>
   );

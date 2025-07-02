@@ -222,13 +222,13 @@ export default function ManageUsers() {
       <Box sx={styles.actionRow}>
         {profile?.isSuperAdmin && (
           <Box component="form" onSubmit={addMember}>
-            <Stack direction="row" spacing={1}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <Autocomplete
                 options={addOptions}
                 getOptionLabel={u => u.username || ''}
                 onChange={(_, v) => setAddUserId(v ? v.id : '')}
                 renderInput={params => <TextField {...params} size="small" label="User" />}
-                sx={{ width: 200 }}
+                sx={{ width: { xs: '100%', sm: 200 } }}
               />
               {!currentOrg && (
                 <Autocomplete
@@ -239,7 +239,7 @@ export default function ManageUsers() {
                     setAddRoleId('');
                   }}
                   renderInput={params => <TextField {...params} size="small" label="Organization" />}
-                  sx={{ width: 200 }}
+                  sx={{ width: { xs: '100%', sm: 200 } }}
                 />
               )}
               <Select
@@ -247,7 +247,7 @@ export default function ManageUsers() {
                 value={addRoleId}
                 onChange={e => setAddRoleId(e.target.value)}
                 displayEmpty
-                sx={{ width: 160 }}
+                sx={{ width: { xs: '100%', sm: 160 } }}
               >
                 <MenuItem value="" disabled>
                   Role
@@ -264,13 +264,13 @@ export default function ManageUsers() {
         )}
         {currentOrg && (
           <Box component="form" onSubmit={removeMember} sx={{ mt: 2 }}>
-            <Stack direction="row" spacing={1}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <Autocomplete
                 options={removeOptions}
                 getOptionLabel={u => u.username || ''}
                 onChange={(_, v) => setRemoveUserId(v ? v.id : '')}
                 renderInput={params => <TextField {...params} size="small" label="User" />}
-                sx={{ width: 200 }}
+                sx={{ width: { xs: '100%', sm: 200 } }}
               />
               <Button type="submit" variant="contained" color="error">Remove Member</Button>
             </Stack>
