@@ -102,7 +102,7 @@ export default function ManageInvites() {
       </Box>
       <Box sx={styles.actionRow}>
         <Box component="form" onSubmit={sendInvite} noValidate>
-          <Stack direction="row" spacing={1}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <TextField
               size="small"
               label="Email"
@@ -110,13 +110,14 @@ export default function ManageInvites() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             />
             <Select
               size="small"
               value={role}
               onChange={e => setRole(e.target.value)}
               displayEmpty
-              sx={{ width: 160 }}
+              sx={{ width: { xs: '100%', sm: 160 } }}
             >
               <MenuItem value="" disabled>
                 Role
