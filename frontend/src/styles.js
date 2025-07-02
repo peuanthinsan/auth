@@ -29,12 +29,12 @@ export const styles = {
     flexGrow: 1,
     overflowY: 'auto',
     overflowX: 'auto',
-    mt: 2
+    mt: 2,
+    width: '100%'
   },
   formStack: { maxWidth: 300 },
   table: {
-    width: 'max-content',
-    minWidth: '100%',
+    width: '100%',
     borderCollapse: 'collapse',
     '& th, & td': {
       textAlign: 'left',
@@ -49,6 +49,7 @@ export const styles = {
     }
   },
   actionRow: { mt: 2 },
+  bottomForm: { mt: 'auto', pt: 2 },
   ml1: { ml: 1 },
   mb2: { mb: 2 },
   mt2: { mt: 2 }

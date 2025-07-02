@@ -56,9 +56,6 @@ export default function ManageUsers() {
     await refreshUsers(currentOrg || '');
     if (profile?.id === id) {
       await loadProfile();
-      const adminRoleIds = roles.filter(r => r.code === 'ADMIN').map(r => r.id);
-      const stillAdmin = profile.isSuperAdmin || roleIds.some(rid => adminRoleIds.includes(rid));
-      if (!stillAdmin) navigate('/profile');
     }
   };
 
@@ -229,7 +226,7 @@ export default function ManageUsers() {
           </Box>
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
+      <Box sx={styles.bottomForm}>
         {profile?.isSuperAdmin && (
           <Box component="form" onSubmit={addMember}>
             <Stack direction="row" spacing={1}>

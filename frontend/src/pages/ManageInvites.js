@@ -100,7 +100,7 @@ export default function ManageInvites() {
           </Box>
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
+      <Box sx={styles.bottomForm}>
         <Box component="form" onSubmit={sendInvite} noValidate>
           <Stack direction="row" spacing={1}>
             <TextField
@@ -115,7 +115,12 @@ export default function ManageInvites() {
               size="small"
               value={role}
               onChange={e => setRole(e.target.value)}
+              displayEmpty
+              sx={{ width: 160 }}
             >
+              <MenuItem value="" disabled>
+                Role
+              </MenuItem>
               {roles.map(r => (
                 <MenuItem key={r.id} value={r.code}>{r.name}</MenuItem>
               ))}

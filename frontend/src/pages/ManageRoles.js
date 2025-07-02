@@ -148,22 +148,22 @@ export default function ManageRoles() {
           </Box>
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
+      <Box sx={styles.bottomForm}>
         <Box component="form" onSubmit={createRole}>
-          <TextField
-            label="Code"
-            placeholder="Code"
-            size="small"
-            value={newCode}
-            onChange={e => setNewCode(e.target.value)}
-          />
           <TextField
             label="Name"
             placeholder="Name"
             size="small"
-            sx={styles.ml1}
             value={newName}
             onChange={e => setNewName(e.target.value)}
+          />
+          <TextField
+            label="Code"
+            placeholder="Code"
+            size="small"
+            sx={styles.ml1}
+            value={newCode}
+            onChange={e => setNewCode(e.target.value)}
           />
           <Button sx={styles.ml1} type="submit" variant="contained">Add</Button>
         </Box>

@@ -123,7 +123,7 @@ export default function ManageOrganizations() {
           </Box>
         </Box>
       </Box>
-      <Box sx={styles.actionRow}>
+      <Box sx={styles.bottomForm}>
         <Box component="form" onSubmit={createOrg}>
           <Stack direction="row" spacing={1}>
             <TextField
