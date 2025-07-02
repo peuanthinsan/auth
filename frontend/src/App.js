@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -10,7 +10,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  CssBaseline,
   Box,
   Select,
   MenuItem,
@@ -97,13 +96,13 @@ export default function App() {
     const id = e.target.value;
     setCurrentOrg(id);
   };
+  const location = useLocation();
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
   return (
     <Router>
       <Box sx={styles.root}>
-        <CssBaseline />
         <AppBar position="fixed" sx={styles.appBar}>
           <Toolbar>
             {isSmall && (
@@ -164,7 +163,7 @@ export default function App() {
           <List>
             {navItems.map((item) => (
               <ListItem disablePadding key={item.text}>
-                <ListItemButton component={Link} to={item.path}>
+                <ListItemButton component={Link} to={item.path} selected={location.pathname === item.path}>
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.text} />
                 </ListItemButton>

@@ -45,7 +45,7 @@ export const styles = {
     boxShadow: 1
   },
   formStack: {
-    maxWidth: { xs: '100%', sm: 300, md: 400, lg: 500, xl: 600 },
+    maxWidth: 600,
     width: '100%',
     mx: 'auto'
   },

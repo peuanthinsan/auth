@@ -97,7 +97,6 @@ export default function ManageOrganizations() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-      <Typography variant="h6" gutterBottom>Manage Organizations</Typography>
       <Box sx={styles.tableContainer}>
         <Box component="table" {...getTableProps()} sx={styles.table}>
           <Box component="thead">

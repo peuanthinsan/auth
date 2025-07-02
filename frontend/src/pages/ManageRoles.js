@@ -122,7 +122,6 @@ export default function ManageRoles() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-      <Typography variant="h6" gutterBottom>Manage Roles</Typography>
       <Box sx={styles.tableContainer}>
         <Box component="table" {...getTableProps()} sx={styles.table}>
           <Box component="thead">

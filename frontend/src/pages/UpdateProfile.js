@@ -43,7 +43,6 @@ export default function UpdateProfile() {
   };
   return (
     <Box component="form" onSubmit={submit} noValidate>
-      <Typography variant="h6" gutterBottom>Update Profile</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         {['username','firstName','lastName'].map(f => (
           <TextField

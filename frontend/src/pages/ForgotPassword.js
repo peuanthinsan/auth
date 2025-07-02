@@ -23,7 +23,6 @@ export default function ForgotPassword() {
 
   return (
     <Box component="form" onSubmit={submit} noValidate>
-      <Typography variant="h6" gutterBottom>Forgot Password</Typography>
       <Stack spacing={2} sx={styles.formStack}>
         <TextField
           label="Username"

@@ -22,7 +22,8 @@ export function ToastProvider({ children }) {
         open={toast.open}
         autoHideDuration={3000}
         onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        sx={{ mb: 2, mr: 2 }}
       >
         <Alert onClose={handleClose} severity={toast.severity} sx={{ width: '100%' }}>
           {toast.message}
