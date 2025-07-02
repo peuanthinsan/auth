@@ -20,7 +20,7 @@ export const styles = {
   },
   content: {
     flexGrow: 1,
-    p: { xs: 1, sm: 3 },
+    p: { xs: 1, sm: 2, md: 3, lg: 4, xl: 6 },
     display: 'flex',
     flexDirection: 'column',
     height: '100%'
@@ -31,14 +31,24 @@ export const styles = {
     overflowX: 'auto',
     mt: 2,
     height: '100%',
-    width: { xs: '100%', sm: `calc(100vw - ${drawerWidth}px - 48px)` },
+    width: {
+      xs: '100%',
+      sm: `calc(100vw - ${drawerWidth}px - 48px)`,
+      md: `calc(100vw - ${drawerWidth}px - 48px)`,
+      lg: `calc(100vw - ${drawerWidth}px - 48px)`,
+      xl: `calc(100vw - ${drawerWidth}px - 48px)`
+    },
     border: '1px solid',
     borderColor: 'divider',
     borderRadius: 1,
     backgroundColor: 'background.paper',
     boxShadow: 1
   },
-  formStack: { maxWidth: 300, width: '100%' },
+  formStack: {
+    maxWidth: { xs: '100%', sm: 300, md: 400, lg: 500, xl: 600 },
+    width: '100%',
+    mx: 'auto'
+  },
   table: {
     width: '100%',
     height: '100%',
