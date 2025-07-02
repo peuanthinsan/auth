@@ -56,9 +56,6 @@ export default function ManageUsers() {
     await refreshUsers(currentOrg || '');
     if (profile?.id === id) {
       await loadProfile();
-      const adminRoleIds = roles.filter(r => r.code === 'ADMIN').map(r => r.id);
-      const stillAdmin = profile.isSuperAdmin || roleIds.some(rid => adminRoleIds.includes(rid));
-      if (!stillAdmin) navigate('/profile');
     }
   };
 
