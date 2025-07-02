@@ -29,12 +29,13 @@ export const styles = {
     flexGrow: 1,
     overflowY: 'auto',
     overflowX: 'auto',
-    mt: 2
+    mt: 2,
+    height: '100%'
   },
   formStack: { maxWidth: 300 },
   table: {
-    width: 'max-content',
-    minWidth: '100%',
+    width: '100%',
+    height: '100%',
     borderCollapse: 'collapse',
     '& th, & td': {
       textAlign: 'left',
@@ -48,7 +49,17 @@ export const styles = {
       zIndex: 1
     }
   },
-  actionRow: { mt: 2 },
+  actionRow: {
+    position: 'fixed',
+    bottom: 0,
+    left: drawerWidth,
+    right: 0,
+    p: 2,
+    backgroundColor: 'background.paper',
+    borderTop: '1px solid',
+    borderColor: 'divider'
+  },
+  adminContent: { mt: 2 },
   ml1: { ml: 1 },
   mb2: { mb: 2 },
   mt2: { mt: 2 }
