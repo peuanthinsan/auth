@@ -58,9 +58,10 @@ export const styles = {
     p: 2,
     backgroundColor: 'background.paper',
     borderTop: '1px solid',
-    borderColor: 'divider'
+    borderColor: 'divider',
+    zIndex: 1
   },
-  adminContent: { mt: 2, zIndex: 1 },
+  adminContent: { mt: 2 },
   ml1: { ml: 1 },
   mb2: { mb: 2 },
   mt2: { mt: 2 }
