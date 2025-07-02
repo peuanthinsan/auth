@@ -25,7 +25,14 @@ export const styles = {
     p: { xs: 1, sm: 2, md: 3, lg: 4, xl: 6 },
     display: 'flex',
     flexDirection: 'column',
-    height: '100%'
+    height: '100%',
+    maxWidth: {
+      xs: '100%',
+      sm: `calc(100vw - ${drawerWidth}px - 32px)`,
+      md: `calc(100vw - ${drawerWidth}px - 48px)`,
+      lg: `calc(100vw - ${drawerWidth}px - 64px)`,
+      xl: `calc(100vw - ${drawerWidth}px - 96px)`
+    }
   },
   tableContainer: {
     flexGrow: 1,
