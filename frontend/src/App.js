@@ -125,10 +125,7 @@ export default function App() {
                     sx={{ width: 32, height: 32, mr: 1 }}
                   />
                 )}
-                {profile.firstName} {profile.lastName} | {profile.username}
-                {currentOrg && (
-                  <> | Current Balance: {profile.balances.find(b => b.orgId === currentOrg)?.amount ?? 0}</>
-                )}
+                {profile.firstName} {profile.lastName}
               </Typography>
             )}
             {token && (

@@ -3,11 +3,13 @@ export const drawerWidth = 240;
 export const styles = {
   root: {
     display: 'flex',
-    minHeight: '100vh'
+    minHeight: '100vh',
+    fontFamily: (theme) => theme.typography.fontFamily
   },
   appBar: {
     zIndex: (theme) => theme.zIndex.drawer + 1,
-    background: 'linear-gradient(90deg, #4285F4 0%, #34A853 100%)'
+    background: (theme) =>
+      `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`
   },
   drawer: {
     width: drawerWidth,
@@ -15,7 +17,7 @@ export const styles = {
     '& .MuiDrawer-paper': {
       width: drawerWidth,
       boxSizing: 'border-box',
-      backgroundColor: '#f7f7f7'
+      backgroundColor: (theme) => theme.palette.background.paper
     }
   },
   content: {
