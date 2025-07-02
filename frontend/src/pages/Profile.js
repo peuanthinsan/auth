@@ -8,7 +8,6 @@ export default function Profile() {
   const { profile } = useContext(AuthContext);
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>Profile</Typography>
       {profile && (
         <Box sx={{ border: '1px solid #ccc', p: 2, maxWidth: 400 }}>
           {profile.profilePicture && (

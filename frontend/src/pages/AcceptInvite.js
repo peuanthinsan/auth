@@ -59,7 +59,6 @@ export default function AcceptInvite() {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>Accept Invites</Typography>
       <Box sx={styles.tableContainer}>
         <Box component="table" {...getTableProps()} sx={styles.table}>
           <Box component="thead">

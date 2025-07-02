@@ -24,7 +24,6 @@ export default function Balance() {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>Balance</Typography>
       {balance !== null && (
         <Typography>Current Balance: {balance}</Typography>
       )}
