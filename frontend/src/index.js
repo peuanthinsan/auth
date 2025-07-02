@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import { ToastProvider } from './ToastContext';
 import { ApiProvider } from './ApiContext';
@@ -15,7 +16,9 @@ root.render(
     <AuthProvider>
       <ToastProvider>
         <ApiProvider>
-          <App />
+          <Router>
+            <App />
+          </Router>
         </ApiProvider>
       </ToastProvider>
     </AuthProvider>
