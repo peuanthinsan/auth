@@ -54,7 +54,12 @@ import { AuthContext } from './AuthContext';
 export default function App() {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(!isSmall);
+  useEffect(() => {
+    if (isSmall) {
+      setDrawerOpen(false);
+    }
+  }, [isSmall]);
   const loggedOutNav = [
     { text: 'Register', path: '/register', icon: <PersonAdd /> },
     { text: 'Login', path: '/login', icon: <LoginIcon /> },
@@ -98,17 +103,16 @@ export default function App() {
   };
   const location = useLocation();
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+    setDrawerOpen(!drawerOpen);
   };
-  const drawerOpen = isSmall ? mobileOpen : true;
-  const mainMaxWidth = drawerOpen
+  const mainMaxWidth = !isSmall && drawerOpen
     ? `calc(100vw - ${drawerWidth}px)`
     : '100vw';
   return (
     <Box sx={styles.root}>
         <AppBar position="fixed" sx={styles.appBar}>
           <Toolbar>
-            {isSmall && (
+            {(isSmall || !drawerOpen) && (
               <IconButton
                 color="inherit"
                 edge="start"
@@ -153,8 +157,8 @@ export default function App() {
           </Toolbar>
         </AppBar>
         <Drawer
-          variant={isSmall ? 'temporary' : 'permanent'}
-          open={isSmall ? mobileOpen : true}
+          variant={isSmall ? 'temporary' : 'persistent'}
+          open={drawerOpen}
           onClose={handleDrawerToggle}
           ModalProps={{ keepMounted: true }}
           sx={styles.drawer}
