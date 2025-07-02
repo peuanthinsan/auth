@@ -77,7 +77,7 @@ export default function Profile() {
                   <Grid item xs={12} sm={6} key={o.id}>
                     <Card variant="outlined">
                       <CardContent>
-                        <Typography>{o.name}</Typography>
+                        <Typography variant="subtitle2">{o.name}</Typography>
                       </CardContent>
                     </Card>
                   </Grid>
