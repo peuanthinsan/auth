@@ -35,7 +35,7 @@ import {
   LockReset,
   Menu as MenuIcon
 } from '@mui/icons-material';
-import { styles } from './styles';
+import { styles, drawerWidth } from './styles';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import CreateSuperAdmin from './pages/CreateSuperAdmin';
@@ -100,6 +100,10 @@ export default function App() {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+  const drawerOpen = isSmall ? mobileOpen : true;
+  const mainMaxWidth = drawerOpen
+    ? `calc(100vw - ${drawerWidth}px)`
+    : '100vw';
   return (
     <Box sx={styles.root}>
         <AppBar position="fixed" sx={styles.appBar}>
@@ -167,7 +171,7 @@ export default function App() {
             ))}
           </List>
         </Drawer>
-        <Box component="main" sx={styles.content}>
+        <Box component="main" sx={{ ...styles.content, maxWidth: mainMaxWidth }}>
           <Toolbar />
           <Routes>
             <Route path="/register" element={<Register />} />
