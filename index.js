@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import multer from 'multer';
@@ -380,8 +381,9 @@ apiRouter.post('/password/forgot', async (req, res) => {
   const trimmed = username ? username.trim() : '';
   const user = await User.findOne({ username: trimmed });
   if (!user) return res.status(404).json({ message: 'User not found' });
-  const token = Math.random().toString(36).substring(2);
-  user.resetToken = token;
+  const token = crypto.randomBytes(32).toString('hex');
+  const hashed = crypto.createHash('sha256').update(token).digest('hex');
+  user.resetToken = hashed;
   user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
   await user.save();
   res.json({ message: 'Reset token created', token });
@@ -389,12 +391,13 @@ apiRouter.post('/password/forgot', async (req, res) => {
 
 apiRouter.post('/password/reset', async (req, res) => {
   const { token, newPassword } = req.body;
-  const user = await User.findOne({ resetToken: token });
+  const hashed = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({ resetToken: hashed });
   if (!user || !user.resetTokenExpires || user.resetTokenExpires < new Date()) {
     return res.status(400).json({ message: 'Invalid token' });
   }
   user.passwordHash = await bcrypt.hash(newPassword, 10);
-  user.resetToken = '';
+  user.resetToken = undefined;
   user.resetTokenExpires = undefined;
   await user.save();
   res.json({ message: 'Password reset' });
