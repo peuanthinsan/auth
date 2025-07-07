@@ -14,7 +14,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json());
 app.use(cors());
-const upload = multer({ dest: path.join(__dirname, 'uploads') });
+const MAX_FILE_SIZE =
+  parseInt(process.env.MAX_FILE_SIZE, 10) || 25 * 1024 * 1024; // 25MB default
+const upload = multer({
+  dest: path.join(__dirname, 'uploads'),
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG and PNG images are allowed'));
+    }
+  }
+});
 
 app.use('/dist', express.static(path.join(__dirname, 'frontend/dist')));
 app.use(express.static(path.join(__dirname, 'frontend/public')));
@@ -331,7 +343,19 @@ apiRouter.get('/user/organizations', authenticateToken, async (req, res) => {
 apiRouter.patch(
   '/profile',
   authenticateToken,
-  upload.single('profilePicture'),
+  (req, res, next) => {
+    const single = upload.single('profilePicture');
+    single(req, res, err => {
+      if (err) {
+        const msg =
+          err.code === 'LIMIT_FILE_SIZE'
+            ? `File too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+            : err.message;
+        return res.status(400).json({ message: msg });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     const { username, firstName, lastName } = req.body;
     const user = await User.findById(req.user.id);
