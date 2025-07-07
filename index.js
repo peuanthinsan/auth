@@ -604,14 +604,15 @@ apiRouter.post('/organizations/:id/invite', authenticateToken, async (req, res) 
   res.json({ message: 'Invite created', inviteId: invite._id });
 });
 
-apiRouter.get('/organizations/:id/invites', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const org = await Organization.findById(id).populate('invites');
-  if (!org) return res.status(404).json({ message: 'Org not found' });
-  res.json(
-    org.invites.map(i => ({ id: i._id, email: i.email, token: i.token, role: i.role }))
-  );
-});
+apiRouter.get(
+  '/organizations/:id/invites',
+  authenticateToken,
+  requireOrgAdmin,
+  async (req, res) => {
+    await req.org.populate('invites');
+    res.json(req.org.invites.map(i => ({ id: i._id, email: i.email, role: i.role })));
+  }
+);
 
 
 apiRouter.delete('/organizations/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
