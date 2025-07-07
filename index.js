@@ -13,7 +13,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+const defaultOrigin = process.env.API_URL
+  ? new URL(process.env.API_URL).origin
+  : `http://localhost:${process.env.PORT || 3000}`;
+const corsOrigin = process.env.CORS_ORIGIN || defaultOrigin;
+app.use(cors({ origin: corsOrigin }));
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 app.use('/dist', express.static(path.join(__dirname, 'frontend/dist')));

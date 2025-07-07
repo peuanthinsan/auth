@@ -41,7 +41,10 @@ MONGO_URI=mongodb://localhost:27017/authdb
 JWT_SECRET=supersecretkey
 API_URL=http://localhost:3000/api
 FRONTEND_PORT=4000
+CORS_ORIGIN=http://localhost:3000
 ```
+
+`CORS_ORIGIN` defines which origin is allowed to access the API. When unset, it defaults to the origin of `API_URL`.
 
 Copy this file to `.env` and modify values as needed.
 
