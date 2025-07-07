@@ -200,6 +200,15 @@ async function requireSuperAdmin(req, res, next) {
   next();
 }
 
+function validatePassword(password) {
+  return (
+    typeof password === 'string' &&
+    password.length >= 8 &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password)
+  );
+}
+
 const apiRouter = express.Router();
 
 // register
@@ -215,8 +224,11 @@ apiRouter.post('/register', async (req, res) => {
   if (await User.findOne({ email })) {
     return res.status(400).json({ message: 'Email exists' });
   }
-  if (await User.findOne({ email })) {
-    return res.status(400).json({ message: 'Email exists' });
+  if (!validatePassword(password)) {
+    return res.status(400).json({
+      message:
+        'Password must be at least 8 characters and contain letters and numbers'
+    });
   }
   const passwordHash = await bcrypt.hash(password, 10);
   const userRole = await Role.findOne({ code: ROLE_CODES.USER, orgId: null });
@@ -405,6 +417,12 @@ apiRouter.post('/password/change', authenticateToken, async (req, res) => {
   if (!user) return res.sendStatus(404);
   const match = await bcrypt.compare(oldPassword, user.passwordHash);
   if (!match) return res.status(400).json({ message: 'Invalid password' });
+  if (!validatePassword(newPassword)) {
+    return res.status(400).json({
+      message:
+        'Password must be at least 8 characters and contain letters and numbers'
+    });
+  }
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   await user.save();
   res.json({ message: 'Password changed' });
