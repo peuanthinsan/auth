@@ -204,6 +204,29 @@ async function requireSuperAdmin(req, res, next) {
   next();
 }
 
+async function requireOrgAdmin(req, res, next) {
+  const { id } = req.params;
+  const org = await Organization.findById(id);
+  if (!org) return res.status(404).json({ message: 'Org not found' });
+  const user = await User.findById(req.user.id).populate('roles');
+  if (!user) return res.sendStatus(401);
+  if (user.isSuperAdmin) {
+    req.org = org;
+    return next();
+  }
+  const isMember = org.members.some(m => m.toString() === req.user.id);
+  const isAdmin = user.roles.some(
+    r =>
+      r.code === ROLE_CODES.ADMIN &&
+      (r.orgId === null || r.orgId.toString() === id)
+  );
+  if (!isMember || !isAdmin) {
+    return res.status(403).json({ message: 'Organization admin only' });
+  }
+  req.org = org;
+  next();
+}
+
 function validatePassword(password) {
   return (
     typeof password === 'string' &&
@@ -567,14 +590,15 @@ apiRouter.post('/organizations/:id/invite', authenticateToken, async (req, res) 
   res.json({ message: 'Invite created', inviteId: invite._id });
 });
 
-apiRouter.get('/organizations/:id/invites', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const org = await Organization.findById(id).populate('invites');
-  if (!org) return res.status(404).json({ message: 'Org not found' });
-  res.json(
-    org.invites.map(i => ({ id: i._id, email: i.email, token: i.token, role: i.role }))
-  );
-});
+apiRouter.get(
+  '/organizations/:id/invites',
+  authenticateToken,
+  requireOrgAdmin,
+  async (req, res) => {
+    await req.org.populate('invites');
+    res.json(req.org.invites.map(i => ({ id: i._id, email: i.email, role: i.role })));
+  }
+);
 
 
 apiRouter.delete('/organizations/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
