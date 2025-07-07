@@ -266,6 +266,12 @@ apiRouter.post('/superadmin', async (req, res) => {
   if (await User.findOne({ email })) {
     return res.status(400).json({ message: 'Email exists' });
   }
+  if (!validatePassword(password)) {
+    return res.status(400).json({
+      message:
+        'Password must be at least 8 characters and contain letters and numbers'
+    });
+  }
   const passwordHash = await bcrypt.hash(password, 10);
   const adminRole = await Role.findOne({ code: ROLE_CODES.ADMIN, orgId: null });
   const user = new User({

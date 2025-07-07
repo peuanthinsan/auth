@@ -52,6 +52,12 @@ Passwords must be at least 8 characters long and include both letters and
 numbers. Attempts to register or change a password that does not meet this
 policy will result in a `400` response describing the issue.
 
+## Password Requirements
+
+Passwords must be at least 8 characters long and include both letters and
+numbers. Attempts to register or change a password that does not meet this
+policy will result in a `400` response describing the issue.
+
 The frontend runs on port 4000 by default. It includes simple pages for each API endpoint under `src/index.js`, allowing you to register, log in, manage organizations and members, handle invites, transfer currency and update user roles.
 
 All API requests use an Axios instance defined in `src/api.js`. The authentication token is stored using React Context in `src/AuthContext.js`, which automatically adds the `Authorization` header for requests. Login now also returns a long-lived refresh token which the Axios wrapper uses to obtain a new access token when a request returns `401`. Profile updates now support uploading a picture and accepting an invite requires providing the invite's token.
