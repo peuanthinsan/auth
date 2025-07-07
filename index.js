@@ -36,7 +36,10 @@ const upload = multer({
 app.use('/dist', express.static(path.join(__dirname, 'frontend/dist')));
 app.use(express.static(path.join(__dirname, 'frontend/public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000;
 
