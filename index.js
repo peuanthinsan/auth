@@ -57,7 +57,8 @@ const userSchema = new Schema({
   roles: [{ type: Schema.Types.ObjectId, ref: 'Role' }],
   isSuperAdmin: { type: Boolean, default: false },
   refreshToken: String,
-  resetToken: String
+  resetToken: String,
+  resetTokenExpires: Date
 });
 
 const organizationSchema = new Schema({
@@ -381,6 +382,7 @@ apiRouter.post('/password/forgot', async (req, res) => {
   if (!user) return res.status(404).json({ message: 'User not found' });
   const token = Math.random().toString(36).substring(2);
   user.resetToken = token;
+  user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
   await user.save();
   res.json({ message: 'Reset token created', token });
 });
@@ -388,9 +390,12 @@ apiRouter.post('/password/forgot', async (req, res) => {
 apiRouter.post('/password/reset', async (req, res) => {
   const { token, newPassword } = req.body;
   const user = await User.findOne({ resetToken: token });
-  if (!user) return res.status(400).json({ message: 'Invalid token' });
+  if (!user || !user.resetTokenExpires || user.resetTokenExpires < new Date()) {
+    return res.status(400).json({ message: 'Invalid token' });
+  }
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   user.resetToken = '';
+  user.resetTokenExpires = undefined;
   await user.save();
   res.json({ message: 'Password reset' });
 });
