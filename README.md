@@ -40,10 +40,17 @@ PORT=3000
 MONGO_URI=mongodb://localhost:27017/authdb
 JWT_SECRET=supersecretkey
 API_URL=http://localhost:3000/api
+CORS_ORIGIN=http://localhost:3000
 FRONTEND_PORT=4000
+MAX_FILE_SIZE=26214400
 ```
 
+`CORS_ORIGIN` defines which origin is allowed to access the API. When unset, it defaults to the origin of `API_URL`.
+
 Copy this file to `.env` and modify values as needed.
+Passwords must be at least 8 characters long and include both letters and
+numbers. Attempts to register or change a password that does not meet this
+policy will result in a `400` response describing the issue.
 
 ## Password Requirements
 
@@ -51,8 +58,11 @@ Passwords must be at least 8 characters long and include both letters and
 numbers. Attempts to register or change a password that does not meet this
 policy will result in a `400` response describing the issue.
 
-The frontend will be available on `FRONTEND_PORT`. It includes simple pages for each API endpoint under `src/index.js`, allowing you to register, log in, manage organizations and members, handle invites, transfer currency and update user roles.
+The frontend runs on port 4000 by default. It includes simple pages for each API endpoint under `src/index.js`, allowing you to register, log in, manage organizations and members, handle invites, transfer currency and update user roles.
+
 All API requests use an Axios instance defined in `src/api.js`. The authentication token is stored using React Context in `src/AuthContext.js`, which automatically adds the `Authorization` header for requests. Login now also returns a long-lived refresh token which the Axios wrapper uses to obtain a new access token when a request returns `401`. Profile updates now support uploading a picture and accepting an invite requires providing the invite's token.
+Profile pictures must be JPEG or PNG images and may not exceed 25MB in size.
+The limit can be adjusted with the `MAX_FILE_SIZE` environment variable.
 The UI uses Material UI components with an AppBar and side navigation drawer for a simple dashboard layout. When logged in, a dropdown in the header lists your organizations and the selection is stored only in the browser. Admin features live under an **Administration** page where tables built with `react-table` let you manage users, roles, organizations and invites inline. Super admins may access this page even without belonging to an organization or having roles assigned. Deleting an organization now also removes its roles, invites and any references from user documents.
 
 ## Docker
