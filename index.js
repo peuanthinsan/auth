@@ -434,17 +434,18 @@ apiRouter.post('/password/forgot', async (req, res) => {
   const trimmed = username ? username.trim() : '';
   const user = await User.findOne({ username: trimmed });
   if (!user) return res.status(404).json({ message: 'User not found' });
-  const { token, hash } = generateResetToken();
-  user.resetToken = hash;
-  user.resetTokenExpires = new Date(Date.now() + RESET_TOKEN_EXPIRY_MS);
+  const token = crypto.randomBytes(32).toString('hex');
+  const hashed = crypto.createHash('sha256').update(token).digest('hex');
+  user.resetToken = hashed;
+  user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
   await user.save();
   res.json({ message: 'Reset token created', token });
 });
 
 apiRouter.post('/password/reset', async (req, res) => {
   const { token, newPassword } = req.body;
-  const hashedToken = hashToken(token);
-  const user = await User.findOne({ resetToken: hashedToken });
+  const hashed = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({ resetToken: hashed });
   if (!user || !user.resetTokenExpires || user.resetTokenExpires < new Date()) {
     return res.status(400).json({ message: 'Invalid token' });
   }
