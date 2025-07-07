@@ -36,7 +36,10 @@ const upload = multer({
 app.use('/dist', express.static(path.join(__dirname, 'frontend/dist')));
 app.use(express.static(path.join(__dirname, 'frontend/public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000;
 
@@ -205,25 +208,26 @@ async function requireSuperAdmin(req, res, next) {
 }
 
 async function requireOrgAdmin(req, res, next) {
-  const { id } = req.params;
-  const org = await Organization.findById(id);
-  if (!org) return res.status(404).json({ message: 'Org not found' });
-  const user = await User.findById(req.user.id).populate('roles');
-  if (!user) return res.sendStatus(401);
-  if (user.isSuperAdmin) {
-    req.org = org;
-    return next();
+  const orgId = req.params.id || req.query.orgId;
+  if (!orgId) {
+    return res.status(400).json({ message: 'Organization ID required' });
   }
-  const isMember = org.members.some(m => m.toString() === req.user.id);
-  const isAdmin = user.roles.some(
-    r =>
-      r.code === ROLE_CODES.ADMIN &&
-      (r.orgId === null || r.orgId.toString() === id)
-  );
-  if (!isMember || !isAdmin) {
+  const user = await User.findById(req.user.id).populate('roles');
+  if (
+    !user ||
+    !(
+      user.isSuperAdmin ||
+      (user.organizations.some(o => o.toString() === orgId) &&
+        user.roles.some(
+          r =>
+            r.code === ROLE_CODES.ADMIN &&
+            r.orgId &&
+            r.orgId.toString() === orgId
+        ))
+    )
+  ) {
     return res.status(403).json({ message: 'Organization admin only' });
   }
-  req.org = org;
   next();
 }
 
@@ -482,6 +486,12 @@ apiRouter.post('/password/reset', async (req, res) => {
   if (!user || !user.resetTokenExpires || user.resetTokenExpires < new Date()) {
     return res.status(400).json({ message: 'Invalid token' });
   }
+  if (!validatePassword(newPassword)) {
+    return res.status(400).json({
+      message:
+        'Password must be at least 8 characters and contain letters and numbers'
+    });
+  }
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   user.resetToken = undefined;
   user.resetTokenExpires = undefined;
@@ -547,7 +557,11 @@ apiRouter.post('/organizations/:id/members', authenticateToken, requireSuperAdmi
   res.json({ message: 'Member added' });
 });
 
-apiRouter.delete('/organizations/:id/members/:userId', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.delete(
+  '/organizations/:id/members/:userId',
+  authenticateToken,
+  requireOrgAdmin,
+  async (req, res) => {
   const { id, userId } = req.params;
   const org = await Organization.findById(id);
   if (!org) return res.status(404).json({ message: 'Org not found' });
@@ -639,7 +653,7 @@ apiRouter.patch('/organizations/:id', authenticateToken, requireSuperAdmin, asyn
   res.json({ message: 'Organization updated' });
 });
 
-apiRouter.get('/users', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.get('/users', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { orgId } = req.query;
   let filter = {};
   if (orgId && mongoose.isValidObjectId(orgId)) {
@@ -691,7 +705,7 @@ apiRouter.post('/users/:id/roles', authenticateToken, requireAdmin, async (req, 
 });
 
 // role management
-apiRouter.get('/roles', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.get('/roles', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { orgId } = req.query;
   let filter = { orgId: null };
   if (orgId && mongoose.isValidObjectId(orgId)) {
@@ -701,7 +715,7 @@ apiRouter.get('/roles', authenticateToken, requireAdmin, async (req, res) => {
   res.json(roles.map(r => ({ id: r._id, code: r.code, name: r.name, system: r.system })));
 });
 
-apiRouter.post('/roles', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.post('/roles', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { code, name, orgId } = req.body;
   if (!code || !orgId) return res.status(400).json({ message: 'Code and orgId required' });
   const role = new Role({ code, name, orgId, system: false });
@@ -709,7 +723,7 @@ apiRouter.post('/roles', authenticateToken, requireAdmin, async (req, res) => {
   res.json({ message: 'Role created', id: role._id });
 });
 
-apiRouter.patch('/roles/:id', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.patch('/roles/:id', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { id } = req.params;
   const { code, name } = req.body;
   const role = await Role.findById(id);
@@ -720,7 +734,7 @@ apiRouter.patch('/roles/:id', authenticateToken, requireAdmin, async (req, res) 
   res.json({ message: 'Role updated' });
 });
 
-apiRouter.delete('/roles/:id', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.delete('/roles/:id', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { id } = req.params;
   const role = await Role.findById(id);
   if (!role) return res.status(404).json({ message: 'Role not found' });
@@ -730,7 +744,7 @@ apiRouter.delete('/roles/:id', authenticateToken, requireAdmin, async (req, res)
 });
 
 // invite management
-apiRouter.get('/invites', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.get('/invites', authenticateToken, requireOrgAdmin, async (req, res) => {
   const invites = await Invite.find().populate('orgId', 'name');
   res.json(invites.map(i => ({
     id: i._id,
@@ -741,7 +755,7 @@ apiRouter.get('/invites', authenticateToken, requireAdmin, async (req, res) => {
   })));
 });
 
-apiRouter.delete('/invites/:id', authenticateToken, requireAdmin, async (req, res) => {
+apiRouter.delete('/invites/:id', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { id } = req.params;
   const invite = await Invite.findByIdAndDelete(id);
   if (invite) {
