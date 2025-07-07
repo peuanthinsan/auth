@@ -15,12 +15,35 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json());
 app.use(cors());
-const upload = multer({ dest: path.join(__dirname, 'uploads') });
+const MAX_FILE_SIZE =
+  parseInt(process.env.MAX_FILE_SIZE, 10) || 25 * 1024 * 1024; // 25MB default
+const upload = multer({
+  dest: path.join(__dirname, 'uploads'),
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG and PNG images are allowed'));
+    }
+  }
+});
 
 app.use('/dist', express.static(path.join(__dirname, 'frontend/dist')));
 app.use(express.static(path.join(__dirname, 'frontend/public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const SECRET = process.env.JWT_SECRET || 'supersecretkey';
+
+const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000;
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function generateResetToken() {
+  const token = crypto.randomBytes(32).toString('hex');
+  return { token, hash: hashToken(token) };
+}
 
 const ROLE_CODES = {
   ADMIN: 'ADMIN',
@@ -177,6 +200,15 @@ async function requireSuperAdmin(req, res, next) {
   next();
 }
 
+function validatePassword(password) {
+  return (
+    typeof password === 'string' &&
+    password.length >= 8 &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password)
+  );
+}
+
 const apiRouter = express.Router();
 
 // register
@@ -192,8 +224,11 @@ apiRouter.post('/register', async (req, res) => {
   if (await User.findOne({ email })) {
     return res.status(400).json({ message: 'Email exists' });
   }
-  if (await User.findOne({ email })) {
-    return res.status(400).json({ message: 'Email exists' });
+  if (!validatePassword(password)) {
+    return res.status(400).json({
+      message:
+        'Password must be at least 8 characters and contain letters and numbers'
+    });
   }
   const passwordHash = await bcrypt.hash(password, 10);
   const userRole = await Role.findOne({ code: ROLE_CODES.USER, orgId: null });
@@ -333,7 +368,19 @@ apiRouter.get('/user/organizations', authenticateToken, async (req, res) => {
 apiRouter.patch(
   '/profile',
   authenticateToken,
-  upload.single('profilePicture'),
+  (req, res, next) => {
+    const single = upload.single('profilePicture');
+    single(req, res, err => {
+      if (err) {
+        const msg =
+          err.code === 'LIMIT_FILE_SIZE'
+            ? `File too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+            : err.message;
+        return res.status(400).json({ message: msg });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     const { username, firstName, lastName } = req.body;
     const user = await User.findById(req.user.id);
@@ -370,6 +417,12 @@ apiRouter.post('/password/change', authenticateToken, async (req, res) => {
   if (!user) return res.sendStatus(404);
   const match = await bcrypt.compare(oldPassword, user.passwordHash);
   if (!match) return res.status(400).json({ message: 'Invalid password' });
+  if (!validatePassword(newPassword)) {
+    return res.status(400).json({
+      message:
+        'Password must be at least 8 characters and contain letters and numbers'
+    });
+  }
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   await user.save();
   res.json({ message: 'Password changed' });
