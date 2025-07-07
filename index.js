@@ -459,6 +459,12 @@ apiRouter.post('/password/reset', async (req, res) => {
   if (!user || !user.resetTokenExpires || user.resetTokenExpires < new Date()) {
     return res.status(400).json({ message: 'Invalid token' });
   }
+  if (!validatePassword(newPassword)) {
+    return res.status(400).json({
+      message:
+        'Password must be at least 8 characters and contain letters and numbers'
+    });
+  }
   user.passwordHash = await bcrypt.hash(newPassword, 10);
   user.resetToken = undefined;
   user.resetTokenExpires = undefined;
