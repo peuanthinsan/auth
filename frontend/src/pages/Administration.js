@@ -6,6 +6,7 @@ import ManageUsers from './ManageUsers';
 import ManageRoles from './ManageRoles';
 import ManageOrganizations from './ManageOrganizations';
 import ManageInvites from './ManageInvites';
+import OrgSettings from './OrgSettings';
 import { AuthContext } from '../AuthContext';
 
 export default function Administration() {
@@ -24,9 +25,12 @@ export default function Administration() {
     const label = currentOrg ? 'Users' : 'Unassigned Users';
     tabs.push({ label, component: <ManageUsers /> });
   }
-  if (currentOrg) tabs.push({ label: 'Roles', component: <ManageRoles /> });
+  if (profile?.isSuperAdmin) tabs.push({ label: 'Roles', component: <ManageRoles /> });
   if (showOrgs) tabs.push({ label: 'Organizations', component: <ManageOrganizations /> });
-  if (currentOrg) tabs.push({ label: 'Invites', component: <ManageInvites /> });
+  if (currentOrg) {
+    tabs.push({ label: 'Invites', component: <ManageInvites /> });
+    tabs.push({ label: 'Org Settings', component: <OrgSettings /> });
+  }
 
   return (
     <Box>
