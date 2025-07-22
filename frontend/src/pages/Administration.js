@@ -14,6 +14,7 @@ export default function Administration() {
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
   const showOrgs = profile?.isSuperAdmin;
+  const showRoles = profile?.isSuperAdmin;
   useEffect(() => {
     if (isAdmin && !profile?.isSuperAdmin && !currentOrg) {
       navigate('/profile');
@@ -25,7 +26,7 @@ export default function Administration() {
     const label = currentOrg ? 'Users' : 'Unassigned Users';
     tabs.push({ label, component: <ManageUsers /> });
   }
-  if (profile?.isSuperAdmin) tabs.push({ label: 'Roles', component: <ManageRoles /> });
+  if (showRoles) tabs.push({ label: 'Roles', component: <ManageRoles /> });
   if (showOrgs) tabs.push({ label: 'Organizations', component: <ManageOrganizations /> });
   if (currentOrg) {
     tabs.push({ label: 'Invites', component: <ManageInvites /> });
