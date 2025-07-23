@@ -25,11 +25,15 @@ export default function ManageUsers() {
     const orgReq = profile?.isSuperAdmin
       ? api.get('/organizations')
       : Promise.resolve({ data: [] });
-    const allReq = api.get('/users');
+    const allReq = currentOrg
+      ? api.get('/users', { params: { orgId: currentOrg } })
+      : Promise.resolve({ data: [] });
     const [oRes, aRes] = await Promise.all([orgReq, allReq]);
-    await Promise.all([refreshUsers(currentOrg || ''), refreshRoles(currentOrg || '')]);
+    if (currentOrg) {
+      await Promise.all([refreshUsers(currentOrg), refreshRoles(currentOrg)]);
+    }
     setAllUsers(aRes.data);
-    setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name }))); 
+    setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));
   };
 
   useEffect(() => {
@@ -53,7 +57,9 @@ export default function ManageUsers() {
 
   const changeRoles = async (id, roleIds) => {
     await api.post(`/users/${id}/roles`, { roleIds });
-    await refreshUsers(currentOrg || '');
+    if (currentOrg) {
+      await refreshUsers(currentOrg);
+    }
   };
 
   const addMember = async (e) => {
@@ -86,7 +92,9 @@ export default function ManageUsers() {
     if (!window.confirm('Delete this user?')) return;
     try {
       await api.delete(`/users/${id}`);
-      await refreshUsers(currentOrg || '');
+      if (currentOrg) {
+        await refreshUsers(currentOrg);
+      }
       if (profile?.id === id) {
         await logout();
         navigate('/login');
