@@ -34,6 +34,16 @@ paths:
       responses:
         '200':
           description: User registered
+          content:
+            application/json:
+              example:
+                message: Registered
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /superadmin:
     post:
       summary: Create the first super admin
@@ -63,6 +73,16 @@ paths:
       responses:
         '200':
           description: Super admin created
+          content:
+            application/json:
+              example:
+                message: Super admin created
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /login:
     post:
       summary: Log in
@@ -83,6 +103,17 @@ paths:
       responses:
         '200':
           description: Logged in
+          content:
+            application/json:
+              example:
+                token: example_token
+                refreshToken: example_refresh
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /logout:
     post:
       summary: Log out
@@ -100,6 +131,16 @@ paths:
       responses:
         '200':
           description: Logged out
+          content:
+            application/json:
+              example:
+                message: Logged out
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /refresh:
     post:
       summary: Refresh access token
@@ -117,12 +158,39 @@ paths:
       responses:
         '200':
           description: Token refreshed
+          content:
+            application/json:
+              example:
+                token: new_token
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /profile:
     get:
       summary: Get current user profile
       responses:
         '200':
           description: Profile information
+          content:
+            application/json:
+              example:
+                id: user_id
+                username: johndoe
+                email: john@example.com
+                firstName: John
+                lastName: Doe
+                roleCodes:
+                  - USER
+                isSuperAdmin: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
     patch:
       summary: Update profile
       requestBody:
@@ -144,17 +212,49 @@ paths:
       responses:
         '200':
           description: Profile updated
+          content:
+            application/json:
+              example:
+                message: Profile updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
     delete:
       summary: Delete profile
       responses:
         '200':
           description: Account deleted
+          content:
+            application/json:
+              example:
+                message: Account deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /user/organizations:
     get:
       summary: List organizations for the current user
       responses:
         '200':
           description: Organization list
+          content:
+            application/json:
+              example:
+                organizations:
+                  - id: org1
+                    name: Example Org
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /password/change:
     post:
       summary: Change password
@@ -175,6 +275,16 @@ paths:
       responses:
         '200':
           description: Password changed
+          content:
+            application/json:
+              example:
+                message: Password changed
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /password/forgot:
     post:
       summary: Request password reset
@@ -192,6 +302,17 @@ paths:
       responses:
         '200':
           description: Token created
+          content:
+            application/json:
+              example:
+                message: Reset token created
+                token: sample_token
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /password/reset:
     post:
       summary: Reset password
@@ -212,6 +333,16 @@ paths:
       responses:
         '200':
           description: Password reset
+          content:
+            application/json:
+              example:
+                message: Password reset
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /organizations:
     post:
       summary: Create organization
@@ -229,11 +360,35 @@ paths:
       responses:
         '200':
           description: Organization created
+          content:
+            application/json:
+              example:
+                message: Organization created
+                orgId: org1
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
     get:
       summary: List organizations
       responses:
         '200':
           description: Organization list
+          content:
+            application/json:
+              example:
+                - id: org1
+                  name: Example Org
+                  members: 5
+                  invites: 2
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /organizations/{id}/members:
     post:
       summary: Add member to organization
@@ -259,6 +414,16 @@ paths:
       responses:
         '200':
           description: Member added
+          content:
+            application/json:
+              example:
+                message: Member added
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /organizations/{id}/members/{userId}:
     delete:
       summary: Remove member from organization
@@ -276,6 +441,16 @@ paths:
       responses:
         '200':
           description: Member removed
+          content:
+            application/json:
+              example:
+                message: Member removed
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /organizations/{id}/invite:
     post:
       summary: Invite user to organization
@@ -301,6 +476,17 @@ paths:
       responses:
         '200':
           description: Invite created
+          content:
+            application/json:
+              example:
+                message: Invite created
+                inviteId: invite1
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /organizations/{id}/invites:
     get:
       summary: List invites for organization
@@ -313,6 +499,18 @@ paths:
       responses:
         '200':
           description: Invite list
+          content:
+            application/json:
+              example:
+                - id: invite1
+                  email: user@example.com
+                  role: USER
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /organizations/{id}:
     delete:
       summary: Delete organization
@@ -325,6 +523,16 @@ paths:
       responses:
         '200':
           description: Organization deleted
+          content:
+            application/json:
+              example:
+                message: Organization deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
     patch:
       summary: Update organization
       parameters:
@@ -345,6 +553,16 @@ paths:
       responses:
         '200':
           description: Organization updated
+          content:
+            application/json:
+              example:
+                message: Organization updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /users:
     get:
       summary: List users
@@ -356,6 +574,18 @@ paths:
       responses:
         '200':
           description: Users list
+          content:
+            application/json:
+              example:
+                - id: user1
+                  username: alice
+                  email: alice@example.com
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /users/{id}:
     delete:
       summary: Delete user
@@ -368,6 +598,16 @@ paths:
       responses:
         '200':
           description: User deleted
+          content:
+            application/json:
+              example:
+                message: User deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /users/{id}/roles:
     post:
       summary: Update user roles
@@ -393,6 +633,16 @@ paths:
       responses:
         '200':
           description: Roles updated
+          content:
+            application/json:
+              example:
+                message: Roles updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /roles:
     get:
       summary: List roles
@@ -404,6 +654,18 @@ paths:
       responses:
         '200':
           description: Roles list
+          content:
+            application/json:
+              example:
+                - id: role1
+                  code: USER
+                  name: User
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
     post:
       summary: Create role
       requestBody:
@@ -425,6 +687,17 @@ paths:
       responses:
         '200':
           description: Role created
+          content:
+            application/json:
+              example:
+                message: Role created
+                id: role1
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /roles/{id}:
     patch:
       summary: Update role
@@ -448,6 +721,16 @@ paths:
       responses:
         '200':
           description: Role updated
+          content:
+            application/json:
+              example:
+                message: Role updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
     delete:
       summary: Delete role
       parameters:
@@ -459,12 +742,34 @@ paths:
       responses:
         '200':
           description: Role deleted
+          content:
+            application/json:
+              example:
+                message: Role deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /invites:
     get:
       summary: List all invites
       responses:
         '200':
           description: Invite list
+          content:
+            application/json:
+              example:
+                - id: invite1
+                  email: user@example.com
+                  org: Example Org
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /invites/{id}:
     delete:
       summary: Delete invite
@@ -477,12 +782,36 @@ paths:
       responses:
         '200':
           description: Invite deleted
+          content:
+            application/json:
+              example:
+                message: Invite deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /my-invites:
     get:
       summary: List invites for current user
       responses:
         '200':
           description: Invite list
+          content:
+            application/json:
+              example:
+                - id: invite1
+                  org: Example Org
+                  orgId: org1
+                  token: abc123
+                  role: USER
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /invites/{id}/accept:
     post:
       summary: Accept invite
@@ -506,6 +835,17 @@ paths:
       responses:
         '200':
           description: Invite accepted
+          content:
+            application/json:
+              example:
+                message: Invite accepted
+                orgId: org1
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /transfer:
     post:
       summary: Transfer currency
@@ -529,6 +869,16 @@ paths:
       responses:
         '200':
           description: Transfer complete
+          content:
+            application/json:
+              example:
+                message: Transfer complete
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
   /balance:
     get:
       summary: Get user balance
@@ -540,3 +890,13 @@ paths:
       responses:
         '200':
           description: Balance information
+          content:
+            application/json:
+              example:
+                balance: 0
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              example:
+                message: Bad request
