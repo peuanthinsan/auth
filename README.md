@@ -29,9 +29,10 @@ a request using `POST /friends/request` and accept with
 `POST /friends/requests/{id}/accept`. A user's friends are listed via `GET /friends`
 and can be removed with `DELETE /friends/{id}`.
 Users may also share updates by creating posts with optional images using
-`POST /posts`. Posts are fetched via `GET /posts` and support reactions with
-`POST /posts/{id}/like`. Comments can be added or viewed through
-`POST /posts/{id}/comments` and `GET /posts/{id}/comments`.
+`POST /posts`. Posts are fetched via `GET /posts`, which returns posts from you
+and your friends, and support reactions with `POST /posts/{id}/like`.
+Comments can be added or viewed through `POST /posts/{id}/comments` and
+`GET /posts/{id}/comments`.
 
 When the server is running you can explore all endpoints using Swagger UI at [`/api-docs`](http://localhost:3000/api-docs).
 
