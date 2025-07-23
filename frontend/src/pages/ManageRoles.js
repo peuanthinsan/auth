@@ -4,18 +4,24 @@ import { styles } from '../styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
 import api from '../api';
+import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 import { ApiContext } from '../ApiContext';
 
 export default function ManageRoles() {
+  const { currentOrg } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
   const { roles, refreshRoles } = useContext(ApiContext);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
-    refreshRoles();
-  }, [refreshRoles]);
+    const load = async () => {
+      if (!currentOrg) return;
+      await refreshRoles(currentOrg);
+    };
+    load();
+  }, [currentOrg, refreshRoles]);
 
   const updateRole = async (id, field, value) => {
     const trimmed = value.trim();
@@ -24,7 +30,7 @@ export default function ManageRoles() {
       return;
     }
     await api.patch(`/roles/${id}`, { [field]: trimmed });
-    await refreshRoles();
+    await refreshRoles(currentOrg);
     showToast('Role updated', 'success');
   };
 
@@ -33,20 +39,21 @@ export default function ManageRoles() {
     if (role?.system) return;
     if (!window.confirm('Delete this role?')) return;
     await api.delete(`/roles/${id}`);
-    await refreshRoles();
+    await refreshRoles(currentOrg);
     showToast('Role deleted', 'success');
   };
 
   const createRole = async (e) => {
     if (e) e.preventDefault();
+    if (!currentOrg) return;
     const code = newCode.trim();
     const name = newName.trim();
     if (!code || !name) {
       showToast('Code and name are required', 'error');
       return;
     }
-    await api.post('/roles', { code, name });
-    await refreshRoles();
+    await api.post('/roles', { code, name, orgId: currentOrg });
+    await refreshRoles(currentOrg);
     setNewCode('');
     setNewName('');
     showToast('Role created', 'success');
