@@ -116,11 +116,29 @@ const friendRequestSchema = new Schema({
 });
 friendRequestSchema.index({ from: 1, to: 1 }, { unique: true });
 
+const postSchema = new Schema({
+  author: { type: Schema.Types.ObjectId, ref: 'User' },
+  content: String,
+  image: String,
+  likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  createdAt: { type: Date, default: Date.now }
+});
+postSchema.index({ createdAt: -1 });
+
+const commentSchema = new Schema({
+  post: { type: Schema.Types.ObjectId, ref: 'Post' },
+  author: { type: Schema.Types.ObjectId, ref: 'User' },
+  content: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
 const Role = mongoose.model('Role', roleSchema);
 const User = mongoose.model('User', userSchema);
 const Organization = mongoose.model('Organization', organizationSchema);
 const Invite = mongoose.model('Invite', inviteSchema);
 const FriendRequest = mongoose.model('FriendRequest', friendRequestSchema);
+const Post = mongoose.model('Post', postSchema);
+const Comment = mongoose.model('Comment', commentSchema);
 
 async function ensureDefaultRoles() {
   const defaults = [
@@ -953,6 +971,96 @@ apiRouter.delete('/friends/:id', authenticateToken, async (req, res) => {
   friend.friends = friend.friends.filter(f => f.toString() !== req.user.id);
   await Promise.all([user.save(), friend.save()]);
   res.json({ message: 'Friend removed' });
+});
+
+// posts
+apiRouter.post('/posts', authenticateToken, (req, res) => {
+  const single = upload.single('image');
+  single(req, res, async err => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    const { content } = req.body;
+    if (!content) {
+      return res.status(400).json({ message: 'Content required' });
+    }
+    const image = req.file ? `/uploads/${req.file.filename}` : '';
+    const post = new Post({ author: req.user.id, content, image });
+    await post.save();
+    res.json({ message: 'Post created', id: post._id });
+  });
+});
+
+apiRouter.get('/posts', authenticateToken, async (req, res) => {
+  const posts = await Post.find()
+    .sort({ createdAt: -1 })
+    .populate('author', 'username firstName lastName profilePicture');
+  res.json(
+    posts.map(p => ({
+      id: p._id,
+      content: p.content,
+      image: p.image,
+      createdAt: p.createdAt,
+      author: {
+        id: p.author._id,
+        username: p.author.username,
+        firstName: p.author.firstName,
+        lastName: p.author.lastName,
+        profilePicture: p.author.profilePicture
+      },
+      likes: p.likes.length,
+      liked: p.likes.some(u => u.toString() === req.user.id)
+    }))
+  );
+});
+
+apiRouter.post('/posts/:id/like', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id);
+  if (!post) return res.status(404).json({ message: 'Post not found' });
+  const idx = post.likes.findIndex(u => u.toString() === req.user.id);
+  let liked;
+  if (idx >= 0) {
+    post.likes.splice(idx, 1);
+    liked = false;
+  } else {
+    post.likes.push(req.user.id);
+    liked = true;
+  }
+  await post.save();
+  res.json({ liked, likes: post.likes.length });
+});
+
+apiRouter.post('/posts/:id/comments', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ message: 'Content required' });
+  const post = await Post.findById(id);
+  if (!post) return res.status(404).json({ message: 'Post not found' });
+  const comment = new Comment({ post: id, author: req.user.id, content });
+  await comment.save();
+  res.json({ message: 'Comment added', id: comment._id });
+});
+
+apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const comments = await Comment.find({ post: id })
+    .sort({ createdAt: 1 })
+    .populate('author', 'username firstName lastName profilePicture');
+  res.json(
+    comments.map(c => ({
+      id: c._id,
+      content: c.content,
+      createdAt: c.createdAt,
+      author: {
+        id: c.author._id,
+        username: c.author.username,
+        firstName: c.author.firstName,
+        lastName: c.author.lastName,
+        profilePicture: c.author.profilePicture
+      }
+    }))
+  );
 });
 
 // currency transfer

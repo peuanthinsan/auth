@@ -28,6 +28,10 @@ for quick transfers. Retrieve pending requests with `GET /friends/requests`, sen
 a request using `POST /friends/request` and accept with
 `POST /friends/requests/{id}/accept`. A user's friends are listed via `GET /friends`
 and can be removed with `DELETE /friends/{id}`.
+Users may also share updates by creating posts with optional images using
+`POST /posts`. Posts are fetched via `GET /posts` and support reactions with
+`POST /posts/{id}/like`. Comments can be added or viewed through
+`POST /posts/{id}/comments` and `GET /posts/{id}/comments`.
 
 When the server is running you can explore all endpoints using Swagger UI at [`/api-docs`](http://localhost:3000/api-docs).
 
@@ -68,6 +72,7 @@ numbers. Attempts to register or change a password that does not meet this
 policy will result in a `400` response describing the issue.
 
 The frontend runs on port 4000 by default. It includes simple pages for each API endpoint under `src/index.js`, allowing you to register, log in, manage organizations and members, handle invites, transfer currency and update user roles.
+There is also a **Feed** page where users can share posts, like them and leave comments.
 
 All API requests use an Axios instance defined in `src/api.js`. The authentication token is stored using React Context in `src/AuthContext.js`, which automatically adds the `Authorization` header for requests. Login now also returns a long-lived refresh token which the Axios wrapper uses to obtain a new access token when a request returns `401`. Profile updates now support uploading a picture and accepting an invite requires providing the invite's token.
 Profile pictures must be JPEG or PNG images and may not exceed 25MB in size.
