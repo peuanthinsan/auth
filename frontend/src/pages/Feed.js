@@ -121,7 +121,11 @@ export default function Feed() {
             />
           </Button>
           {preview && (
-            <Box component="img" src={preview} sx={{ maxWidth: '100%', maxHeight: 400 }} />
+            <Box
+              component="img"
+              src={preview}
+              sx={{ maxWidth: '100%', maxHeight: 400, height: 'auto' }}
+            />
           )}
           <Button type="submit" variant="contained">Post</Button>
         </Stack>
