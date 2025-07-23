@@ -27,6 +27,7 @@ export default function Feed() {
   const { showToast } = useContext(ToastContext);
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState('');
   const [comments, setComments] = useState({});
   const [commentInput, setCommentInput] = useState({});
 
@@ -48,6 +49,7 @@ export default function Feed() {
       showToast('Post created', 'success');
       setContent('');
       setImage(null);
+      setPreview('');
     } catch (err) {
       showToast(err.response?.data?.message || 'Error creating post', 'error');
     }
@@ -101,8 +103,26 @@ export default function Feed() {
           />
           <Button variant="contained" component="label">
             Upload Image
-            <input hidden type="file" accept="image/*" onChange={e => setImage(e.target.files[0])} />
+            <input
+              hidden
+              type="file"
+              accept="image/*"
+              onChange={e => {
+                const f = e.target.files[0];
+                setImage(f);
+                if (f) {
+                  const reader = new FileReader();
+                  reader.onload = ev => setPreview(ev.target.result);
+                  reader.readAsDataURL(f);
+                } else {
+                  setPreview('');
+                }
+              }}
+            />
           </Button>
+          {preview && (
+            <Box component="img" src={preview} sx={{ maxWidth: '100%', maxHeight: 400 }} />
+          )}
           <Button type="submit" variant="contained">Post</Button>
         </Stack>
       </Box>
