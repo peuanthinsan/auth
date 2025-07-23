@@ -864,6 +864,12 @@ paths:
                     profilePicture: /uploads/pic.jpg
                   likes: 1
                   liked: true
+                  upvotes: 2
+                  downvotes: 0
+                  credits: 5
+                  upvotes: 2
+                  downvotes: 0
+                  credits: 5
     post:
       summary: Create post
       requestBody:
@@ -965,6 +971,75 @@ paths:
                 liked: true
                 likes: 1
 
+  /posts/{id}/upvote:
+    post:
+      summary: Upvote or remove upvote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vote counts
+          content:
+            application/json:
+              example:
+                upvoted: true
+                upvotes: 2
+                downvotes: 0
+
+  /posts/{id}/downvote:
+    post:
+      summary: Downvote or remove downvote
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vote counts
+          content:
+            application/json:
+              example:
+                downvoted: true
+                upvotes: 2
+                downvotes: 1
+
+  /posts/{id}/credit:
+    post:
+      summary: Give credit to a post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                orgId:
+                  type: string
+              required:
+                - amount
+      responses:
+        '200':
+          description: Updated credits
+          content:
+            application/json:
+              example:
+                credits: 5
+                balance: 95
+
   /posts/{id}/comments:
     get:
       summary: List comments
@@ -1016,3 +1091,72 @@ paths:
               example:
                 message: Comment added
                 id: comment_id
+
+  /comments/{id}/upvote:
+    post:
+      summary: Upvote or remove upvote on comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vote counts
+          content:
+            application/json:
+              example:
+                upvoted: true
+                upvotes: 1
+                downvotes: 0
+
+  /comments/{id}/downvote:
+    post:
+      summary: Downvote or remove downvote on comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vote counts
+          content:
+            application/json:
+              example:
+                downvoted: true
+                upvotes: 0
+                downvotes: 1
+
+  /comments/{id}/credit:
+    post:
+      summary: Give credit to a comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                orgId:
+                  type: string
+              required:
+                - amount
+      responses:
+        '200':
+          description: Updated credits
+          content:
+            application/json:
+              example:
+                credits: 5
+                balance: 95

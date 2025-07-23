@@ -122,6 +122,9 @@ const postSchema = new Schema({
   image: String,
   organization: { type: Schema.Types.ObjectId, ref: 'Organization', default: null },
   likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  upvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  downvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  credits: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 postSchema.index({ createdAt: -1 });
@@ -130,6 +133,9 @@ const commentSchema = new Schema({
   post: { type: Schema.Types.ObjectId, ref: 'Post' },
   author: { type: Schema.Types.ObjectId, ref: 'User' },
   content: String,
+  upvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  downvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  credits: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -1033,7 +1039,12 @@ apiRouter.get('/posts', authenticateToken, async (req, res) => {
         profilePicture: p.author.profilePicture
       },
       likes: p.likes.length,
-      liked: p.likes.some(u => u.toString() === req.user.id)
+      liked: p.likes.some(u => u.toString() === req.user.id),
+      upvotes: p.upvotes.length,
+      downvotes: p.downvotes.length,
+      upvoted: p.upvotes.some(u => u.toString() === req.user.id),
+      downvoted: p.downvotes.some(u => u.toString() === req.user.id),
+      credits: p.credits
     }))
   );
 });
@@ -1070,26 +1081,35 @@ apiRouter.get(
   authenticateToken,
   requireOrgMember,
   async (req, res) => {
-    const posts = await Post.find({ organization: req.org._id })
-      .sort({ createdAt: -1 })
-      .populate('author', 'username firstName lastName profilePicture');
-    res.json(
-      posts.map(p => ({
-        id: p._id,
-        content: p.content,
-        image: p.image,
-        createdAt: p.createdAt,
-        author: {
-          id: p.author._id,
-          username: p.author.username,
-          firstName: p.author.firstName,
-          lastName: p.author.lastName,
-          profilePicture: p.author.profilePicture
-        },
-        likes: p.likes.length,
-        liked: p.likes.some(u => u.toString() === req.user.id)
-      }))
-    );
+  const posts = await Post.find({ organization: req.org._id })
+    .sort({ createdAt: -1 })
+    .populate('author', 'username firstName lastName profilePicture balances');
+  res.json(
+    posts.map(p => ({
+      id: p._id,
+      content: p.content,
+      image: p.image,
+      createdAt: p.createdAt,
+      author: {
+        id: p.author._id,
+        username: p.author.username,
+        firstName: p.author.firstName,
+        lastName: p.author.lastName,
+        profilePicture: p.author.profilePicture,
+        balance:
+          p.author.balances.find(b =>
+            b.orgId.toString() === req.org._id.toString()
+          )?.amount || 0
+      },
+      likes: p.likes.length,
+      liked: p.likes.some(u => u.toString() === req.user.id),
+      upvotes: p.upvotes.length,
+      downvotes: p.downvotes.length,
+      upvoted: p.upvotes.some(u => u.toString() === req.user.id),
+      downvoted: p.downvotes.some(u => u.toString() === req.user.id),
+      credits: p.credits
+    }))
+  );
   }
 );
 
@@ -1110,6 +1130,75 @@ apiRouter.post('/posts/:id/like', authenticateToken, async (req, res) => {
   res.json({ liked, likes: post.likes.length });
 });
 
+apiRouter.post('/posts/:id/upvote', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id);
+  if (!post) return res.status(404).json({ message: 'Post not found' });
+  const uid = req.user.id;
+  const upIdx = post.upvotes.findIndex(u => u.toString() === uid);
+  const downIdx = post.downvotes.findIndex(u => u.toString() === uid);
+  let upvoted;
+  if (upIdx >= 0) {
+    post.upvotes.splice(upIdx, 1);
+    upvoted = false;
+  } else {
+    post.upvotes.push(uid);
+    upvoted = true;
+    if (downIdx >= 0) post.downvotes.splice(downIdx, 1);
+  }
+  await post.save();
+  res.json({
+    upvoted,
+    upvotes: post.upvotes.length,
+    downvotes: post.downvotes.length
+  });
+});
+
+apiRouter.post('/posts/:id/downvote', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id);
+  if (!post) return res.status(404).json({ message: 'Post not found' });
+  const uid = req.user.id;
+  const upIdx = post.upvotes.findIndex(u => u.toString() === uid);
+  const downIdx = post.downvotes.findIndex(u => u.toString() === uid);
+  let downvoted;
+  if (downIdx >= 0) {
+    post.downvotes.splice(downIdx, 1);
+    downvoted = false;
+  } else {
+    post.downvotes.push(uid);
+    downvoted = true;
+    if (upIdx >= 0) post.upvotes.splice(upIdx, 1);
+  }
+  await post.save();
+  res.json({
+    downvoted,
+    upvotes: post.upvotes.length,
+    downvotes: post.downvotes.length
+  });
+});
+
+apiRouter.post('/posts/:id/credit', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { amount, orgId } = req.body;
+  const num = parseFloat(amount);
+  if (isNaN(num) || num <= 0) {
+    return res.status(400).json({ message: 'Invalid amount' });
+  }
+  const post = await Post.findById(id);
+  if (!post) return res.status(404).json({ message: 'Post not found' });
+  const useOrg = post.organization || orgId;
+  if (!useOrg) return res.status(400).json({ message: 'Organization required' });
+  const user = await User.findById(req.user.id);
+  const bal = user.balances.find(b => b.orgId.toString() === useOrg.toString());
+  if (!bal || bal.amount < num)
+    return res.status(400).json({ message: 'Insufficient balance' });
+  bal.amount -= num;
+  post.credits += num;
+  await Promise.all([user.save(), post.save()]);
+  res.json({ credits: post.credits, balance: bal.amount });
+});
+
 apiRouter.post('/posts/:id/comments', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { content } = req.body;
@@ -1123,9 +1212,11 @@ apiRouter.post('/posts/:id/comments', authenticateToken, async (req, res) => {
 
 apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
   const { id } = req.params;
+  const post = await Post.findById(id);
+  if (!post) return res.status(404).json({ message: 'Post not found' });
   const comments = await Comment.find({ post: id })
     .sort({ createdAt: 1 })
-    .populate('author', 'username firstName lastName profilePicture');
+    .populate('author', 'username firstName lastName profilePicture balances');
   res.json(
     comments.map(c => ({
       id: c._id,
@@ -1136,10 +1227,90 @@ apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
         username: c.author.username,
         firstName: c.author.firstName,
         lastName: c.author.lastName,
-        profilePicture: c.author.profilePicture
-      }
+        profilePicture: c.author.profilePicture,
+        balance:
+          post.organization
+            ? c.author.balances.find(b =>
+                b.orgId.toString() === post.organization.toString()
+              )?.amount || 0
+            : 0
+      },
+      upvotes: c.upvotes.length,
+      downvotes: c.downvotes.length,
+      upvoted: c.upvotes.some(u => u.toString() === req.user.id),
+      downvoted: c.downvotes.some(u => u.toString() === req.user.id),
+      credits: c.credits
     }))
   );
+});
+
+apiRouter.post('/comments/:id/upvote', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const comment = await Comment.findById(id);
+  if (!comment) return res.status(404).json({ message: 'Comment not found' });
+  const uid = req.user.id;
+  const upIdx = comment.upvotes.findIndex(u => u.toString() === uid);
+  const downIdx = comment.downvotes.findIndex(u => u.toString() === uid);
+  let upvoted;
+  if (upIdx >= 0) {
+    comment.upvotes.splice(upIdx, 1);
+    upvoted = false;
+  } else {
+    comment.upvotes.push(uid);
+    upvoted = true;
+    if (downIdx >= 0) comment.downvotes.splice(downIdx, 1);
+  }
+  await comment.save();
+  res.json({
+    upvoted,
+    upvotes: comment.upvotes.length,
+    downvotes: comment.downvotes.length
+  });
+});
+
+apiRouter.post('/comments/:id/downvote', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const comment = await Comment.findById(id);
+  if (!comment) return res.status(404).json({ message: 'Comment not found' });
+  const uid = req.user.id;
+  const upIdx = comment.upvotes.findIndex(u => u.toString() === uid);
+  const downIdx = comment.downvotes.findIndex(u => u.toString() === uid);
+  let downvoted;
+  if (downIdx >= 0) {
+    comment.downvotes.splice(downIdx, 1);
+    downvoted = false;
+  } else {
+    comment.downvotes.push(uid);
+    downvoted = true;
+    if (upIdx >= 0) comment.upvotes.splice(upIdx, 1);
+  }
+  await comment.save();
+  res.json({
+    downvoted,
+    upvotes: comment.upvotes.length,
+    downvotes: comment.downvotes.length
+  });
+});
+
+apiRouter.post('/comments/:id/credit', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { amount, orgId } = req.body;
+  const num = parseFloat(amount);
+  if (isNaN(num) || num <= 0)
+    return res.status(400).json({ message: 'Invalid amount' });
+  const comment = await Comment.findById(id).populate('post');
+  if (!comment) return res.status(404).json({ message: 'Comment not found' });
+  const useOrg = comment.post.organization || orgId;
+  if (!useOrg)
+    return res.status(400).json({ message: 'Organization required' });
+  const user = await User.findById(req.user.id);
+  const bal = user.balances.find(b => b.orgId.toString() === useOrg.toString());
+  if (!bal || bal.amount < num)
+    return res.status(400).json({ message: 'Insufficient balance' });
+  bal.amount -= num;
+  comment.credits += num;
+  await Promise.all([user.save(), comment.save()]);
+  res.json({ credits: comment.credits, balance: bal.amount });
 });
 
 // currency transfer

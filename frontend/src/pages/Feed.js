@@ -10,6 +10,9 @@ import {
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { ApiContext } from '../ApiContext';
 import { ToastContext } from '../ToastContext';
 import { API_ROOT } from '../api';
@@ -21,8 +24,14 @@ export default function Feed() {
     refreshPosts,
     createPost,
     likePost,
+    upvotePost,
+    downvotePost,
+    creditPost,
     getComments,
-    addComment
+    addComment,
+    upvoteComment,
+    downvoteComment,
+    creditComment
   } = useContext(ApiContext);
   const { showToast } = useContext(ToastContext);
   const [content, setContent] = useState('');
@@ -63,6 +72,30 @@ export default function Feed() {
     }
   };
 
+  const handleUpvotePost = async id => {
+    try {
+      await upvotePost(id);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleDownvotePost = async id => {
+    try {
+      await downvotePost(id);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleCreditPost = async id => {
+    try {
+      await creditPost(id, 1);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
   const loadComments = async id => {
     if (comments[id]) {
       setComments(prev => ({ ...prev, [id]: null }));
@@ -85,6 +118,36 @@ export default function Feed() {
       const res = await getComments(id);
       setComments(prev => ({ ...prev, [id]: res }));
       setCommentInput(prev => ({ ...prev, [id]: '' }));
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleUpvoteComment = async (id, postId) => {
+    try {
+      await upvoteComment(id);
+      const res = await getComments(postId);
+      setComments(prev => ({ ...prev, [postId]: res }));
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleDownvoteComment = async (id, postId) => {
+    try {
+      await downvoteComment(id);
+      const res = await getComments(postId);
+      setComments(prev => ({ ...prev, [postId]: res }));
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleCreditComment = async (id, postId) => {
+    try {
+      await creditComment(id, 1);
+      const res = await getComments(postId);
+      setComments(prev => ({ ...prev, [postId]: res }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -145,6 +208,18 @@ export default function Feed() {
                 {p.liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
               </IconButton>
               <Typography>{p.likes}</Typography>
+              <IconButton onClick={() => handleUpvotePost(p.id)}>
+                <ThumbUpIcon fontSize="small" />
+              </IconButton>
+              <Typography>{p.upvotes}</Typography>
+              <IconButton onClick={() => handleDownvotePost(p.id)}>
+                <ThumbDownIcon fontSize="small" />
+              </IconButton>
+              <Typography>{p.downvotes}</Typography>
+              <IconButton onClick={() => handleCreditPost(p.id)}>
+                <AttachMoneyIcon fontSize="small" />
+              </IconButton>
+              <Typography>{p.credits}</Typography>
               <Button onClick={() => loadComments(p.id)}>Comments</Button>
             </Stack>
             {comments[p.id] && (
@@ -168,6 +243,20 @@ export default function Feed() {
                           </Typography>
                         </Stack>
                         <Typography sx={{ mt: 0.5 }}>{c.content}</Typography>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                          <IconButton onClick={() => handleUpvoteComment(c.id, p.id)}>
+                            <ThumbUpIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.upvotes}</Typography>
+                          <IconButton onClick={() => handleDownvoteComment(c.id, p.id)}>
+                            <ThumbDownIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.downvotes}</Typography>
+                          <IconButton onClick={() => handleCreditComment(c.id, p.id)}>
+                            <AttachMoneyIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.credits}</Typography>
+                        </Stack>
                       </Box>
                     </Stack>
                   </Box>
