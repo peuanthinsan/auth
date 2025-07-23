@@ -1196,9 +1196,18 @@ apiRouter.post('/posts/:id/credit', authenticateToken, async (req, res) => {
   const bal = user.balances.find(b => b.orgId.toString() === useOrg.toString());
   if (!bal || bal.amount < num)
     return res.status(400).json({ message: 'Insufficient balance' });
+  const author = await User.findById(post.author);
+  let authorBal = author.balances.find(
+    b => b.orgId.toString() === useOrg.toString()
+  );
+  if (authorBal) {
+    authorBal.amount += num;
+  } else {
+    author.balances.push({ orgId: useOrg, amount: num });
+  }
   bal.amount -= num;
   post.credits += num;
-  await Promise.all([user.save(), post.save()]);
+  await Promise.all([user.save(), author.save(), post.save()]);
   res.json({ credits: post.credits, balance: bal.amount });
 });
 
@@ -1313,9 +1322,18 @@ apiRouter.post('/comments/:id/credit', authenticateToken, async (req, res) => {
   const bal = user.balances.find(b => b.orgId.toString() === useOrg.toString());
   if (!bal || bal.amount < num)
     return res.status(400).json({ message: 'Insufficient balance' });
+  const author = await User.findById(comment.author);
+  let authorBal = author.balances.find(
+    b => b.orgId.toString() === useOrg.toString()
+  );
+  if (authorBal) {
+    authorBal.amount += num;
+  } else {
+    author.balances.push({ orgId: useOrg, amount: num });
+  }
   bal.amount -= num;
   comment.credits += num;
-  await Promise.all([user.save(), comment.save()]);
+  await Promise.all([user.save(), author.save(), comment.save()]);
   res.json({ credits: comment.credits, balance: bal.amount });
 });
 
