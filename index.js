@@ -208,7 +208,7 @@ async function requireSuperAdmin(req, res, next) {
 }
 
 async function requireOrgAdmin(req, res, next) {
-  const orgId = req.params.id || req.query.orgId;
+  const orgId = req.params.id || req.query.orgId || req.body.orgId;
   if (!orgId) {
     return res.status(400).json({ message: 'Organization ID required' });
   }
