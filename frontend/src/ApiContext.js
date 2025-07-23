@@ -111,8 +111,39 @@ export function ApiProvider({ children }) {
     await refreshOrgPosts(orgId);
   };
 
+  const upvotePost = async (id, orgId) => {
+    await api.post(`/posts/${id}/upvote`);
+    if (orgId) await refreshOrgPosts(orgId); else await refreshPosts();
+  };
+
+  const downvotePost = async (id, orgId) => {
+    await api.post(`/posts/${id}/downvote`);
+    if (orgId) await refreshOrgPosts(orgId); else await refreshPosts();
+  };
+
+  const creditPost = async (id, amount, orgId = currentOrg) => {
+    await api.post(`/posts/${id}/credit`, { amount, orgId });
+    if (orgId) await Promise.all([refreshOrgPosts(orgId), refreshBalance(orgId)]);
+    else await refreshPosts();
+  };
+
   const addComment = async (postId, content) => {
     await api.post(`/posts/${postId}/comments`, { content });
+  };
+
+  const upvoteComment = async (id, orgId = currentOrg) => {
+    await api.post(`/comments/${id}/upvote`);
+    if (orgId) await refreshBalance(orgId);
+  };
+
+  const downvoteComment = async (id, orgId = currentOrg) => {
+    await api.post(`/comments/${id}/downvote`);
+    if (orgId) await refreshBalance(orgId);
+  };
+
+  const creditComment = async (id, amount, orgId = currentOrg) => {
+    await api.post(`/comments/${id}/credit`, { amount, orgId });
+    if (orgId) await refreshBalance(orgId);
   };
 
   const getComments = async (postId) => {
@@ -175,7 +206,13 @@ export function ApiProvider({ children }) {
       createOrgPost,
       likePost,
       likeOrgPost,
+      upvotePost,
+      downvotePost,
+      creditPost,
       addComment,
+      upvoteComment,
+      downvoteComment,
+      creditComment,
       getComments,
       register,
       changePassword,

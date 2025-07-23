@@ -10,7 +10,11 @@ import {
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { ApiContext } from '../ApiContext';
+import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
 import { API_ROOT } from '../api';
 import { styles } from '../styles';
@@ -21,9 +25,18 @@ export default function OrganizationFeed() {
     refreshOrgPosts,
     createOrgPost,
     likeOrgPost,
+    upvotePost,
+    downvotePost,
+    creditPost,
     getComments,
-    addComment
+    addComment,
+    upvoteComment,
+    downvoteComment,
+    creditComment,
+    balance,
+    refreshBalance
   } = useContext(ApiContext);
+  const { currentOrg } = useContext(AuthContext);
   const { showToast } = useContext(ToastContext);
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
@@ -33,7 +46,8 @@ export default function OrganizationFeed() {
 
   useEffect(() => {
     refreshOrgPosts();
-  }, [refreshOrgPosts]);
+    refreshBalance();
+  }, [refreshOrgPosts, refreshBalance]);
 
   const submit = async e => {
     e.preventDefault();
@@ -58,6 +72,30 @@ export default function OrganizationFeed() {
   const toggleLike = async id => {
     try {
       await likeOrgPost(id);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleUpvotePost = async id => {
+    try {
+      await upvotePost(id, currentOrg);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleDownvotePost = async id => {
+    try {
+      await downvotePost(id, currentOrg);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleCreditPost = async id => {
+    try {
+      await creditPost(id, 1, currentOrg);
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -90,8 +128,41 @@ export default function OrganizationFeed() {
     }
   };
 
+  const handleUpvoteComment = async (id, postId) => {
+    try {
+      await upvoteComment(id);
+      const res = await getComments(postId);
+      setComments(prev => ({ ...prev, [postId]: res }));
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleDownvoteComment = async (id, postId) => {
+    try {
+      await downvoteComment(id);
+      const res = await getComments(postId);
+      setComments(prev => ({ ...prev, [postId]: res }));
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const handleCreditComment = async (id, postId) => {
+    try {
+      await creditComment(id, 1, currentOrg);
+      const res = await getComments(postId);
+      setComments(prev => ({ ...prev, [postId]: res }));
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
   return (
     <Box>
+      {balance !== null && (
+        <Typography sx={{ mb: 1 }}>Balance: {balance}</Typography>
+      )}
       <Box component="form" onSubmit={submit} noValidate>
         <Stack spacing={2} sx={styles.formStack}>
           <TextField
@@ -133,7 +204,9 @@ export default function OrganizationFeed() {
               {p.author.profilePicture && (
                 <Avatar src={p.author.profilePicture.startsWith('http') ? p.author.profilePicture : `${API_ROOT}${p.author.profilePicture}`} />
               )}
-              <Typography variant="subtitle1">{p.author.firstName} {p.author.lastName}</Typography>
+              <Typography variant="subtitle1">
+                {p.author.firstName} {p.author.lastName} ({p.author.balance})
+              </Typography>
               <Typography variant="caption" sx={{ ml: 'auto' }}>{new Date(p.createdAt).toLocaleString()}</Typography>
             </Stack>
             <Typography sx={{ mt: 1, mb: 1 }}>{p.content}</Typography>
@@ -145,6 +218,18 @@ export default function OrganizationFeed() {
                 {p.liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
               </IconButton>
               <Typography>{p.likes}</Typography>
+              <IconButton onClick={() => handleUpvotePost(p.id)}>
+                <ThumbUpIcon fontSize="small" />
+              </IconButton>
+              <Typography>{p.upvotes}</Typography>
+              <IconButton onClick={() => handleDownvotePost(p.id)}>
+                <ThumbDownIcon fontSize="small" />
+              </IconButton>
+              <Typography>{p.downvotes}</Typography>
+              <IconButton onClick={() => handleCreditPost(p.id)}>
+                <AttachMoneyIcon fontSize="small" />
+              </IconButton>
+              <Typography>{p.credits}</Typography>
               <Button onClick={() => loadComments(p.id)}>Comments</Button>
             </Stack>
             {comments[p.id] && (
@@ -161,13 +246,27 @@ export default function OrganizationFeed() {
                       <Box sx={{ flexGrow: 1 }}>
                         <Stack direction="row" spacing={1} alignItems="center">
                           <Typography variant="subtitle2">
-                            {c.author.firstName} {c.author.lastName}
+                            {c.author.firstName} {c.author.lastName} ({c.author.balance})
                           </Typography>
                           <Typography variant="caption" sx={{ ml: 'auto' }}>
                             {new Date(c.createdAt).toLocaleString()}
                           </Typography>
                         </Stack>
                         <Typography sx={{ mt: 0.5 }}>{c.content}</Typography>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                          <IconButton onClick={() => handleUpvoteComment(c.id, p.id)}>
+                            <ThumbUpIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.upvotes}</Typography>
+                          <IconButton onClick={() => handleDownvoteComment(c.id, p.id)}>
+                            <ThumbDownIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.downvotes}</Typography>
+                          <IconButton onClick={() => handleCreditComment(c.id, p.id)}>
+                            <AttachMoneyIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.credits}</Typography>
+                        </Stack>
                       </Box>
                     </Stack>
                   </Box>
