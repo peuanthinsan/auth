@@ -684,6 +684,8 @@ apiRouter.get('/users', authenticateToken, requireOrgAdmin, async (req, res) => 
   let filter = {};
   if (orgId && mongoose.isValidObjectId(orgId)) {
     filter.organizations = new mongoose.Types.ObjectId(orgId);
+  } else if (!orgId) {
+    filter.organizations = { $size: 0 };
   }
   const users = await User.find(filter)
     .populate('roles', 'code name')

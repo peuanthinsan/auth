@@ -27,10 +27,12 @@ export default function ManageUsers() {
       : Promise.resolve({ data: [] });
     const allReq = currentOrg
       ? api.get('/users', { params: { orgId: currentOrg } })
-      : Promise.resolve({ data: [] });
+      : api.get('/users');
     const [oRes, aRes] = await Promise.all([orgReq, allReq]);
     if (currentOrg) {
       await Promise.all([refreshUsers(currentOrg), refreshRoles(currentOrg)]);
+    } else {
+      await refreshUsers();
     }
     setAllUsers(aRes.data);
     setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name })));

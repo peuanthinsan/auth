@@ -457,6 +457,10 @@ paths:
   /users:
     get:
       summary: List users
+      description: |
+        If an `orgId` query parameter is supplied, only members of that
+        organization are returned. When omitted, the response includes
+        users that are not part of any organization.
       parameters:
         - in: query
           name: orgId

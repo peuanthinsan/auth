@@ -17,10 +17,12 @@ Endpoints include registration, login, profile management, organization manageme
 a listing of your organizations and a simple currency transfer system. All API
 routes are now served under the `/api` prefix (for example `/api/login`).
 Routes that modify organization membership or invites require an admin user. Admins
-can list all users with `GET /users`, change a user's role with `POST /users/:id/role`,
-list all organizations via `GET /organizations/all` and update an organization's name
-using `PATCH /organizations/:id`. Roles themselves are stored in a separate collection
-and can be managed with CRUD endpoints under `/roles`. Admins may also list or delete invites through `/invites`.
+can list organization members with `GET /users?orgId=<org>` or fetch users not
+assigned to any organization with `GET /users`. They may change a user's role with
+`POST /users/:id/role`, list all organizations via `GET /organizations/all` and update
+an organization's name using `PATCH /organizations/:id`. Roles themselves are stored
+in a separate collection and can be managed with CRUD endpoints under `/roles`.
+Admins may also list or delete invites through `/invites`.
 
 When the server is running you can explore all endpoints using Swagger UI at [`/api-docs`](http://localhost:3000/api-docs).
 
