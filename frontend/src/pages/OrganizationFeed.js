@@ -20,7 +20,7 @@ export default function OrganizationFeed() {
     orgPosts,
     refreshOrgPosts,
     createOrgPost,
-    likePost,
+    likeOrgPost,
     getComments,
     addComment
   } = useContext(ApiContext);
@@ -57,7 +57,7 @@ export default function OrganizationFeed() {
 
   const toggleLike = async id => {
     try {
-      await likePost(id);
+      await likeOrgPost(id);
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }

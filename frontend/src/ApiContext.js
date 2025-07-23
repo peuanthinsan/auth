@@ -106,6 +106,11 @@ export function ApiProvider({ children }) {
     await refreshPosts();
   };
 
+  const likeOrgPost = async (id, orgId = currentOrg) => {
+    await api.post(`/posts/${id}/like`);
+    await refreshOrgPosts(orgId);
+  };
+
   const addComment = async (postId, content) => {
     await api.post(`/posts/${postId}/comments`, { content });
   };
@@ -169,6 +174,7 @@ export function ApiProvider({ children }) {
       refreshOrgPosts,
       createOrgPost,
       likePost,
+      likeOrgPost,
       addComment,
       getComments,
       register,
