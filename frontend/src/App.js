@@ -47,6 +47,7 @@ import AcceptInvite from './pages/AcceptInvite';
 import AddFriend from './pages/AddFriend';
 import AcceptFriend from './pages/AcceptFriend';
 import ManageFriends from './pages/ManageFriends';
+import FriendProfile from './pages/FriendProfile';
 import Transfer from './pages/Transfer';
 import Balance from './pages/Balance';
 import Administration from './pages/Administration';
@@ -187,6 +188,7 @@ export default function App() {
             <Route path="/add-friend" element={<AddFriend />} />
             <Route path="/accept-friend" element={<AcceptFriend />} />
             <Route path="/manage-friends" element={<ManageFriends />} />
+            <Route path="/friend/:id" element={<FriendProfile />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/balance" element={<Balance />} />
             <Route path="/admin" element={<Administration />} />
