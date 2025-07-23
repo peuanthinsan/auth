@@ -27,7 +27,7 @@ export default function ManageUsers() {
       : Promise.resolve({ data: [] });
     const allReq = api.get('/users');
     const [oRes, aRes] = await Promise.all([orgReq, allReq]);
-    await Promise.all([refreshUsers(currentOrg || ''), refreshRoles()]);
+    await Promise.all([refreshUsers(currentOrg || ''), refreshRoles(currentOrg || '')]);
     setAllUsers(aRes.data);
     setOrgs(oRes.data.map(o => ({ id: o.id, name: o.name }))); 
   };
@@ -37,8 +37,13 @@ export default function ManageUsers() {
   }, [currentOrg]);
 
   useEffect(() => {
-    refreshRoles();
-  }, [refreshRoles]);
+    const fetchRoles = async () => {
+      const orgId = currentOrg || addOrgId;
+      if (!orgId) return;
+      await refreshRoles(orgId);
+    };
+    fetchRoles();
+  }, [currentOrg, addOrgId, refreshRoles]);
 
   useEffect(() => {
     if (roles.length && !addRoleId) {

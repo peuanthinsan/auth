@@ -17,7 +17,7 @@ export default function ManageInvites() {
 
   const loadInvites = async () => {
     if (!currentOrg) return;
-    await Promise.all([refreshInvites(currentOrg), refreshRoles()]);
+    await Promise.all([refreshInvites(currentOrg), refreshRoles(currentOrg)]);
     if (roles.length && !role) setRole(roles[0].code);
   };
   useEffect(() => {

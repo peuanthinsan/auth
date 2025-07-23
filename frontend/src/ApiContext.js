@@ -29,10 +29,11 @@ export function ApiProvider({ children }) {
     setUsers(res.data);
   }, [currentOrg]);
 
-  const refreshRoles = useCallback(async () => {
-    const res = await api.get('/roles');
+  const refreshRoles = useCallback(async (orgId = currentOrg) => {
+    if (!orgId) { setRoles([]); return; }
+    const res = await api.get('/roles', { params: { orgId } });
     setRoles(res.data);
-  }, []);
+  }, [currentOrg]);
 
   const refreshInvites = useCallback(async (orgId = currentOrg) => {
     if (!orgId) { setInvites([]); return; }

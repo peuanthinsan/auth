@@ -65,10 +65,12 @@ mongoose.connect(process.env.MONGO_URI, {
 const { Schema } = mongoose;
 
 const roleSchema = new Schema({
-  code: { type: String, unique: true },
+  code: String,
   name: String,
+  orgId: { type: Schema.Types.ObjectId, ref: 'Organization', default: null },
   system: { type: Boolean, default: false }
 });
+roleSchema.index({ code: 1, orgId: 1 }, { unique: true });
 
 const userSchema = new Schema({
   username: { type: String, unique: true, maxlength: 20, trim: true },
@@ -110,11 +112,11 @@ const Invite = mongoose.model('Invite', inviteSchema);
 
 async function ensureDefaultRoles() {
   const defaults = [
-    { code: ROLE_CODES.ADMIN, name: 'Administrator', system: true },
-    { code: ROLE_CODES.USER, name: 'User', system: true }
+    { code: ROLE_CODES.ADMIN, name: 'Administrator', orgId: null, system: true },
+    { code: ROLE_CODES.USER, name: 'User', orgId: null, system: true }
   ];
   for (const r of defaults) {
-    const existing = await Role.findOne({ code: r.code });
+    const existing = await Role.findOne({ code: r.code, orgId: r.orgId });
     if (!existing) {
       await Role.create(r);
     }
@@ -206,21 +208,24 @@ async function requireSuperAdmin(req, res, next) {
 }
 
 async function requireOrgAdmin(req, res, next) {
-  const user = await User.findById(req.user.id).populate('roles');
-  if (!user) {
-    return res.status(403).json({ message: 'Organization admin only' });
-  }
-  if (user.isSuperAdmin) {
-    return next();
-  }
   const orgId = req.params.id || req.query.orgId;
   if (!orgId) {
     return res.status(400).json({ message: 'Organization ID required' });
   }
-  const isOrgAdmin =
-    user.organizations.some(o => o.toString() === orgId) &&
-    user.roles.some(r => r.code === ROLE_CODES.ADMIN);
-  if (!isOrgAdmin) {
+  const user = await User.findById(req.user.id).populate('roles');
+  if (
+    !user ||
+    !(
+      user.isSuperAdmin ||
+      (user.organizations.some(o => o.toString() === orgId) &&
+        user.roles.some(
+          r =>
+            r.code === ROLE_CODES.ADMIN &&
+            r.orgId &&
+            r.orgId.toString() === orgId
+        ))
+    )
+  ) {
     return res.status(403).json({ message: 'Organization admin only' });
   }
   next();
@@ -257,7 +262,7 @@ apiRouter.post('/register', async (req, res) => {
     });
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  const userRole = await Role.findOne({ code: ROLE_CODES.USER });
+  const userRole = await Role.findOne({ code: ROLE_CODES.USER, orgId: null });
   const user = new User({
     username,
     passwordHash,
@@ -295,7 +300,7 @@ apiRouter.post('/superadmin', async (req, res) => {
     });
   }
   const passwordHash = await bcrypt.hash(password, 10);
-  const adminRole = await Role.findOne({ code: ROLE_CODES.ADMIN });
+  const adminRole = await Role.findOne({ code: ROLE_CODES.ADMIN, orgId: null });
   const user = new User({
     username,
     passwordHash,
@@ -500,6 +505,10 @@ apiRouter.post('/organizations', authenticateToken, requireSuperAdmin, async (re
   const org = new Organization({ name, members: [req.user.id], invites: [] });
   await org.save();
   await User.findByIdAndUpdate(req.user.id, { $push: { organizations: org._id, balances: { orgId: org._id, amount: 0 } } });
+  await Role.create([
+    { code: ROLE_CODES.ADMIN, name: 'Administrator', orgId: org._id, system: true },
+    { code: ROLE_CODES.USER, name: 'User', orgId: org._id, system: true }
+  ]);
   res.json({ message: 'Organization created', orgId: org._id });
 });
 
@@ -539,7 +548,7 @@ apiRouter.post('/organizations/:id/members', authenticateToken, requireSuperAdmi
     user.balances.push({ orgId: org._id, amount: 0 });
   }
   if (roleId) {
-    const role = await Role.findById(roleId);
+    const role = await Role.findOne({ _id: roleId, orgId: org._id });
     if (role && !user.roles.includes(role._id)) {
       user.roles.push(role._id);
     }
@@ -566,6 +575,8 @@ apiRouter.delete(
   if (user) {
     user.organizations = user.organizations.filter(o => o.toString() !== org._id.toString());
     user.balances = user.balances.filter(b => b.orgId.toString() !== org._id.toString());
+    const orgRoleIds = (await Role.find({ orgId: org._id }).select('_id')).map(r => r._id.toString());
+    user.roles = user.roles.filter(r => !orgRoleIds.includes(r.toString()));
     await user.save();
   }
   res.json({ message: 'Member removed' });
@@ -607,9 +618,13 @@ apiRouter.get(
 apiRouter.delete('/organizations/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
   const { id } = req.params;
 
+  const roles = await Role.find({ orgId: id });
+  const roleIds = roles.map(r => r._id);
+
   const inviteIds = (await Invite.find({ orgId: id }).select('_id')).map(i => i._id);
 
   await Promise.all([
+    Role.deleteMany({ orgId: id }),
     Invite.deleteMany({ orgId: id }),
     User.updateMany(
       {},
@@ -617,6 +632,7 @@ apiRouter.delete('/organizations/:id', authenticateToken, requireSuperAdmin, asy
         $pull: {
           organizations: id,
           balances: { orgId: id },
+          roles: { $in: roleIds },
           invites: { $in: inviteIds }
         }
       }
@@ -627,7 +643,7 @@ apiRouter.delete('/organizations/:id', authenticateToken, requireSuperAdmin, asy
   res.json({ message: 'Organization deleted' });
 });
 
-apiRouter.patch('/organizations/:id', authenticateToken, requireOrgAdmin, async (req, res) => {
+apiRouter.patch('/organizations/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
   const org = await Organization.findById(id);
@@ -689,20 +705,25 @@ apiRouter.post('/users/:id/roles', authenticateToken, requireAdmin, async (req, 
 });
 
 // role management
-apiRouter.get('/roles', authenticateToken, requireSuperAdmin, async (req, res) => {
-  const roles = await Role.find();
+apiRouter.get('/roles', authenticateToken, requireOrgAdmin, async (req, res) => {
+  const { orgId } = req.query;
+  let filter = { orgId: null };
+  if (orgId && mongoose.isValidObjectId(orgId)) {
+    filter = { orgId: new mongoose.Types.ObjectId(orgId) };
+  }
+  const roles = await Role.find(filter);
   res.json(roles.map(r => ({ id: r._id, code: r.code, name: r.name, system: r.system })));
 });
 
-apiRouter.post('/roles', authenticateToken, requireSuperAdmin, async (req, res) => {
-  const { code, name } = req.body;
-  if (!code) return res.status(400).json({ message: 'Code required' });
-  const role = new Role({ code, name, system: false });
+apiRouter.post('/roles', authenticateToken, requireOrgAdmin, async (req, res) => {
+  const { code, name, orgId } = req.body;
+  if (!code || !orgId) return res.status(400).json({ message: 'Code and orgId required' });
+  const role = new Role({ code, name, orgId, system: false });
   await role.save();
   res.json({ message: 'Role created', id: role._id });
 });
 
-apiRouter.patch('/roles/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+apiRouter.patch('/roles/:id', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { id } = req.params;
   const { code, name } = req.body;
   const role = await Role.findById(id);
@@ -713,7 +734,7 @@ apiRouter.patch('/roles/:id', authenticateToken, requireSuperAdmin, async (req, 
   res.json({ message: 'Role updated' });
 });
 
-apiRouter.delete('/roles/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+apiRouter.delete('/roles/:id', authenticateToken, requireOrgAdmin, async (req, res) => {
   const { id } = req.params;
   const role = await Role.findById(id);
   if (!role) return res.status(404).json({ message: 'Role not found' });
@@ -767,7 +788,7 @@ apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
   if (!user.balances.some(b => b.orgId.toString() === org._id.toString())) {
     user.balances.push({ orgId: org._id, amount: 0 });
   }
-  const role = await Role.findOne({ code: invite.role || ROLE_CODES.USER });
+  const role = await Role.findOne({ code: invite.role || ROLE_CODES.USER, orgId: org._id });
   if (role && !user.roles.includes(role._id)) user.roles.push(role._id);
   if (!org.members.some(m => m.toString() === req.user.id)) {
     org.members.push(req.user.id);
