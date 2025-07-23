@@ -14,6 +14,23 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                email:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+              required:
+                - username
+                - password
+                - email
+                - firstName
+                - lastName
       responses:
         '200':
           description: User registered
@@ -26,6 +43,23 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                email:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+              required:
+                - username
+                - password
+                - email
+                - firstName
+                - lastName
       responses:
         '200':
           description: Super admin created
@@ -38,6 +72,14 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
       responses:
         '200':
           description: Logged in
@@ -50,6 +92,11 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
       responses:
         '200':
           description: Logged out
@@ -62,6 +109,11 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
       responses:
         '200':
           description: Token refreshed
@@ -79,6 +131,16 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              properties:
+                username:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                profilePicture:
+                  type: string
+                  format: binary
       responses:
         '200':
           description: Profile updated
@@ -102,6 +164,14 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                oldPassword:
+                  type: string
+                newPassword:
+                  type: string
+              required:
+                - oldPassword
+                - newPassword
       responses:
         '200':
           description: Password changed
@@ -114,6 +184,11 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                username:
+                  type: string
+              required:
+                - username
       responses:
         '200':
           description: Token created
@@ -126,6 +201,14 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+              required:
+                - token
+                - newPassword
       responses:
         '200':
           description: Password reset
@@ -138,6 +221,11 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
       responses:
         '200':
           description: Organization created
@@ -161,6 +249,13 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                userId:
+                  type: string
+                roleId:
+                  type: string
+              required:
+                - userId
       responses:
         '200':
           description: Member added
@@ -196,6 +291,13 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                email:
+                  type: string
+                role:
+                  type: string
+              required:
+                - email
       responses:
         '200':
           description: Invite created
@@ -237,12 +339,20 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                name:
+                  type: string
       responses:
         '200':
           description: Organization updated
   /users:
     get:
       summary: List users
+      parameters:
+        - in: query
+          name: orgId
+          schema:
+            type: string
       responses:
         '200':
           description: Users list
@@ -273,12 +383,24 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                roleIds:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - roleIds
       responses:
         '200':
           description: Roles updated
   /roles:
     get:
       summary: List roles
+      parameters:
+        - in: query
+          name: orgId
+          schema:
+            type: string
       responses:
         '200':
           description: Roles list
@@ -290,6 +412,16 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+                orgId:
+                  type: string
+              required:
+                - code
+                - orgId
       responses:
         '200':
           description: Role created
@@ -308,6 +440,11 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
       responses:
         '200':
           description: Role updated
@@ -361,6 +498,11 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                token:
+                  type: string
+              required:
+                - token
       responses:
         '200':
           description: Invite accepted
@@ -373,12 +515,28 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                toUsername:
+                  type: string
+                amount:
+                  type: number
+                orgId:
+                  type: string
+              required:
+                - toUsername
+                - amount
+                - orgId
       responses:
         '200':
           description: Transfer complete
   /balance:
     get:
       summary: Get user balance
+      parameters:
+        - in: query
+          name: orgId
+          schema:
+            type: string
       responses:
         '200':
           description: Balance information
