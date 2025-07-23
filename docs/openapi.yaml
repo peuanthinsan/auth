@@ -1012,7 +1012,7 @@ paths:
   /posts/{id}/credit:
     post:
       summary: Give credit to a post
-      description: Cannot be used on your own posts
+      description: Cannot be used on your own posts. Transfers the credited amount to the author's balance.
       parameters:
         - in: path
           name: id
@@ -1034,7 +1034,7 @@ paths:
                 - amount
       responses:
         '200':
-          description: Updated credits
+          description: Updated credits and balance of the user who gave credit
           content:
             application/json:
               example:
@@ -1134,7 +1134,7 @@ paths:
   /comments/{id}/credit:
     post:
       summary: Give credit to a comment
-      description: Cannot be used on your own comments
+      description: Cannot be used on your own comments. Transfers the credited amount to the author's balance.
       parameters:
         - in: path
           name: id
@@ -1156,7 +1156,7 @@ paths:
                 - amount
       responses:
         '200':
-          description: Updated credits
+          description: Updated credits and balance of the user who gave credit
           content:
             application/json:
               example:
