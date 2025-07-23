@@ -1187,6 +1187,9 @@ apiRouter.post('/posts/:id/credit', authenticateToken, async (req, res) => {
   }
   const post = await Post.findById(id);
   if (!post) return res.status(404).json({ message: 'Post not found' });
+  if (post.author.toString() === req.user.id) {
+    return res.status(400).json({ message: 'Cannot credit own post' });
+  }
   const useOrg = post.organization || orgId;
   if (!useOrg) return res.status(400).json({ message: 'Organization required' });
   const user = await User.findById(req.user.id);
@@ -1300,6 +1303,9 @@ apiRouter.post('/comments/:id/credit', authenticateToken, async (req, res) => {
     return res.status(400).json({ message: 'Invalid amount' });
   const comment = await Comment.findById(id).populate('post');
   if (!comment) return res.status(404).json({ message: 'Comment not found' });
+  if (comment.author.toString() === req.user.id) {
+    return res.status(400).json({ message: 'Cannot credit own comment' });
+  }
   const useOrg = comment.post.organization || orgId;
   if (!useOrg)
     return res.status(400).json({ message: 'Organization required' });

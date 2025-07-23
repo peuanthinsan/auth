@@ -1012,6 +1012,7 @@ paths:
   /posts/{id}/credit:
     post:
       summary: Give credit to a post
+      description: Cannot be used on your own posts
       parameters:
         - in: path
           name: id
@@ -1133,6 +1134,7 @@ paths:
   /comments/{id}/credit:
     post:
       summary: Give credit to a comment
+      description: Cannot be used on your own comments
       parameters:
         - in: path
           name: id
