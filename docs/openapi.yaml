@@ -757,6 +757,30 @@ paths:
                   firstName: John
                   lastName: Doe
   /friends/{id}:
+    get:
+      summary: Get friend profile
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend profile
+          content:
+            application/json:
+              example:
+                id: user_id
+                username: johndoe
+                email: johndoe@example.com
+                firstName: John
+                lastName: Doe
+                profilePicture: /uploads/img.jpg
+                balances:
+                  - orgId: org_id
+                    orgName: Example Org
+                    amount: 100
     delete:
       summary: Remove friend
       parameters:

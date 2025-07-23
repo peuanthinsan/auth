@@ -1,5 +1,6 @@
 import React, { useEffect, useContext, useMemo } from 'react';
 import { Box, IconButton } from '@mui/material';
+import { Link } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTable } from 'react-table';
 import { ApiContext } from '../ApiContext';
@@ -30,6 +31,13 @@ export default function ManageFriends() {
       { Header: 'Email', accessor: 'email' },
       { Header: 'First Name', accessor: 'firstName' },
       { Header: 'Last Name', accessor: 'lastName' },
+      {
+        Header: 'Profile',
+        accessor: 'profile',
+        Cell: ({ row }) => (
+          <Link to={`/friend/${row.original.id}`}>View</Link>
+        )
+      },
       {
         Header: 'Actions',
         accessor: 'actions',

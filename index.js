@@ -911,6 +911,36 @@ apiRouter.get('/friends', authenticateToken, async (req, res) => {
   );
 });
 
+apiRouter.get('/friends/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(req.user.id);
+  if (!user.friends.some(f => f.toString() === id)) {
+    return res.status(403).json({ message: 'Not friends' });
+  }
+  const friend = await User.findById(id)
+    .populate('roles', 'code name')
+    .populate('organizations', 'name')
+    .populate('balances.orgId', 'name')
+    .lean();
+  if (!friend) return res.status(404).json({ message: 'Friend not found' });
+  res.json({
+    id: friend._id,
+    username: friend.username,
+    email: friend.email,
+    firstName: friend.firstName,
+    lastName: friend.lastName,
+    profilePicture: friend.profilePicture,
+    roleCodes: friend.roles.map(r => r.code),
+    roles: friend.roles.map(r => r.name),
+    balances: friend.balances.map(b => ({
+      orgId: b.orgId?._id ?? b.orgId,
+      orgName: b.orgId?.name,
+      amount: b.amount
+    })),
+    organizations: friend.organizations.map(o => ({ id: o._id, name: o.name }))
+  });
+});
+
 apiRouter.delete('/friends/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const user = await User.findById(req.user.id);

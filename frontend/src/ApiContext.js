@@ -48,6 +48,11 @@ export function ApiProvider({ children }) {
     setFriends(res.data);
   }, []);
 
+  const getFriendProfile = useCallback(async (id) => {
+    const res = await api.get(`/friends/${id}`);
+    return res.data;
+  }, []);
+
   const refreshFriendRequests = useCallback(async () => {
     const res = await api.get('/friends/requests');
     setFriendRequests(res.data);
@@ -114,6 +119,7 @@ export function ApiProvider({ children }) {
       sendFriendRequest,
       acceptFriendRequest,
       removeFriend,
+      getFriendProfile,
       register,
       changePassword,
       forgotPassword,
