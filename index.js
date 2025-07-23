@@ -6,6 +6,8 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import multer from 'multer';
+import swaggerUi from 'swagger-ui-express';
+import yaml from 'yamljs';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -36,6 +38,8 @@ const upload = multer({
 app.use('/dist', express.static(path.join(__dirname, 'frontend/dist')));
 app.use(express.static(path.join(__dirname, 'frontend/public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const swaggerDocument = yaml.load(path.join(__dirname, 'docs/openapi.yaml'));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const SECRET = process.env.JWT_SECRET;
 if (!SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
