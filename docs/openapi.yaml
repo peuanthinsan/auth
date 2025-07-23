@@ -689,6 +689,73 @@ paths:
               example:
                 message: Invite accepted
                 orgId: org_id
+  /friends/request:
+    post:
+      summary: Send friend request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        '200':
+          description: Request sent
+          content:
+            application/json:
+              example:
+                message: Friend request sent
+  /friends/requests:
+    get:
+      summary: List incoming friend requests
+      responses:
+        '200':
+          description: Friend request list
+          content:
+            application/json:
+              example:
+                - id: request_id
+                  from:
+                    id: user_id
+                    username: johndoe
+                    email: johndoe@example.com
+                    firstName: John
+                    lastName: Doe
+  /friends/requests/{id}/accept:
+    post:
+      summary: Accept friend request
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend added
+          content:
+            application/json:
+              example:
+                message: Friend request accepted
+  /friends:
+    get:
+      summary: List friends
+      responses:
+        '200':
+          description: Friends list
+          content:
+            application/json:
+              example:
+                - id: user_id
+                  username: johndoe
+                  email: johndoe@example.com
+                  firstName: John
+                  lastName: Doe
   /transfer:
     post:
       summary: Transfer currency

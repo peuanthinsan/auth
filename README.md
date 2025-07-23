@@ -23,6 +23,10 @@ assigned to any organization with `GET /users`. They may change a user's role wi
 an organization's name using `PATCH /organizations/:id`. Roles themselves are stored
 in a separate collection and can be managed with CRUD endpoints under `/roles`.
 Admins may also list or delete invites through `/invites`.
+Users can send friend requests by email and accept them to build a list of friends
+for quick transfers. Retrieve pending requests with `GET /friends/requests`, send
+a request using `POST /friends/request` and accept with
+`POST /friends/requests/{id}/accept`. A user's friends are listed via `GET /friends`.
 
 When the server is running you can explore all endpoints using Swagger UI at [`/api-docs`](http://localhost:3000/api-docs).
 

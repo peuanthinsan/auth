@@ -10,6 +10,8 @@ export function ApiProvider({ children }) {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [invites, setInvites] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
 
   const refreshBalance = useCallback(async (orgId = currentOrg) => {
     if (!orgId) { setBalance(null); return; }
@@ -40,6 +42,26 @@ export function ApiProvider({ children }) {
     const res = await api.get(`/organizations/${orgId}/invites`);
     setInvites(res.data);
   }, [currentOrg]);
+
+  const refreshFriends = useCallback(async () => {
+    const res = await api.get('/friends');
+    setFriends(res.data);
+  }, []);
+
+  const refreshFriendRequests = useCallback(async () => {
+    const res = await api.get('/friends/requests');
+    setFriendRequests(res.data);
+  }, []);
+
+  const sendFriendRequest = async (email) => {
+    await api.post('/friends/request', { email });
+    await refreshFriendRequests();
+  };
+
+  const acceptFriendRequest = async (id) => {
+    await api.post(`/friends/requests/${id}/accept`);
+    await Promise.all([refreshFriends(), refreshFriendRequests()]);
+  };
 
   const register = async (form) => {
     await api.post('/register', form);
@@ -80,6 +102,12 @@ export function ApiProvider({ children }) {
       refreshRoles,
       invites,
       refreshInvites,
+      friends,
+      refreshFriends,
+      friendRequests,
+      refreshFriendRequests,
+      sendFriendRequest,
+      acceptFriendRequest,
       register,
       changePassword,
       forgotPassword,
