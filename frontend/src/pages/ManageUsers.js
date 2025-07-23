@@ -25,9 +25,9 @@ export default function ManageUsers() {
     const orgReq = profile?.isSuperAdmin
       ? api.get('/organizations')
       : Promise.resolve({ data: [] });
-    const allReq = currentOrg
-      ? api.get('/users', { params: { orgId: currentOrg } })
-      : api.get('/users');
+    // Always fetch unassigned users so the add member dropdown displays
+    // users that are not already part of any organization
+    const allReq = api.get('/users');
     const [oRes, aRes] = await Promise.all([orgReq, allReq]);
     if (currentOrg) {
       await Promise.all([refreshUsers(currentOrg), refreshRoles(currentOrg)]);
