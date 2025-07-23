@@ -34,6 +34,7 @@ import {
   Logout,
   LockReset,
   People,
+  Home,
   Menu as MenuIcon
 } from '@mui/icons-material';
 import { styles } from './styles';
@@ -50,6 +51,7 @@ import ManageFriends from './pages/ManageFriends';
 import FriendProfile from './pages/FriendProfile';
 import Transfer from './pages/Transfer';
 import Balance from './pages/Balance';
+import Feed from './pages/Feed';
 import Administration from './pages/Administration';
 import ResetPassword from './pages/ResetPassword';
 import ForgotPassword from './pages/ForgotPassword';
@@ -70,6 +72,7 @@ export default function App() {
   const { token, currentOrg, setCurrentOrg, profile, orgs, refreshOrgs, isAdmin } = useContext(AuthContext);
 
   const loggedInNav = [
+    { text: 'Feed', path: '/feed', icon: <Home /> },
     { text: 'Profile', path: '/profile', icon: <AccountCircle /> },
     { text: 'Update Profile', path: '/update-profile', icon: <Edit /> },
     { text: 'Change Password', path: '/change-password', icon: <Lock /> },
@@ -189,13 +192,14 @@ export default function App() {
             <Route path="/accept-friend" element={<AcceptFriend />} />
             <Route path="/manage-friends" element={<ManageFriends />} />
             <Route path="/friend/:id" element={<FriendProfile />} />
+            <Route path="/feed" element={<Feed />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/balance" element={<Balance />} />
             <Route path="/admin" element={<Administration />} />
             <Route path="/logout" element={<LogoutPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/" element={token ? <Balance /> : <Login />} />
+            <Route path="/" element={token ? <Feed /> : <Login />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>

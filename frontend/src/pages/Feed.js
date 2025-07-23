@@ -1,0 +1,164 @@
+import React, { useEffect, useState, useContext } from 'react';
+import {
+  Box,
+  Stack,
+  TextField,
+  Button,
+  Avatar,
+  Typography,
+  IconButton
+} from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { ApiContext } from '../ApiContext';
+import { ToastContext } from '../ToastContext';
+import { API_ROOT } from '../api';
+import { styles } from '../styles';
+
+export default function Feed() {
+  const {
+    posts,
+    refreshPosts,
+    createPost,
+    likePost,
+    getComments,
+    addComment
+  } = useContext(ApiContext);
+  const { showToast } = useContext(ToastContext);
+  const [content, setContent] = useState('');
+  const [image, setImage] = useState(null);
+  const [comments, setComments] = useState({});
+  const [commentInput, setCommentInput] = useState({});
+
+  useEffect(() => {
+    refreshPosts();
+  }, [refreshPosts]);
+
+  const submit = async e => {
+    e.preventDefault();
+    if (!content.trim() && !image) {
+      showToast('Post content required', 'error');
+      return;
+    }
+    const data = new FormData();
+    data.append('content', content.trim());
+    if (image) data.append('image', image);
+    try {
+      await createPost(data);
+      showToast('Post created', 'success');
+      setContent('');
+      setImage(null);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error creating post', 'error');
+    }
+  };
+
+  const toggleLike = async id => {
+    try {
+      await likePost(id);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  const loadComments = async id => {
+    if (comments[id]) {
+      setComments(prev => ({ ...prev, [id]: null }));
+      return;
+    }
+    try {
+      const res = await getComments(id);
+      setComments(prev => ({ ...prev, [id]: res }));
+    } catch (err) {
+      showToast('Failed to load comments', 'error');
+    }
+  };
+
+  const submitComment = async (e, id) => {
+    e.preventDefault();
+    const text = commentInput[id]?.trim();
+    if (!text) return;
+    try {
+      await addComment(id, text);
+      const res = await getComments(id);
+      setComments(prev => ({ ...prev, [id]: res }));
+      setCommentInput(prev => ({ ...prev, [id]: '' }));
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Error', 'error');
+    }
+  };
+
+  return (
+    <Box>
+      <Box component="form" onSubmit={submit} noValidate>
+        <Stack spacing={2} sx={styles.formStack}>
+          <TextField
+            label="What's on your mind?"
+            multiline
+            rows={3}
+            value={content}
+            onChange={e => setContent(e.target.value)}
+          />
+          <Button variant="contained" component="label">
+            Upload Image
+            <input hidden type="file" accept="image/*" onChange={e => setImage(e.target.files[0])} />
+          </Button>
+          <Button type="submit" variant="contained">Post</Button>
+        </Stack>
+      </Box>
+      <Stack spacing={2} sx={{ mt: 4 }}>
+        {posts.map(p => (
+          <Box key={p.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 2, backgroundColor: 'background.paper' }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              {p.author.profilePicture && (
+                <Avatar src={p.author.profilePicture.startsWith('http') ? p.author.profilePicture : `${API_ROOT}${p.author.profilePicture}`} />
+              )}
+              <Typography variant="subtitle1">{p.author.firstName} {p.author.lastName}</Typography>
+              <Typography variant="caption" sx={{ ml: 'auto' }}>{new Date(p.createdAt).toLocaleString()}</Typography>
+            </Stack>
+            <Typography sx={{ mt: 1, mb: 1 }}>{p.content}</Typography>
+            {p.image && (
+              <Box component="img" src={p.image.startsWith('http') ? p.image : `${API_ROOT}${p.image}`} sx={{ maxWidth: '100%', maxHeight: 400 }} />
+            )}
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
+              <IconButton onClick={() => toggleLike(p.id)} color="error">
+                {p.liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+              </IconButton>
+              <Typography>{p.likes}</Typography>
+              <Button onClick={() => loadComments(p.id)}>Comments</Button>
+            </Stack>
+            {comments[p.id] && (
+              <Box sx={{ mt: 1 }}>
+                {comments[p.id].map(c => (
+                  <Box key={c.id} sx={{ mt: 1, pl: 2 }}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      {c.author.profilePicture && (
+                        <Avatar src={c.author.profilePicture.startsWith('http') ? c.author.profilePicture : `${API_ROOT}${c.author.profilePicture}`} sx={{ width: 24, height: 24 }} />
+                      )}
+                      <Typography variant="subtitle2">{c.author.firstName} {c.author.lastName}</Typography>
+                      <Typography variant="caption" sx={{ ml: 'auto' }}>{new Date(c.createdAt).toLocaleString()}</Typography>
+                    </Stack>
+                    <Typography sx={{ ml: 4 }}>{c.content}</Typography>
+                  </Box>
+                ))}
+                <Box component="form" onSubmit={e => submitComment(e, p.id)} sx={{ mt: 1, pl: 2 }}>
+                  <Stack direction="row" spacing={1}>
+                    <TextField
+                      variant="standard"
+                      size="small"
+                      fullWidth
+                      placeholder="Add a comment"
+                      value={commentInput[p.id] || ''}
+                      onChange={e => setCommentInput(prev => ({ ...prev, [p.id]: e.target.value }))}
+                    />
+                    <Button type="submit">Send</Button>
+                  </Stack>
+                </Box>
+              </Box>
+            )}
+          </Box>
+        ))}
+      </Stack>
+    </Box>
+  );
+}

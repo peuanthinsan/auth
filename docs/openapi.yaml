@@ -841,3 +841,119 @@ paths:
                   - orgId: org_id
                     orgName: Example Org
                     amount: 100
+
+  /posts:
+    get:
+      summary: List posts
+      responses:
+        '200':
+          description: Posts list
+          content:
+            application/json:
+              example:
+                - id: post_id
+                  content: Hello
+                  image: /uploads/img.jpg
+                  createdAt: 2023-01-01T00:00:00.000Z
+                  author:
+                    id: user_id
+                    username: johndoe
+                    firstName: John
+                    lastName: Doe
+                    profilePicture: /uploads/pic.jpg
+                  likes: 1
+                  liked: true
+    post:
+      summary: Create post
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+              required:
+                - content
+      responses:
+        '200':
+          description: Post created
+          content:
+            application/json:
+              example:
+                message: Post created
+                id: post_id
+
+  /posts/{id}/like:
+    post:
+      summary: Like or unlike post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Like status
+          content:
+            application/json:
+              example:
+                liked: true
+                likes: 1
+
+  /posts/{id}/comments:
+    get:
+      summary: List comments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comments list
+          content:
+            application/json:
+              example:
+                - id: comment_id
+                  content: Nice
+                  createdAt: 2023-01-01T00:00:00.000Z
+                  author:
+                    id: user_id
+                    username: janedoe
+                    firstName: Jane
+                    lastName: Doe
+                    profilePicture: /uploads/pic.jpg
+    post:
+      summary: Add comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+              required:
+                - content
+      responses:
+        '200':
+          description: Comment added
+          content:
+            application/json:
+              example:
+                message: Comment added
+                id: comment_id
