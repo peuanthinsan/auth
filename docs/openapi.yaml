@@ -845,6 +845,7 @@ paths:
   /posts:
     get:
       summary: List posts
+      description: Return recent posts from you and your friends
       responses:
         '200':
           description: Posts list

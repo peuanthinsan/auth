@@ -992,7 +992,9 @@ apiRouter.post('/posts', authenticateToken, (req, res) => {
 });
 
 apiRouter.get('/posts', authenticateToken, async (req, res) => {
-  const posts = await Post.find()
+  const user = await User.findById(req.user.id);
+  const ids = [req.user.id, ...user.friends];
+  const posts = await Post.find({ author: { $in: ids } })
     .sort({ createdAt: -1 })
     .populate('author', 'username firstName lastName profilePicture');
   res.json(
