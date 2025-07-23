@@ -150,18 +150,38 @@ export default function Feed() {
             {comments[p.id] && (
               <Box sx={{ mt: 1 }}>
                 {comments[p.id].map(c => (
-                  <Box key={c.id} sx={{ mt: 1, pl: 2 }}>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                  <Box
+                    key={c.id}
+                    sx={{
+                      mt: 1,
+                      ml: 2,
+                      p: 1,
+                      borderRadius: 1,
+                      backgroundColor: 'grey.50'
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="flex-start">
                       {c.author.profilePicture && (
-                        <Avatar src={c.author.profilePicture.startsWith('http') ? c.author.profilePicture : `${API_ROOT}${c.author.profilePicture}`} sx={{ width: 24, height: 24 }} />
+                        <Avatar
+                          src={c.author.profilePicture.startsWith('http') ? c.author.profilePicture : `${API_ROOT}${c.author.profilePicture}`}
+                          sx={{ width: 24, height: 24, mt: 0.5 }}
+                        />
                       )}
-                      <Typography variant="subtitle2">{c.author.firstName} {c.author.lastName}</Typography>
-                      <Typography variant="caption" sx={{ ml: 'auto' }}>{new Date(c.createdAt).toLocaleString()}</Typography>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Typography variant="subtitle2">
+                            {c.author.firstName} {c.author.lastName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ ml: 'auto' }}>
+                            {new Date(c.createdAt).toLocaleString()}
+                          </Typography>
+                        </Stack>
+                        <Typography sx={{ mt: 0.5 }}>{c.content}</Typography>
+                      </Box>
                     </Stack>
-                    <Typography sx={{ ml: 4 }}>{c.content}</Typography>
                   </Box>
                 ))}
-                <Box component="form" onSubmit={e => submitComment(e, p.id)} sx={{ mt: 1, pl: 2 }}>
+                <Box component="form" onSubmit={e => submitComment(e, p.id)} sx={{ mt: 1, ml: 2 }}>
                   <Stack direction="row" spacing={1}>
                     <TextField
                       variant="standard"
@@ -169,7 +189,9 @@ export default function Feed() {
                       fullWidth
                       placeholder="Add a comment"
                       value={commentInput[p.id] || ''}
-                      onChange={e => setCommentInput(prev => ({ ...prev, [p.id]: e.target.value }))}
+                      onChange={e =>
+                        setCommentInput(prev => ({ ...prev, [p.id]: e.target.value }))
+                      }
                     />
                     <Button type="submit">Send</Button>
                   </Stack>
