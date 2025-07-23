@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TextField, Button, Stack, Typography, Box } from '@mui/material';
+import { TextField, Button, Stack, Typography, Box, Autocomplete } from '@mui/material';
 import { styles } from '../styles';
 import { AuthContext } from '../AuthContext';
 import { ToastContext } from '../ToastContext';
@@ -11,7 +11,7 @@ export default function Transfer() {
   const [amount, setAmount] = useState('');
   const { showToast } = useContext(ToastContext);
   const { currentOrg, loadProfile } = useContext(AuthContext);
-  const { balance, refreshBalance, transfer } = useContext(ApiContext);
+  const { balance, refreshBalance, transfer, friends, refreshFriends } = useContext(ApiContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +22,8 @@ export default function Transfer() {
 
   useEffect(() => {
     refreshBalance();
-  }, [currentOrg, refreshBalance]);
+    refreshFriends();
+  }, [currentOrg, refreshBalance, refreshFriends]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -44,12 +45,20 @@ export default function Transfer() {
   return (
     <Box component="form" onSubmit={submit} noValidate>
       <Stack spacing={2} sx={styles.formStack}>
-        <TextField
-          label="To Username"
-          placeholder="To Username"
-          value={toUsername}
-          onChange={e => setTo(e.target.value)}
-          required
+        <Autocomplete
+          options={friends}
+          getOptionLabel={f => f.username || ''}
+          onChange={(_, v) => setTo(v ? v.username : '')}
+          renderInput={params => (
+            <TextField
+              {...params}
+              label="To Username"
+              placeholder="To Username"
+              value={toUsername}
+              onChange={e => setTo(e.target.value)}
+              required
+            />
+          )}
         />
         <TextField
           label="Amount"

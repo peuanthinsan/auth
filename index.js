@@ -85,6 +85,7 @@ const userSchema = new Schema({
   profilePicture: String,
   organizations: [{ type: Schema.Types.ObjectId, ref: 'Organization' }],
   invites: [{ type: Schema.Types.ObjectId, ref: 'Invite' }],
+  friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   balances: [{
     orgId: { type: Schema.Types.ObjectId, ref: 'Organization' },
     amount: { type: Number, default: 0 }
@@ -109,10 +110,17 @@ const inviteSchema = new Schema({
   role: { type: String, default: ROLE_CODES.USER }
 });
 
+const friendRequestSchema = new Schema({
+  from: { type: Schema.Types.ObjectId, ref: 'User' },
+  to: { type: Schema.Types.ObjectId, ref: 'User' }
+});
+friendRequestSchema.index({ from: 1, to: 1 }, { unique: true });
+
 const Role = mongoose.model('Role', roleSchema);
 const User = mongoose.model('User', userSchema);
 const Organization = mongoose.model('Organization', organizationSchema);
 const Invite = mongoose.model('Invite', inviteSchema);
+const FriendRequest = mongoose.model('FriendRequest', friendRequestSchema);
 
 async function ensureDefaultRoles() {
   const defaults = [
@@ -827,6 +835,80 @@ apiRouter.post('/invites/:id/accept', authenticateToken, async (req, res) => {
     Invite.findByIdAndDelete(id)
   ]);
   res.json({ message: 'Invite accepted', orgId: org._id });
+});
+
+// friend management
+apiRouter.post('/friends/request', authenticateToken, async (req, res) => {
+  const { email } = req.body;
+  const trimmed = email ? email.trim() : '';
+  if (!trimmed) return res.status(400).json({ message: 'Email required' });
+  const toUser = await User.findOne({ email: trimmed });
+  if (!toUser) return res.status(404).json({ message: 'User not found' });
+  if (toUser._id.equals(req.user.id)) {
+    return res.status(400).json({ message: 'Cannot add yourself' });
+  }
+  const user = await User.findById(req.user.id);
+  if (user.friends.includes(toUser._id)) {
+    return res.status(400).json({ message: 'Already friends' });
+  }
+  const existing = await FriendRequest.findOne({
+    $or: [
+      { from: req.user.id, to: toUser._id },
+      { from: toUser._id, to: req.user.id }
+    ]
+  });
+  if (existing) return res.status(400).json({ message: 'Request already exists' });
+  const fr = new FriendRequest({ from: req.user.id, to: toUser._id });
+  await fr.save();
+  res.json({ message: 'Friend request sent' });
+});
+
+apiRouter.get('/friends/requests', authenticateToken, async (req, res) => {
+  const requests = await FriendRequest.find({ to: req.user.id }).populate('from', 'username email firstName lastName');
+  res.json(
+    requests.map(r => ({
+      id: r._id,
+      from: {
+        id: r.from._id,
+        username: r.from.username,
+        email: r.from.email,
+        firstName: r.from.firstName,
+        lastName: r.from.lastName
+      }
+    }))
+  );
+});
+
+apiRouter.post('/friends/requests/:id/accept', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const fr = await FriendRequest.findOne({ _id: id, to: req.user.id });
+  if (!fr) return res.status(404).json({ message: 'Request not found' });
+  const [fromUser, toUser] = await Promise.all([
+    User.findById(fr.from),
+    User.findById(fr.to)
+  ]);
+  if (!fromUser || !toUser) return res.status(404).json({ message: 'User not found' });
+  if (!fromUser.friends.includes(toUser._id)) fromUser.friends.push(toUser._id);
+  if (!toUser.friends.includes(fromUser._id)) toUser.friends.push(fromUser._id);
+  await Promise.all([
+    fromUser.save(),
+    toUser.save(),
+    FriendRequest.findByIdAndDelete(fr._id)
+  ]);
+  res.json({ message: 'Friend request accepted' });
+});
+
+apiRouter.get('/friends', authenticateToken, async (req, res) => {
+  const user = await User.findById(req.user.id).populate('friends', 'username email firstName lastName');
+  res.json(
+    user.friends.map(f => ({
+      id: f._id,
+      username: f.username,
+      email: f.email,
+      firstName: f.firstName,
+      lastName: f.lastName
+    }))
+  );
 });
 
 // currency transfer
