@@ -914,7 +914,7 @@ apiRouter.get('/friends', authenticateToken, async (req, res) => {
 apiRouter.delete('/friends/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const user = await User.findById(req.user.id);
-  if (!user.friends.includes(id)) {
+  if (!user.friends.some(f => f.toString() === id)) {
     return res.status(404).json({ message: 'Friend not found' });
   }
   const friend = await User.findById(id);
