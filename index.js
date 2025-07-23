@@ -620,7 +620,14 @@ apiRouter.get(
   requireOrgAdmin,
   async (req, res) => {
     await req.org.populate('invites');
-    res.json(req.org.invites.map(i => ({ id: i._id, email: i.email, role: i.role })));
+    res.json(
+      req.org.invites.map(i => ({
+        id: i._id,
+        email: i.email,
+        token: i.token,
+        role: i.role
+      }))
+    );
   }
 );
 
