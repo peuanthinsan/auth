@@ -214,21 +214,30 @@ async function requireSuperAdmin(req, res, next) {
 async function requireOrgAdmin(req, res, next) {
   const orgId =
     req.params.id || req.query.orgId || (req.body && req.body.orgId);
+  const user = await User.findById(req.user.id).populate('roles');
+  if (user && user.isSuperAdmin) {
+    if (orgId) {
+      const org = await Organization.findById(orgId);
+      if (!org) {
+        return res.status(404).json({ message: 'Org not found' });
+      }
+      req.org = org;
+    }
+    return next();
+  }
   if (!orgId) {
     return res.status(400).json({ message: 'Organization ID required' });
   }
-  const user = await User.findById(req.user.id).populate('roles');
   if (
     !user ||
     !(
-      user.isSuperAdmin ||
-      (user.organizations.some(o => o.toString() === orgId) &&
-        user.roles.some(
-          r =>
-            r.code === ROLE_CODES.ADMIN &&
-            r.orgId &&
-            r.orgId.toString() === orgId
-        ))
+      user.organizations.some(o => o.toString() === orgId) &&
+      user.roles.some(
+        r =>
+          r.code === ROLE_CODES.ADMIN &&
+          r.orgId &&
+          r.orgId.toString() === orgId
+      )
     )
   ) {
     return res.status(403).json({ message: 'Organization admin only' });
