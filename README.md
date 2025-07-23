@@ -63,7 +63,6 @@ All API requests use an Axios instance defined in `src/api.js`. The authenticati
 Profile pictures must be JPEG or PNG images and may not exceed 25MB in size.
 The limit can be adjusted with the `MAX_FILE_SIZE` environment variable.
 The UI uses Material UI components with an AppBar and side navigation drawer for a simple dashboard layout. When logged in, a dropdown in the header lists your organizations and the selection is stored only in the browser. Admin features live under an **Administration** page where tables built with `react-table` let you manage users, roles, organizations and invites inline. Super admins may access this page even without belonging to an organization or having roles assigned. Deleting an organization removes its invites and any references from user documents, but roles remain.
-Organization administrators can rename their currently selected organization from the **Org Settings** tab within this Administration section.
 
 ## Docker
 

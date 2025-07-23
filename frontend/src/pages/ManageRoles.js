@@ -6,16 +6,12 @@ import { useTable } from 'react-table';
 import api from '../api';
 import { ToastContext } from '../ToastContext';
 import { ApiContext } from '../ApiContext';
-import { AuthContext } from '../AuthContext';
 
 export default function ManageRoles() {
   const { showToast } = useContext(ToastContext);
   const { roles, refreshRoles } = useContext(ApiContext);
-  const { profile } = useContext(AuthContext);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
-
-  if (!profile?.isSuperAdmin) return null;
 
   useEffect(() => {
     refreshRoles();
