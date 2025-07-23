@@ -756,6 +756,22 @@ paths:
                   email: johndoe@example.com
                   firstName: John
                   lastName: Doe
+  /friends/{id}:
+    delete:
+      summary: Remove friend
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend removed
+          content:
+            application/json:
+              example:
+                message: Friend removed
   /transfer:
     post:
       summary: Transfer currency
