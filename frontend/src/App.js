@@ -33,6 +33,7 @@ import {
   AdminPanelSettings,
   Logout,
   LockReset,
+  People,
   Menu as MenuIcon
 } from '@mui/icons-material';
 import { styles } from './styles';
@@ -45,6 +46,7 @@ import ChangePassword from './pages/ChangePassword';
 import AcceptInvite from './pages/AcceptInvite';
 import AddFriend from './pages/AddFriend';
 import AcceptFriend from './pages/AcceptFriend';
+import ManageFriends from './pages/ManageFriends';
 import Transfer from './pages/Transfer';
 import Balance from './pages/Balance';
 import Administration from './pages/Administration';
@@ -73,6 +75,7 @@ export default function App() {
     { text: 'Accept Invite', path: '/accept-invite', icon: <HowToReg /> },
     { text: 'Add Friend', path: '/add-friend', icon: <PersonAdd /> },
     { text: 'Friend Requests', path: '/accept-friend', icon: <HowToReg /> },
+    { text: 'Friends', path: '/manage-friends', icon: <People /> },
     ...(currentOrg ? [
       { text: 'Transfer', path: '/transfer', icon: <SwapHoriz /> },
       { text: 'Balance', path: '/balance', icon: <AccountBalanceWallet /> }
@@ -183,6 +186,7 @@ export default function App() {
             <Route path="/accept-invite" element={<AcceptInvite />} />
             <Route path="/add-friend" element={<AddFriend />} />
             <Route path="/accept-friend" element={<AcceptFriend />} />
+            <Route path="/manage-friends" element={<ManageFriends />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/balance" element={<Balance />} />
             <Route path="/admin" element={<Administration />} />

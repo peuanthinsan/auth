@@ -63,6 +63,11 @@ export function ApiProvider({ children }) {
     await Promise.all([refreshFriends(), refreshFriendRequests()]);
   };
 
+  const removeFriend = async (id) => {
+    await api.delete(`/friends/${id}`);
+    await refreshFriends();
+  };
+
   const register = async (form) => {
     await api.post('/register', form);
   };
@@ -108,6 +113,7 @@ export function ApiProvider({ children }) {
       refreshFriendRequests,
       sendFriendRequest,
       acceptFriendRequest,
+      removeFriend,
       register,
       changePassword,
       forgotPassword,

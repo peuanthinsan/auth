@@ -911,6 +911,20 @@ apiRouter.get('/friends', authenticateToken, async (req, res) => {
   );
 });
 
+apiRouter.delete('/friends/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(req.user.id);
+  if (!user.friends.includes(id)) {
+    return res.status(404).json({ message: 'Friend not found' });
+  }
+  const friend = await User.findById(id);
+  if (!friend) return res.status(404).json({ message: 'Friend not found' });
+  user.friends = user.friends.filter(f => f.toString() !== id);
+  friend.friends = friend.friends.filter(f => f.toString() !== req.user.id);
+  await Promise.all([user.save(), friend.save()]);
+  res.json({ message: 'Friend removed' });
+});
+
 // currency transfer
 apiRouter.post('/transfer', authenticateToken, async (req, res) => {
   const { toUsername, amount, orgId } = req.body;
