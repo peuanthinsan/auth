@@ -22,6 +22,8 @@ list all organizations via `GET /organizations/all` and update an organization's
 using `PATCH /organizations/:id`. Roles themselves are stored in a separate collection
 and can be managed with CRUD endpoints under `/roles`. Admins may also list or delete invites through `/invites`.
 
+When the server is running you can explore all endpoints using Swagger UI at [`/api-docs`](http://localhost:3000/api-docs).
+
 ## Frontend
 
 Build and start the frontend:
