@@ -212,7 +212,8 @@ async function requireSuperAdmin(req, res, next) {
 }
 
 async function requireOrgAdmin(req, res, next) {
-  const orgId = req.params.id || req.query.orgId || req.body.orgId;
+  const orgId =
+    req.params.id || req.query.orgId || (req.body && req.body.orgId);
   if (!orgId) {
     return res.status(400).json({ message: 'Organization ID required' });
   }
@@ -232,6 +233,11 @@ async function requireOrgAdmin(req, res, next) {
   ) {
     return res.status(403).json({ message: 'Organization admin only' });
   }
+  const org = await Organization.findById(orgId);
+  if (!org) {
+    return res.status(404).json({ message: 'Org not found' });
+  }
+  req.org = org;
   next();
 }
 
