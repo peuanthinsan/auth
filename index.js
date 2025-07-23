@@ -120,6 +120,7 @@ const postSchema = new Schema({
   author: { type: Schema.Types.ObjectId, ref: 'User' },
   content: String,
   image: String,
+  organization: { type: Schema.Types.ObjectId, ref: 'Organization', default: null },
   likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now }
 });
@@ -272,6 +273,27 @@ async function requireOrgAdmin(req, res, next) {
   if (!org) {
     return res.status(404).json({ message: 'Org not found' });
   }
+  req.org = org;
+  next();
+}
+
+async function requireOrgMember(req, res, next) {
+  const orgId = req.params.id || req.query.orgId;
+  const user = await User.findById(req.user.id);
+  if (user && user.isSuperAdmin) {
+    const org = await Organization.findById(orgId);
+    if (!org) return res.status(404).json({ message: 'Org not found' });
+    req.org = org;
+    return next();
+  }
+  if (!orgId) {
+    return res.status(400).json({ message: 'Organization ID required' });
+  }
+  if (!user || !user.organizations.some(o => o.toString() === orgId)) {
+    return res.status(403).json({ message: 'Organization member only' });
+  }
+  const org = await Organization.findById(orgId);
+  if (!org) return res.status(404).json({ message: 'Org not found' });
   req.org = org;
   next();
 }
@@ -1015,6 +1037,61 @@ apiRouter.get('/posts', authenticateToken, async (req, res) => {
     }))
   );
 });
+
+apiRouter.post(
+  '/organizations/:id/posts',
+  authenticateToken,
+  requireOrgMember,
+  (req, res) => {
+    const single = upload.single('image');
+    single(req, res, async err => {
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      const { content } = req.body;
+      if (!content) {
+        return res.status(400).json({ message: 'Content required' });
+      }
+      const image = req.file ? `/uploads/${req.file.filename}` : '';
+      const post = new Post({
+        author: req.user.id,
+        content,
+        image,
+        organization: req.org._id
+      });
+      await post.save();
+      res.json({ message: 'Post created', id: post._id });
+    });
+  }
+);
+
+apiRouter.get(
+  '/organizations/:id/posts',
+  authenticateToken,
+  requireOrgMember,
+  async (req, res) => {
+    const posts = await Post.find({ organization: req.org._id })
+      .sort({ createdAt: -1 })
+      .populate('author', 'username firstName lastName profilePicture');
+    res.json(
+      posts.map(p => ({
+        id: p._id,
+        content: p.content,
+        image: p.image,
+        createdAt: p.createdAt,
+        author: {
+          id: p.author._id,
+          username: p.author.username,
+          firstName: p.author.firstName,
+          lastName: p.author.lastName,
+          profilePicture: p.author.profilePicture
+        },
+        likes: p.likes.length,
+        liked: p.likes.some(u => u.toString() === req.user.id)
+      }))
+    );
+  }
+);
 
 apiRouter.post('/posts/:id/like', authenticateToken, async (req, res) => {
   const { id } = req.params;

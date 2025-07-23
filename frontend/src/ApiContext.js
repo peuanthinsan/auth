@@ -13,6 +13,7 @@ export function ApiProvider({ children }) {
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [orgPosts, setOrgPosts] = useState([]);
 
   const refreshBalance = useCallback(async (orgId = currentOrg) => {
     if (!orgId) { setBalance(null); return; }
@@ -79,11 +80,25 @@ export function ApiProvider({ children }) {
     setPosts(res.data);
   }, []);
 
+  const refreshOrgPosts = useCallback(async (orgId = currentOrg) => {
+    if (!orgId) { setOrgPosts([]); return; }
+    const res = await api.get(`/organizations/${orgId}/posts`);
+    setOrgPosts(res.data);
+  }, [currentOrg]);
+
   const createPost = async (data) => {
     await api.post('/posts', data, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     await refreshPosts();
+  };
+
+  const createOrgPost = async (data, orgId = currentOrg) => {
+    if (!orgId) return;
+    await api.post(`/organizations/${orgId}/posts`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    await refreshOrgPosts(orgId);
   };
 
   const likePost = async (id) => {
@@ -150,6 +165,9 @@ export function ApiProvider({ children }) {
       posts,
       refreshPosts,
       createPost,
+      orgPosts,
+      refreshOrgPosts,
+      createOrgPost,
       likePost,
       addComment,
       getComments,

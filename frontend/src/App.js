@@ -52,6 +52,7 @@ import FriendProfile from './pages/FriendProfile';
 import Transfer from './pages/Transfer';
 import Balance from './pages/Balance';
 import Feed from './pages/Feed';
+import OrganizationFeed from './pages/OrganizationFeed';
 import Administration from './pages/Administration';
 import ResetPassword from './pages/ResetPassword';
 import ForgotPassword from './pages/ForgotPassword';
@@ -81,6 +82,7 @@ export default function App() {
     { text: 'Friend Requests', path: '/accept-friend', icon: <HowToReg /> },
     { text: 'Friends', path: '/manage-friends', icon: <People /> },
     ...(currentOrg ? [
+      { text: 'Organization Feed', path: '/org-feed', icon: <Home /> },
       { text: 'Transfer', path: '/transfer', icon: <SwapHoriz /> },
       { text: 'Balance', path: '/balance', icon: <AccountBalanceWallet /> }
     ] : []),
@@ -193,6 +195,7 @@ export default function App() {
             <Route path="/manage-friends" element={<ManageFriends />} />
             <Route path="/friend/:id" element={<FriendProfile />} />
             <Route path="/feed" element={<Feed />} />
+            <Route path="/org-feed" element={<OrganizationFeed />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/balance" element={<Balance />} />
             <Route path="/admin" element={<Administration />} />

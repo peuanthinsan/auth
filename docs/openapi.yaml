@@ -889,6 +889,64 @@ paths:
                 message: Post created
                 id: post_id
 
+  /organizations/{id}/posts:
+    get:
+      summary: List organization posts
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Posts list
+          content:
+            application/json:
+              example:
+                - id: post_id
+                  content: Hello
+                  image: /uploads/img.jpg
+                  createdAt: 2023-01-01T00:00:00.000Z
+                  author:
+                    id: user_id
+                    username: johndoe
+                    firstName: John
+                    lastName: Doe
+                    profilePicture: /uploads/pic.jpg
+                  likes: 1
+                  liked: true
+    post:
+      summary: Create organization post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+              required:
+                - content
+      responses:
+        '200':
+          description: Post created
+          content:
+            application/json:
+              example:
+                message: Post created
+                id: post_id
+
   /posts/{id}/like:
     post:
       summary: Like or unlike post
