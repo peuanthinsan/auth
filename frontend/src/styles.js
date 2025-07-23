@@ -90,5 +90,21 @@ export const styles = {
   adminContent: { mt: 2 },
   ml1: { ml: 1 },
   mb2: { mb: 2 },
-  mt2: { mt: 2 }
+  mt2: { mt: 2 },
+  swaggerPost: {
+    border: '1px solid #e8e8e8',
+    borderLeft: '5px solid #61affe',
+    borderRadius: 2,
+    backgroundColor: '#f7f7f7',
+    p: 2
+  },
+  swaggerComment: {
+    mt: 1,
+    ml: 2,
+    p: 1,
+    borderRadius: 1,
+    backgroundColor: '#fff',
+    border: '1px solid #e8e8e8',
+    borderLeft: '5px solid #49cc90'
+  }
 };

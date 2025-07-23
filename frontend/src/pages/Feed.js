@@ -128,7 +128,7 @@ export default function Feed() {
       </Box>
       <Stack spacing={2} sx={{ mt: 4 }}>
         {posts.map(p => (
-          <Box key={p.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 2, backgroundColor: 'background.paper' }}>
+          <Box key={p.id} sx={styles.swaggerPost}>
             <Stack direction="row" spacing={2} alignItems="center">
               {p.author.profilePicture && (
                 <Avatar src={p.author.profilePicture.startsWith('http') ? p.author.profilePicture : `${API_ROOT}${p.author.profilePicture}`} />
@@ -150,16 +150,7 @@ export default function Feed() {
             {comments[p.id] && (
               <Box sx={{ mt: 1 }}>
                 {comments[p.id].map(c => (
-                  <Box
-                    key={c.id}
-                    sx={{
-                      mt: 1,
-                      ml: 2,
-                      p: 1,
-                      borderRadius: 1,
-                      backgroundColor: 'grey.50'
-                    }}
-                  >
+                  <Box key={c.id} sx={styles.swaggerComment}>
                     <Stack direction="row" spacing={1} alignItems="flex-start">
                       {c.author.profilePicture && (
                         <Avatar
