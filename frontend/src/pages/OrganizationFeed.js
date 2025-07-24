@@ -44,6 +44,8 @@ export default function OrganizationFeed() {
   const [preview, setPreview] = useState('');
   const [comments, setComments] = useState({});
   const [commentInput, setCommentInput] = useState({});
+  const [postCreditInput, setPostCreditInput] = useState({});
+  const [commentCreditInput, setCommentCreditInput] = useState({});
   const [order, setOrder] = useState('latest');
 
   useEffect(() => {
@@ -96,8 +98,14 @@ export default function OrganizationFeed() {
   };
 
   const handleCreditPost = async id => {
+    const amount = parseFloat(postCreditInput[id]);
+    if (!postCreditInput[id] || isNaN(amount) || amount <= 0) {
+      showToast('Invalid amount', 'error');
+      return;
+    }
     try {
-      await creditPost(id, 1, currentOrg);
+      await creditPost(id, amount, currentOrg);
+      setPostCreditInput(prev => ({ ...prev, [id]: '' }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -151,10 +159,16 @@ export default function OrganizationFeed() {
   };
 
   const handleCreditComment = async (id, postId) => {
+    const amount = parseFloat(commentCreditInput[id]);
+    if (!commentCreditInput[id] || isNaN(amount) || amount <= 0) {
+      showToast('Invalid amount', 'error');
+      return;
+    }
     try {
-      await creditComment(id, 1, currentOrg);
+      await creditComment(id, amount, currentOrg);
       const res = await getComments(postId);
       setComments(prev => ({ ...prev, [postId]: res }));
+      setCommentCreditInput(prev => ({ ...prev, [id]: '' }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -239,6 +253,16 @@ export default function OrganizationFeed() {
                 <ThumbDownIcon fontSize="small" />
               </IconButton>
               <Typography>{p.downvotes}</Typography>
+              <TextField
+                variant="standard"
+                size="small"
+                value={postCreditInput[p.id] || ''}
+                onChange={e =>
+                  setPostCreditInput(prev => ({ ...prev, [p.id]: e.target.value }))
+                }
+                placeholder="Amount"
+                sx={{ width: 60 }}
+              />
               <IconButton onClick={() => handleCreditPost(p.id)}>
                 <AttachMoneyIcon fontSize="small" />
               </IconButton>
@@ -275,6 +299,19 @@ export default function OrganizationFeed() {
                             <ThumbDownIcon fontSize="small" />
                           </IconButton>
                           <Typography>{c.downvotes}</Typography>
+                          <TextField
+                            variant="standard"
+                            size="small"
+                            value={commentCreditInput[c.id] || ''}
+                            onChange={e =>
+                              setCommentCreditInput(prev => ({
+                                ...prev,
+                                [c.id]: e.target.value
+                              }))
+                            }
+                            placeholder="Amount"
+                            sx={{ width: 60 }}
+                          />
                           <IconButton onClick={() => handleCreditComment(c.id, p.id)}>
                             <AttachMoneyIcon fontSize="small" />
                           </IconButton>
