@@ -1024,7 +1024,11 @@ apiRouter.get('/posts', authenticateToken, async (req, res) => {
   const ids = [req.user.id, ...user.friends];
   const order = req.query.order || 'latest';
   const posts = await Post.find({ author: { $in: ids } })
-    .populate('author', 'username firstName lastName profilePicture');
+    .populate({
+      path: 'author',
+      select: 'username firstName lastName profilePicture roles',
+      populate: { path: 'roles', select: 'code name' }
+    });
 
   const relevance = p =>
     p.upvotes.length - p.downvotes.length + p.likes.length + p.credits;
@@ -1050,7 +1054,9 @@ apiRouter.get('/posts', authenticateToken, async (req, res) => {
         username: p.author.username,
         firstName: p.author.firstName,
         lastName: p.author.lastName,
-        profilePicture: p.author.profilePicture
+        profilePicture: p.author.profilePicture,
+        roleCodes: p.author.roles.map(r => r.code),
+        roles: p.author.roles.map(r => r.name)
       },
       likes: p.likes.length,
       liked: p.likes.some(u => u.toString() === req.user.id),
@@ -1097,7 +1103,11 @@ apiRouter.get(
   async (req, res) => {
   const order = req.query.order || 'latest';
   const posts = await Post.find({ organization: req.org._id })
-    .populate('author', 'username firstName lastName profilePicture balances');
+    .populate({
+      path: 'author',
+      select: 'username firstName lastName profilePicture roles balances',
+      populate: { path: 'roles', select: 'code name' }
+    });
 
   const relevance = p =>
     p.upvotes.length - p.downvotes.length + p.likes.length + p.credits;
@@ -1124,6 +1134,8 @@ apiRouter.get(
         firstName: p.author.firstName,
         lastName: p.author.lastName,
         profilePicture: p.author.profilePicture,
+        roleCodes: p.author.roles.map(r => r.code),
+        roles: p.author.roles.map(r => r.name),
         balance:
           p.author.balances.find(b =>
             b.orgId.toString() === req.org._id.toString()
@@ -1256,7 +1268,11 @@ apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
   if (!post) return res.status(404).json({ message: 'Post not found' });
   const comments = await Comment.find({ post: id })
     .sort({ createdAt: 1 })
-    .populate('author', 'username firstName lastName profilePicture balances');
+    .populate({
+      path: 'author',
+      select: 'username firstName lastName profilePicture roles balances',
+      populate: { path: 'roles', select: 'code name' }
+    });
   res.json(
     comments.map(c => ({
       id: c._id,
@@ -1268,6 +1284,8 @@ apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
         firstName: c.author.firstName,
         lastName: c.author.lastName,
         profilePicture: c.author.profilePicture,
+        roleCodes: c.author.roles.map(r => r.code),
+        roles: c.author.roles.map(r => r.name),
         balance:
           post.organization
             ? c.author.balances.find(b =>

@@ -869,6 +869,10 @@ paths:
                     firstName: John
                     lastName: Doe
                     profilePicture: /uploads/pic.jpg
+                    roleCodes:
+                      - USER
+                    roles:
+                      - User
                   likes: 1
                   liked: true
                   upvotes: 2
@@ -933,6 +937,10 @@ paths:
                     firstName: John
                     lastName: Doe
                     profilePicture: /uploads/pic.jpg
+                    roleCodes:
+                      - USER
+                    roles:
+                      - User
                   likes: 1
                   liked: true
     post:
@@ -1078,6 +1086,10 @@ paths:
                     firstName: Jane
                     lastName: Doe
                     profilePicture: /uploads/pic.jpg
+                    roleCodes:
+                      - USER
+                    roles:
+                      - User
     post:
       summary: Add comment
       parameters:
