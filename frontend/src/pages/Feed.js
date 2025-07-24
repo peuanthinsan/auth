@@ -40,8 +40,6 @@ export default function Feed() {
   const [preview, setPreview] = useState('');
   const [comments, setComments] = useState({});
   const [commentInput, setCommentInput] = useState({});
-  const [replyInput, setReplyInput] = useState({});
-  const [replyTarget, setReplyTarget] = useState({});
   const [postCreditInput, setPostCreditInput] = useState({});
   const [commentCreditInput, setCommentCreditInput] = useState({});
   const [order, setOrder] = useState('latest');
@@ -121,85 +119,15 @@ export default function Feed() {
     }
   };
 
-  const renderComment = (c, postId, depth = 0) => (
-    <Box key={c.id} sx={{ ...styles.swaggerComment, ml: depth * 2 }}>
-      <Stack direction="row" spacing={1} alignItems="flex-start">
-        {c.author.profilePicture && (
-          <Avatar
-            src={c.author.profilePicture.startsWith('http') ? c.author.profilePicture : `${API_ROOT}${c.author.profilePicture}`}
-            sx={{ width: 24, height: 24, mt: 0.5 }}
-          />
-        )}
-        <Box sx={{ flexGrow: 1 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography variant="subtitle2">
-              {c.author.firstName} {c.author.lastName}
-            </Typography>
-            <Typography variant="caption" sx={{ ml: 'auto' }}>
-              {new Date(c.createdAt).toLocaleString()}
-            </Typography>
-          </Stack>
-          <Typography sx={{ mt: 0.5 }}>{c.content}</Typography>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-            <IconButton onClick={() => handleUpvoteComment(c.id, postId)}>
-              <ThumbUpIcon fontSize="small" />
-            </IconButton>
-            <Typography>{c.upvotes}</Typography>
-            <IconButton onClick={() => handleDownvoteComment(c.id, postId)}>
-              <ThumbDownIcon fontSize="small" />
-            </IconButton>
-            <Typography>{c.downvotes}</Typography>
-            <TextField
-              variant="standard"
-              size="small"
-              value={commentCreditInput[c.id] || ''}
-              onChange={e =>
-                setCommentCreditInput(prev => ({
-                  ...prev,
-                  [c.id]: e.target.value
-                }))
-              }
-              placeholder="Amount"
-              sx={{ width: 60 }}
-            />
-            <IconButton onClick={() => handleCreditComment(c.id, postId)}>
-              <AttachMoneyIcon fontSize="small" />
-            </IconButton>
-            <Typography>{c.credits}</Typography>
-            <Button size="small" onClick={() => setReplyTarget(prev => ({ ...prev, [c.id]: !prev[c.id] }))}>Reply</Button>
-          </Stack>
-          {replyTarget[c.id] && (
-            <Box component="form" onSubmit={e => submitComment(e, postId, c.id)} sx={{ mt: 1 }}>
-              <Stack direction="row" spacing={1}>
-                <TextField
-                  variant="standard"
-                  size="small"
-                  fullWidth
-                  placeholder="Reply"
-                  value={replyInput[c.id] || ''}
-                  onChange={e => setReplyInput(prev => ({ ...prev, [c.id]: e.target.value }))}
-                />
-                <Button type="submit">Send</Button>
-              </Stack>
-            </Box>
-          )}
-          {c.replies && c.replies.map(r => renderComment(r, postId, depth + 1))}
-        </Box>
-      </Stack>
-    </Box>
-  );
-
-  const submitComment = async (e, id, parent) => {
+  const submitComment = async (e, id) => {
     e.preventDefault();
-    const text = parent ? replyInput[parent]?.trim() : commentInput[id]?.trim();
+    const text = commentInput[id]?.trim();
     if (!text) return;
     try {
-      await addComment(id, text, parent);
+      await addComment(id, text);
       const res = await getComments(id);
       setComments(prev => ({ ...prev, [id]: res }));
-      if (parent) setReplyInput(prev => ({ ...prev, [parent]: '' }));
-      else setCommentInput(prev => ({ ...prev, [id]: '' }));
-      setReplyTarget(prev => ({ ...prev, [parent]: false }));
+      setCommentInput(prev => ({ ...prev, [id]: '' }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -333,7 +261,56 @@ export default function Feed() {
             </Stack>
             {comments[p.id] && (
               <Box sx={{ mt: 1 }}>
-                {comments[p.id].map(c => renderComment(c, p.id))}
+                {comments[p.id].map(c => (
+                  <Box key={c.id} sx={styles.swaggerComment}>
+                    <Stack direction="row" spacing={1} alignItems="flex-start">
+                      {c.author.profilePicture && (
+                        <Avatar
+                          src={c.author.profilePicture.startsWith('http') ? c.author.profilePicture : `${API_ROOT}${c.author.profilePicture}`}
+                          sx={{ width: 24, height: 24, mt: 0.5 }}
+                        />
+                      )}
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Typography variant="subtitle2">
+                            {c.author.firstName} {c.author.lastName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ ml: 'auto' }}>
+                            {new Date(c.createdAt).toLocaleString()}
+                          </Typography>
+                        </Stack>
+                        <Typography sx={{ mt: 0.5 }}>{c.content}</Typography>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                          <IconButton onClick={() => handleUpvoteComment(c.id, p.id)}>
+                            <ThumbUpIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.upvotes}</Typography>
+                          <IconButton onClick={() => handleDownvoteComment(c.id, p.id)}>
+                            <ThumbDownIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.downvotes}</Typography>
+                          <TextField
+                            variant="standard"
+                            size="small"
+                            value={commentCreditInput[c.id] || ''}
+                            onChange={e =>
+                              setCommentCreditInput(prev => ({
+                                ...prev,
+                                [c.id]: e.target.value
+                              }))
+                            }
+                            placeholder="Amount"
+                            sx={{ width: 60 }}
+                          />
+                          <IconButton onClick={() => handleCreditComment(c.id, p.id)}>
+                            <AttachMoneyIcon fontSize="small" />
+                          </IconButton>
+                          <Typography>{c.credits}</Typography>
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </Box>
+                ))}
                 <Box component="form" onSubmit={e => submitComment(e, p.id)} sx={{ mt: 1, ml: 2 }}>
                   <Stack direction="row" spacing={1}>
                     <TextField
