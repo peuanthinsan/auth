@@ -133,6 +133,12 @@ const commentSchema = new Schema({
   post: { type: Schema.Types.ObjectId, ref: 'Post' },
   author: { type: Schema.Types.ObjectId, ref: 'User' },
   content: String,
+  parent: { type: Schema.Types.ObjectId, ref: 'Comment', default: null },
+  reactions: {
+    type: Map,
+    of: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    default: {}
+  },
   upvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   downvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   credits: { type: Number, default: 0 },
@@ -1241,11 +1247,18 @@ apiRouter.post('/posts/:id/credit', authenticateToken, async (req, res) => {
 
 apiRouter.post('/posts/:id/comments', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { content } = req.body;
+  const { content, parentId } = req.body;
   if (!content) return res.status(400).json({ message: 'Content required' });
   const post = await Post.findById(id);
   if (!post) return res.status(404).json({ message: 'Post not found' });
-  const comment = new Comment({ post: id, author: req.user.id, content });
+  let parent = null;
+  if (parentId) {
+    const parentComment = await Comment.findById(parentId);
+    if (!parentComment || parentComment.post.toString() !== id)
+      return res.status(400).json({ message: 'Invalid parent comment' });
+    parent = parentComment._id;
+  }
+  const comment = new Comment({ post: id, author: req.user.id, content, parent });
   await comment.save();
   res.json({ message: 'Comment added', id: comment._id });
 });
@@ -1254,11 +1267,19 @@ apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const post = await Post.findById(id);
   if (!post) return res.status(404).json({ message: 'Post not found' });
-  const comments = await Comment.find({ post: id })
+  const comments = await Comment.find({ post: id, parent: null })
     .sort({ createdAt: 1 })
     .populate('author', 'username firstName lastName profilePicture balances');
-  res.json(
-    comments.map(c => ({
+  const results = [];
+  for (const c of comments) {
+    const repliesCount = await Comment.countDocuments({ parent: c._id });
+    const reactions = {};
+    const userReactions = [];
+    for (const [emoji, users] of c.reactions.entries()) {
+      reactions[emoji] = users.length;
+      if (users.some(u => u.toString() === req.user.id)) userReactions.push(emoji);
+    }
+    results.push({
       id: c._id,
       content: c.content,
       createdAt: c.createdAt,
@@ -1279,9 +1300,72 @@ apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
       downvotes: c.downvotes.length,
       upvoted: c.upvotes.some(u => u.toString() === req.user.id),
       downvoted: c.downvotes.some(u => u.toString() === req.user.id),
-      credits: c.credits
-    }))
-  );
+      credits: c.credits,
+      reactions,
+      userReactions,
+      repliesCount
+    });
+  }
+  res.json(results);
+});
+
+apiRouter.post('/comments/:id/replies', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ message: 'Content required' });
+  const parent = await Comment.findById(id);
+  if (!parent) return res.status(404).json({ message: 'Comment not found' });
+  const reply = new Comment({
+    post: parent.post,
+    parent: id,
+    author: req.user.id,
+    content
+  });
+  await reply.save();
+  res.json({ message: 'Reply added', id: reply._id });
+});
+
+apiRouter.get('/comments/:id/replies', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const parent = await Comment.findById(id).populate('post');
+  if (!parent) return res.status(404).json({ message: 'Comment not found' });
+  const comments = await Comment.find({ parent: id })
+    .sort({ createdAt: 1 })
+    .populate('author', 'username firstName lastName profilePicture balances');
+  const results = comments.map(c => {
+    const reactions = {};
+    const userReactions = [];
+    for (const [emoji, users] of c.reactions.entries()) {
+      reactions[emoji] = users.length;
+      if (users.some(u => u.toString() === req.user.id)) userReactions.push(emoji);
+    }
+    return {
+      id: c._id,
+      content: c.content,
+      createdAt: c.createdAt,
+      author: {
+        id: c.author._id,
+        username: c.author.username,
+        firstName: c.author.firstName,
+        lastName: c.author.lastName,
+        profilePicture: c.author.profilePicture,
+        balance:
+          parent.post.organization
+            ? c.author.balances.find(b =>
+                b.orgId.toString() === parent.post.organization.toString()
+              )?.amount || 0
+            : 0
+      },
+      upvotes: c.upvotes.length,
+      downvotes: c.downvotes.length,
+      upvoted: c.upvotes.some(u => u.toString() === req.user.id),
+      downvoted: c.downvotes.some(u => u.toString() === req.user.id),
+      credits: c.credits,
+      reactions,
+      userReactions
+    };
+  });
+  res.json(results);
 });
 
 apiRouter.post('/comments/:id/upvote', authenticateToken, async (req, res) => {
@@ -1363,6 +1447,32 @@ apiRouter.post('/comments/:id/credit', authenticateToken, async (req, res) => {
   comment.credits += num;
   await Promise.all([user.save(), author.save(), comment.save()]);
   res.json({ credits: comment.credits, balance: bal.amount });
+});
+
+apiRouter.post('/comments/:id/reactions', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { emoji } = req.body;
+  if (!emoji) return res.status(400).json({ message: 'Emoji required' });
+  const comment = await Comment.findById(id);
+  if (!comment) return res.status(404).json({ message: 'Comment not found' });
+  const uid = req.user.id;
+  const users = comment.reactions.get(emoji) || [];
+  const idx = users.findIndex(u => u.toString() === uid);
+  let reacted;
+  if (idx >= 0) {
+    users.splice(idx, 1);
+    reacted = false;
+  } else {
+    users.push(uid);
+    reacted = true;
+  }
+  comment.reactions.set(emoji, users);
+  await comment.save();
+  const counts = {};
+  for (const [e, ulist] of comment.reactions.entries()) {
+    counts[e] = ulist.length;
+  }
+  res.json({ reacted, counts });
 });
 
 // currency transfer

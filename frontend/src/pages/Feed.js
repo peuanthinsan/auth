@@ -306,7 +306,66 @@ export default function Feed() {
                             <AttachMoneyIcon fontSize="small" />
                           </IconButton>
                           <Typography>{c.credits}</Typography>
+                          {Object.entries(c.reactions).map(([emo, cnt]) => (
+                            <Button key={emo} size="small" onClick={() => handleReact(c.id, emo, p.id)}>
+                              {emo} {cnt}
+                            </Button>
+                          ))}
+                          <TextField
+                            variant="standard"
+                            size="small"
+                            value={reactionInput[c.id] || ''}
+                            onChange={e =>
+                              setReactionInput(prev => ({ ...prev, [c.id]: e.target.value }))
+                            }
+                            placeholder="😀"
+                            sx={{ width: 40 }}
+                          />
+                          <Button onClick={() => handleReact(c.id, reactionInput[c.id], p.id)}>React</Button>
+                          <Button onClick={() => loadReplies(c.id)}>Replies ({c.repliesCount})</Button>
                         </Stack>
+                        {replies[c.id] && (
+                          <Box sx={{ mt: 1, ml: 2 }}>
+                            {replies[c.id].map(r => (
+                              <Box key={r.id} sx={styles.swaggerComment}>
+                                <Stack direction="row" spacing={1} alignItems="flex-start">
+                                  {r.author.profilePicture && (
+                                    <Avatar
+                                      src={r.author.profilePicture.startsWith('http') ? r.author.profilePicture : `${API_ROOT}${r.author.profilePicture}`}
+                                      sx={{ width: 24, height: 24, mt: 0.5 }}
+                                    />
+                                  )}
+                                  <Box sx={{ flexGrow: 1 }}>
+                                    <Stack direction="row" spacing={1} alignItems="center">
+                                      <Typography variant="subtitle2">
+                                        {r.author.firstName} {r.author.lastName}
+                                      </Typography>
+                                      <Typography variant="caption" sx={{ ml: 'auto' }}>
+                                        {new Date(r.createdAt).toLocaleString()}
+                                      </Typography>
+                                    </Stack>
+                                    <Typography sx={{ mt: 0.5 }}>{r.content}</Typography>
+                                  </Box>
+                                </Stack>
+                              </Box>
+                            ))}
+                            <Box component="form" onSubmit={e => submitReply(e, c.id, p.id)} sx={{ mt: 1 }}>
+                              <Stack direction="row" spacing={1}>
+                                <TextField
+                                  variant="standard"
+                                  size="small"
+                                  fullWidth
+                                  placeholder="Reply"
+                                  value={replyInput[c.id] || ''}
+                                  onChange={e =>
+                                    setReplyInput(prev => ({ ...prev, [c.id]: e.target.value }))
+                                  }
+                                />
+                                <Button type="submit">Send</Button>
+                              </Stack>
+                            </Box>
+                          </Box>
+                        )}
                       </Box>
                     </Stack>
                   </Box>
