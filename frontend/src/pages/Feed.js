@@ -14,6 +14,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CheckIcon from '@mui/icons-material/Check';
 import { ApiContext } from '../ApiContext';
 import { ToastContext } from '../ToastContext';
 import { API_ROOT } from '../api';
@@ -42,6 +43,8 @@ export default function Feed() {
   const [commentInput, setCommentInput] = useState({});
   const [postCreditInput, setPostCreditInput] = useState({});
   const [commentCreditInput, setCommentCreditInput] = useState({});
+  const [showPostCredit, setShowPostCredit] = useState({});
+  const [showCommentCredit, setShowCommentCredit] = useState({});
   const [order, setOrder] = useState('latest');
 
   useEffect(() => {
@@ -101,6 +104,7 @@ export default function Feed() {
     try {
       await creditPost(id, amount);
       setPostCreditInput(prev => ({ ...prev, [id]: '' }));
+      setShowPostCredit(prev => ({ ...prev, [id]: false }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -164,6 +168,7 @@ export default function Feed() {
       const res = await getComments(postId);
       setComments(prev => ({ ...prev, [postId]: res }));
       setCommentCreditInput(prev => ({ ...prev, [id]: '' }));
+      setShowCommentCredit(prev => ({ ...prev, [id]: false }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -243,19 +248,34 @@ export default function Feed() {
                 <ThumbDownIcon fontSize="small" />
               </IconButton>
               <Typography>{p.downvotes}</Typography>
-              <TextField
-                variant="standard"
-                size="small"
-                value={postCreditInput[p.id] || ''}
-                onChange={e =>
-                  setPostCreditInput(prev => ({ ...prev, [p.id]: e.target.value }))
-                }
-                placeholder="Amount"
-                sx={{ width: 60 }}
-              />
-              <IconButton onClick={() => handleCreditPost(p.id)}>
-                <AttachMoneyIcon fontSize="small" />
-              </IconButton>
+              {showPostCredit[p.id] ? (
+                <>
+                  <TextField
+                    variant="standard"
+                    size="small"
+                    value={postCreditInput[p.id] || ''}
+                    onChange={e =>
+                      setPostCreditInput(prev => ({
+                        ...prev,
+                        [p.id]: e.target.value
+                      }))
+                    }
+                    placeholder="Amount"
+                    sx={{ width: 60 }}
+                  />
+                  <IconButton onClick={() => handleCreditPost(p.id)}>
+                    <CheckIcon fontSize="small" />
+                  </IconButton>
+                </>
+              ) : (
+                <IconButton
+                  onClick={() =>
+                    setShowPostCredit(prev => ({ ...prev, [p.id]: true }))
+                  }
+                >
+                  <AttachMoneyIcon fontSize="small" />
+                </IconButton>
+              )}
               <Typography>{p.credits}</Typography>
               <Button onClick={() => loadComments(p.id)}>Comments</Button>
             </Stack>
@@ -289,22 +309,34 @@ export default function Feed() {
                             <ThumbDownIcon fontSize="small" />
                           </IconButton>
                           <Typography>{c.downvotes}</Typography>
-                          <TextField
-                            variant="standard"
-                            size="small"
-                            value={commentCreditInput[c.id] || ''}
-                            onChange={e =>
-                              setCommentCreditInput(prev => ({
-                                ...prev,
-                                [c.id]: e.target.value
-                              }))
-                            }
-                            placeholder="Amount"
-                            sx={{ width: 60 }}
-                          />
-                          <IconButton onClick={() => handleCreditComment(c.id, p.id)}>
-                            <AttachMoneyIcon fontSize="small" />
-                          </IconButton>
+                          {showCommentCredit[c.id] ? (
+                            <>
+                              <TextField
+                                variant="standard"
+                                size="small"
+                                value={commentCreditInput[c.id] || ''}
+                                onChange={e =>
+                                  setCommentCreditInput(prev => ({
+                                    ...prev,
+                                    [c.id]: e.target.value
+                                  }))
+                                }
+                                placeholder="Amount"
+                                sx={{ width: 60 }}
+                              />
+                              <IconButton onClick={() => handleCreditComment(c.id, p.id)}>
+                                <CheckIcon fontSize="small" />
+                              </IconButton>
+                            </>
+                          ) : (
+                            <IconButton
+                              onClick={() =>
+                                setShowCommentCredit(prev => ({ ...prev, [c.id]: true }))
+                              }
+                            >
+                              <AttachMoneyIcon fontSize="small" />
+                            </IconButton>
+                          )}
                           <Typography>{c.credits}</Typography>
                         </Stack>
                       </Box>
