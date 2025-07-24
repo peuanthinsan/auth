@@ -231,10 +231,7 @@ export default function OrganizationFeed() {
       </TextField>
       <Stack spacing={2} sx={{ mt: 2 }}>
         {orgPosts.map(p => (
-          <Box
-            key={p.id}
-            sx={{ ...styles.swaggerPost, ...(p.liked && styles.likedPost) }}
-          >
+          <Box key={p.id} sx={styles.swaggerPost}>
             <Stack direction="row" spacing={2} alignItems="center">
               {p.author.profilePicture && (
                 <Avatar src={p.author.profilePicture.startsWith('http') ? p.author.profilePicture : `${API_ROOT}${p.author.profilePicture}`} />
@@ -294,14 +291,8 @@ export default function OrganizationFeed() {
             </Stack>
             {comments[p.id] && (
               <Box sx={{ mt: 1 }}>
-                  {comments[p.id].map(c => (
-                    <Box
-                      key={c.id}
-                      sx={{
-                        ...styles.swaggerComment,
-                        ...(c.upvoted && styles.likedComment)
-                      }}
-                    >
+                {comments[p.id].map(c => (
+                  <Box key={c.id} sx={styles.swaggerComment}>
                     <Stack direction="row" spacing={1} alignItems="flex-start">
                       {c.author.profilePicture && (
                         <Avatar
