@@ -89,8 +89,14 @@ export default function Feed() {
   };
 
   const handleCreditPost = async id => {
+    const amountStr = window.prompt('Amount to credit?');
+    const amount = parseFloat(amountStr);
+    if (!amountStr || isNaN(amount) || amount <= 0) {
+      showToast('Invalid amount', 'error');
+      return;
+    }
     try {
-      await creditPost(id, 1);
+      await creditPost(id, amount);
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -144,8 +150,14 @@ export default function Feed() {
   };
 
   const handleCreditComment = async (id, postId) => {
+    const amountStr = window.prompt('Amount to credit?');
+    const amount = parseFloat(amountStr);
+    if (!amountStr || isNaN(amount) || amount <= 0) {
+      showToast('Invalid amount', 'error');
+      return;
+    }
     try {
-      await creditComment(id, 1);
+      await creditComment(id, amount);
       const res = await getComments(postId);
       setComments(prev => ({ ...prev, [postId]: res }));
     } catch (err) {
