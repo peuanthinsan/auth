@@ -20,6 +20,8 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { API_ROOT } from './api';
 import {
   PersonAdd,
@@ -58,11 +60,13 @@ import ResetPassword from './pages/ResetPassword';
 import ForgotPassword from './pages/ForgotPassword';
 import LogoutPage from './pages/Logout';
 import { AuthContext } from './AuthContext';
+import { ThemeModeContext } from './ThemeModeContext';
 
 export default function App() {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { toggle, mode } = useContext(ThemeModeContext);
   const loggedOutNav = [
     { text: 'Register', path: '/register', icon: <PersonAdd /> },
     { text: 'Login', path: '/login', icon: <LoginIcon /> },
@@ -159,6 +163,9 @@ export default function App() {
                 </Select>
               </FormControl>
             )}
+            <IconButton color="inherit" onClick={toggle} sx={{ ml: 1 }}>
+              {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
           </Toolbar>
         </AppBar>
         <Drawer
