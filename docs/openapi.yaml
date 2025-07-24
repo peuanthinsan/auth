@@ -1078,8 +1078,13 @@ paths:
                     firstName: Jane
                     lastName: Doe
                     profilePicture: /uploads/pic.jpg
+                  reactions:
+                    smile: 2
+                  userReactions:
+                    - smile
+                  repliesCount: 3
     post:
-      summary: Add comment
+      summary: Add comment or reply
       parameters:
         - in: path
           name: id
@@ -1094,6 +1099,8 @@ paths:
               type: object
               properties:
                 content:
+                  type: string
+                parentId:
                   type: string
               required:
                 - content
@@ -1175,3 +1182,78 @@ paths:
               example:
                 credits: 5
                 balance: 95
+
+  /comments/{id}/reactions:
+    post:
+      summary: Toggle an emoji reaction on a comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emoji:
+                  type: string
+              required:
+                - emoji
+      responses:
+        '200':
+          description: Updated reaction counts
+          content:
+            application/json:
+              example:
+                reacted: true
+                counts:
+                  smile: 2
+
+  /comments/{id}/replies:
+    get:
+      summary: List replies to a comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Replies list
+          content:
+            application/json:
+              example:
+                - id: reply_id
+                  content: Hi
+    post:
+      summary: Reply to a comment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+              required:
+                - content
+      responses:
+        '200':
+          description: Reply added
+          content:
+            application/json:
+              example:
+                message: Reply added
+                id: reply_id
