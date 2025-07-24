@@ -106,13 +106,5 @@ export const styles = {
     backgroundColor: '#fff',
     border: '1px solid #e8e8e8',
     borderLeft: '5px solid #49cc90'
-  },
-  likedPost: {
-    borderLeftColor: '#EA4335',
-    backgroundColor: '#FFEBEE'
-  },
-  likedComment: {
-    borderLeftColor: '#EA4335',
-    backgroundColor: '#FFEBEE'
   }
 };
