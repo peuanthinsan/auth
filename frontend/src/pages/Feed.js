@@ -240,11 +240,17 @@ export default function Feed() {
                 {p.liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
               </IconButton>
               <Typography>{p.likes}</Typography>
-              <IconButton onClick={() => handleUpvotePost(p.id)}>
+              <IconButton
+                onClick={() => handleUpvotePost(p.id)}
+                color={p.upvoted ? 'primary' : 'default'}
+              >
                 <ThumbUpIcon fontSize="small" />
               </IconButton>
               <Typography>{p.upvotes}</Typography>
-              <IconButton onClick={() => handleDownvotePost(p.id)}>
+              <IconButton
+                onClick={() => handleDownvotePost(p.id)}
+                color={p.downvoted ? 'primary' : 'default'}
+              >
                 <ThumbDownIcon fontSize="small" />
               </IconButton>
               <Typography>{p.downvotes}</Typography>
@@ -301,11 +307,17 @@ export default function Feed() {
                         </Stack>
                         <Typography sx={{ mt: 0.5 }}>{c.content}</Typography>
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                          <IconButton onClick={() => handleUpvoteComment(c.id, p.id)}>
+                          <IconButton
+                            onClick={() => handleUpvoteComment(c.id, p.id)}
+                            color={c.upvoted ? 'primary' : 'default'}
+                          >
                             <ThumbUpIcon fontSize="small" />
                           </IconButton>
                           <Typography>{c.upvotes}</Typography>
-                          <IconButton onClick={() => handleDownvoteComment(c.id, p.id)}>
+                          <IconButton
+                            onClick={() => handleDownvoteComment(c.id, p.id)}
+                            color={c.downvoted ? 'primary' : 'default'}
+                          >
                             <ThumbDownIcon fontSize="small" />
                           </IconButton>
                           <Typography>{c.downvotes}</Typography>
