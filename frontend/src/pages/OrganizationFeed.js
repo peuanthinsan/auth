@@ -424,7 +424,6 @@ export default function OrganizationFeed() {
                           </Box>
                         )}
                       </Box>
-                      </Box>
                     </Stack>
                   </Box>
                 ))}
