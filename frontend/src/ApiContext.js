@@ -7,6 +7,7 @@ export const ApiContext = createContext(null);
 export function ApiProvider({ children }) {
   const { currentOrg, loadProfile } = useContext(AuthContext);
   const [balance, setBalance] = useState(null);
+  const [history, setHistory] = useState([]);
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [invites, setInvites] = useState([]);
@@ -21,6 +22,12 @@ export function ApiProvider({ children }) {
     if (!orgId) { setBalance(null); return; }
     const res = await api.get('/balance', { params: { orgId } });
     setBalance(res.data.balance);
+  }, [currentOrg]);
+
+  const loadHistory = useCallback(async (orgId = currentOrg) => {
+    if (!orgId) { setHistory([]); return; }
+    const res = await api.get('/balance/history', { params: { orgId } });
+    setHistory(res.data);
   }, [currentOrg]);
 
   const transfer = useCallback(async (toUsername, amount, orgId = currentOrg) => {
@@ -137,8 +144,8 @@ export function ApiProvider({ children }) {
     else await refreshPosts();
   };
 
-  const addComment = async (postId, content) => {
-    await api.post(`/posts/${postId}/comments`, { content });
+  const addComment = async (postId, content, parent) => {
+    await api.post(`/posts/${postId}/comments`, { content, parent });
   };
 
   const upvoteComment = async (id, orgId = currentOrg) => {
@@ -224,6 +231,8 @@ export function ApiProvider({ children }) {
       downvoteComment,
       creditComment,
       getComments,
+      history,
+      loadHistory,
       register,
       changePassword,
       forgotPassword,

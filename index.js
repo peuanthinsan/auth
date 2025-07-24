@@ -131,11 +131,21 @@ postSchema.index({ createdAt: -1 });
 
 const commentSchema = new Schema({
   post: { type: Schema.Types.ObjectId, ref: 'Post' },
+  parent: { type: Schema.Types.ObjectId, ref: 'Comment', default: null },
   author: { type: Schema.Types.ObjectId, ref: 'User' },
   content: String,
   upvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   downvotes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   credits: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const transactionSchema = new Schema({
+  from: { type: Schema.Types.ObjectId, ref: 'User' },
+  to: { type: Schema.Types.ObjectId, ref: 'User' },
+  orgId: { type: Schema.Types.ObjectId, ref: 'Organization' },
+  amount: Number,
+  type: String,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -146,6 +156,7 @@ const Invite = mongoose.model('Invite', inviteSchema);
 const FriendRequest = mongoose.model('FriendRequest', friendRequestSchema);
 const Post = mongoose.model('Post', postSchema);
 const Comment = mongoose.model('Comment', commentSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
 
 async function ensureDefaultRoles() {
   const defaults = [
@@ -1236,16 +1247,35 @@ apiRouter.post('/posts/:id/credit', authenticateToken, async (req, res) => {
   bal.amount -= num;
   post.credits += num;
   await Promise.all([user.save(), author.save(), post.save()]);
+  await Transaction.create({
+    from: user._id,
+    to: author._id,
+    orgId: useOrg,
+    amount: num,
+    type: 'credit-post'
+  });
   res.json({ credits: post.credits, balance: bal.amount });
 });
 
 apiRouter.post('/posts/:id/comments', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { content } = req.body;
+  const { content, parent } = req.body;
   if (!content) return res.status(400).json({ message: 'Content required' });
   const post = await Post.findById(id);
   if (!post) return res.status(404).json({ message: 'Post not found' });
-  const comment = new Comment({ post: id, author: req.user.id, content });
+  let parentComment = null;
+  if (parent) {
+    parentComment = await Comment.findById(parent);
+    if (!parentComment || parentComment.post.toString() !== id) {
+      return res.status(400).json({ message: 'Invalid parent comment' });
+    }
+  }
+  const comment = new Comment({
+    post: id,
+    parent: parentComment ? parentComment._id : null,
+    author: req.user.id,
+    content
+  });
   await comment.save();
   res.json({ message: 'Comment added', id: comment._id });
 });
@@ -1257,31 +1287,45 @@ apiRouter.get('/posts/:id/comments', authenticateToken, async (req, res) => {
   const comments = await Comment.find({ post: id })
     .sort({ createdAt: 1 })
     .populate('author', 'username firstName lastName profilePicture balances');
-  res.json(
-    comments.map(c => ({
-      id: c._id,
-      content: c.content,
-      createdAt: c.createdAt,
-      author: {
-        id: c.author._id,
-        username: c.author.username,
-        firstName: c.author.firstName,
-        lastName: c.author.lastName,
-        profilePicture: c.author.profilePicture,
-        balance:
-          post.organization
-            ? c.author.balances.find(b =>
-                b.orgId.toString() === post.organization.toString()
-              )?.amount || 0
-            : 0
-      },
-      upvotes: c.upvotes.length,
-      downvotes: c.downvotes.length,
-      upvoted: c.upvotes.some(u => u.toString() === req.user.id),
-      downvoted: c.downvotes.some(u => u.toString() === req.user.id),
-      credits: c.credits
-    }))
-  );
+
+  const serialize = c => ({
+    id: c._id,
+    parent: c.parent,
+    content: c.content,
+    createdAt: c.createdAt,
+    author: {
+      id: c.author._id,
+      username: c.author.username,
+      firstName: c.author.firstName,
+      lastName: c.author.lastName,
+      profilePicture: c.author.profilePicture,
+      balance:
+        post.organization
+          ? c.author.balances.find(b =>
+              b.orgId.toString() === post.organization.toString()
+            )?.amount || 0
+          : 0
+    },
+    upvotes: c.upvotes.length,
+    downvotes: c.downvotes.length,
+    upvoted: c.upvotes.some(u => u.toString() === req.user.id),
+    downvoted: c.downvotes.some(u => u.toString() === req.user.id),
+    credits: c.credits
+  });
+
+  const rootComments = comments.filter(c => !c.parent).map(c => serialize(c));
+  const byParent = {};
+  comments.forEach(c => {
+    if (c.parent) {
+      const pid = c.parent.toString();
+      if (!byParent[pid]) byParent[pid] = [];
+      byParent[pid].push(serialize(c));
+    }
+  });
+  rootComments.forEach(rc => {
+    rc.replies = byParent[rc.id] || [];
+  });
+  res.json(rootComments);
 });
 
 apiRouter.post('/comments/:id/upvote', authenticateToken, async (req, res) => {
@@ -1362,6 +1406,13 @@ apiRouter.post('/comments/:id/credit', authenticateToken, async (req, res) => {
   bal.amount -= num;
   comment.credits += num;
   await Promise.all([user.save(), author.save(), comment.save()]);
+  await Transaction.create({
+    from: user._id,
+    to: author._id,
+    orgId: useOrg,
+    amount: num,
+    type: 'credit-comment'
+  });
   res.json({ credits: comment.credits, balance: bal.amount });
 });
 
@@ -1393,6 +1444,13 @@ apiRouter.post('/transfer', authenticateToken, async (req, res) => {
   fromBal.amount -= numAmount;
   toBal.amount += numAmount;
   await Promise.all([fromUser.save(), toUser.save()]);
+  await Transaction.create({
+    from: fromUser._id,
+    to: toUser._id,
+    orgId,
+    amount: numAmount,
+    type: 'transfer'
+  });
   res.json({ message: 'Transfer complete' });
 });
 
@@ -1405,6 +1463,27 @@ apiRouter.get('/balance', authenticateToken, async (req, res) => {
     return res.json({ balance: b ? b.amount : 0 });
   }
   res.json({ balances: user.balances.map(b => ({ orgId: b.orgId._id ?? b.orgId, orgName: b.orgId.name ?? undefined, amount: b.amount })) });
+});
+
+apiRouter.get('/balance/history', authenticateToken, async (req, res) => {
+  const { orgId } = req.query;
+  const filter = { $or: [{ from: req.user.id }, { to: req.user.id }] };
+  if (orgId) filter.orgId = orgId;
+  const txns = await Transaction.find(filter)
+    .sort({ createdAt: -1 })
+    .populate('from', 'username')
+    .populate('to', 'username');
+  res.json(
+    txns.map(t => ({
+      id: t._id,
+      from: t.from ? { id: t.from._id, username: t.from.username } : null,
+      to: t.to ? { id: t.to._id, username: t.to.username } : null,
+      orgId: t.orgId,
+      amount: t.amount,
+      type: t.type,
+      createdAt: t.createdAt
+    }))
+  );
 });
 
 app.use('/api', apiRouter);
