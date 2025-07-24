@@ -14,6 +14,8 @@ export function ApiProvider({ children }) {
   const [friendRequests, setFriendRequests] = useState([]);
   const [posts, setPosts] = useState([]);
   const [orgPosts, setOrgPosts] = useState([]);
+  const [postsOrder, setPostsOrder] = useState('latest');
+  const [orgPostsOrder, setOrgPostsOrder] = useState('latest');
 
   const refreshBalance = useCallback(async (orgId = currentOrg) => {
     if (!orgId) { setBalance(null); return; }
@@ -75,16 +77,24 @@ export function ApiProvider({ children }) {
     await refreshFriends();
   };
 
-  const refreshPosts = useCallback(async () => {
-    const res = await api.get('/posts');
-    setPosts(res.data);
-  }, []);
+  const refreshPosts = useCallback(
+    async (order = postsOrder) => {
+      const res = await api.get('/posts', { params: { order } });
+      setPosts(res.data);
+      setPostsOrder(order);
+    },
+    [postsOrder]
+  );
 
-  const refreshOrgPosts = useCallback(async (orgId = currentOrg) => {
-    if (!orgId) { setOrgPosts([]); return; }
-    const res = await api.get(`/organizations/${orgId}/posts`);
-    setOrgPosts(res.data);
-  }, [currentOrg]);
+  const refreshOrgPosts = useCallback(
+    async (orgId = currentOrg, order = orgPostsOrder) => {
+      if (!orgId) { setOrgPosts([]); return; }
+      const res = await api.get(`/organizations/${orgId}/posts`, { params: { order } });
+      setOrgPosts(res.data);
+      setOrgPostsOrder(order);
+    },
+    [currentOrg, orgPostsOrder]
+  );
 
   const createPost = async (data) => {
     await api.post('/posts', data, {

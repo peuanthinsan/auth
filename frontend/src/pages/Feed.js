@@ -3,6 +3,7 @@ import {
   Box,
   Stack,
   TextField,
+  MenuItem,
   Button,
   Avatar,
   Typography,
@@ -39,10 +40,11 @@ export default function Feed() {
   const [preview, setPreview] = useState('');
   const [comments, setComments] = useState({});
   const [commentInput, setCommentInput] = useState({});
+  const [order, setOrder] = useState('latest');
 
   useEffect(() => {
-    refreshPosts();
-  }, [refreshPosts]);
+    refreshPosts(order);
+  }, [refreshPosts, order]);
 
   const submit = async e => {
     e.preventDefault();
@@ -189,7 +191,18 @@ export default function Feed() {
           <Button type="submit" variant="contained">Post</Button>
         </Stack>
       </Box>
-      <Stack spacing={2} sx={{ mt: 4 }}>
+      <TextField
+        select
+        label="Sort by"
+        value={order}
+        onChange={e => setOrder(e.target.value)}
+        sx={{ mt: 4, mb: 2, width: 200 }}
+      >
+        <MenuItem value="latest">Latest</MenuItem>
+        <MenuItem value="relevance">Relevance</MenuItem>
+        <MenuItem value="upvotes">Upvotes</MenuItem>
+      </TextField>
+      <Stack spacing={2} sx={{ mt: 2 }}>
         {posts.map(p => (
           <Box key={p.id} sx={styles.swaggerPost}>
             <Stack direction="row" spacing={2} alignItems="center">

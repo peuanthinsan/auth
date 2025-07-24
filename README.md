@@ -30,7 +30,9 @@ a request using `POST /friends/request` and accept with
 and can be removed with `DELETE /friends/{id}`.
 Users may also share updates by creating posts with optional images using
 `POST /posts`. Posts are fetched via `GET /posts`, which returns posts from you
-and your friends, and support reactions with `POST /posts/{id}/like`.
+and your friends. The list can be ordered by latest, relevance or by number of
+upvotes using the `order` query parameter. Posts support reactions with
+`POST /posts/{id}/like`.
 Comments can be added or viewed through `POST /posts/{id}/comments` and
 `GET /posts/{id}/comments`.
 

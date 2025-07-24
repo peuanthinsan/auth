@@ -845,7 +845,14 @@ paths:
   /posts:
     get:
       summary: List posts
-      description: Return recent posts from you and your friends
+      description: Return posts from you and your friends
+      parameters:
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [latest, relevance, upvotes]
+          description: Sorting order
       responses:
         '200':
           description: Posts list
@@ -904,6 +911,12 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [latest, relevance, upvotes]
+          description: Sorting order
       responses:
         '200':
           description: Posts list
