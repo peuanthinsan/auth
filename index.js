@@ -1022,9 +1022,23 @@ apiRouter.post('/posts', authenticateToken, (req, res) => {
 apiRouter.get('/posts', authenticateToken, async (req, res) => {
   const user = await User.findById(req.user.id);
   const ids = [req.user.id, ...user.friends];
+  const order = req.query.order || 'latest';
   const posts = await Post.find({ author: { $in: ids } })
-    .sort({ createdAt: -1 })
     .populate('author', 'username firstName lastName profilePicture');
+
+  const relevance = p =>
+    p.upvotes.length - p.downvotes.length + p.likes.length + p.credits;
+
+  posts.sort((a, b) => {
+    if (order === 'upvotes') {
+      return b.upvotes.length - a.upvotes.length;
+    }
+    if (order === 'relevance') {
+      return relevance(b) - relevance(a);
+    }
+    return b.createdAt - a.createdAt;
+  });
+
   res.json(
     posts.map(p => ({
       id: p._id,
@@ -1081,9 +1095,23 @@ apiRouter.get(
   authenticateToken,
   requireOrgMember,
   async (req, res) => {
+  const order = req.query.order || 'latest';
   const posts = await Post.find({ organization: req.org._id })
-    .sort({ createdAt: -1 })
     .populate('author', 'username firstName lastName profilePicture balances');
+
+  const relevance = p =>
+    p.upvotes.length - p.downvotes.length + p.likes.length + p.credits;
+
+  posts.sort((a, b) => {
+    if (order === 'upvotes') {
+      return b.upvotes.length - a.upvotes.length;
+    }
+    if (order === 'relevance') {
+      return relevance(b) - relevance(a);
+    }
+    return b.createdAt - a.createdAt;
+  });
+
   res.json(
     posts.map(p => ({
       id: p._id,
