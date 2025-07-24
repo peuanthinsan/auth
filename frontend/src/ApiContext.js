@@ -137,22 +137,8 @@ export function ApiProvider({ children }) {
     else await refreshPosts();
   };
 
-  const addComment = async (postId, content, parentId) => {
-    await api.post(`/posts/${postId}/comments`, { content, parentId });
-  };
-
-  const addReply = async (commentId, content) => {
-    await api.post(`/comments/${commentId}/replies`, { content });
-  };
-
-  const getReplies = async (commentId) => {
-    const res = await api.get(`/comments/${commentId}/replies`);
-    return res.data;
-  };
-
-  const reactToComment = async (id, emoji) => {
-    const res = await api.post(`/comments/${id}/reactions`, { emoji });
-    return res.data;
+  const addComment = async (postId, content) => {
+    await api.post(`/posts/${postId}/comments`, { content });
   };
 
   const upvoteComment = async (id, orgId = currentOrg) => {
@@ -234,13 +220,10 @@ export function ApiProvider({ children }) {
       downvotePost,
       creditPost,
       addComment,
-      addReply,
       upvoteComment,
       downvoteComment,
       creditComment,
-      reactToComment,
       getComments,
-      getReplies,
       register,
       changePassword,
       forgotPassword,
