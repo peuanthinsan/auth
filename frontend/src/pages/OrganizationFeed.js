@@ -237,7 +237,8 @@ export default function OrganizationFeed() {
                 <Avatar src={p.author.profilePicture.startsWith('http') ? p.author.profilePicture : `${API_ROOT}${p.author.profilePicture}`} />
               )}
               <Typography variant="subtitle1">
-                {p.author.firstName} {p.author.lastName} ({p.author.balance})
+                {p.author.firstName} {p.author.lastName} (@{p.author.username}) -
+                {p.author.roles.join(', ')} ({p.author.balance})
               </Typography>
               <Typography variant="caption" sx={{ ml: 'auto' }}>{new Date(p.createdAt).toLocaleString()}</Typography>
             </Stack>
@@ -309,7 +310,8 @@ export default function OrganizationFeed() {
                       <Box sx={{ flexGrow: 1 }}>
                         <Stack direction="row" spacing={1} alignItems="center">
                           <Typography variant="subtitle2">
-                            {c.author.firstName} {c.author.lastName} ({c.author.balance})
+                            {c.author.firstName} {c.author.lastName} (@{c.author.username}) -
+                            {c.author.roles.join(', ')} ({c.author.balance})
                           </Typography>
                           <Typography variant="caption" sx={{ ml: 'auto' }}>
                             {new Date(c.createdAt).toLocaleString()}

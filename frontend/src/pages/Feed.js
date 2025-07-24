@@ -228,7 +228,10 @@ export default function Feed() {
               {p.author.profilePicture && (
                 <Avatar src={p.author.profilePicture.startsWith('http') ? p.author.profilePicture : `${API_ROOT}${p.author.profilePicture}`} />
               )}
-              <Typography variant="subtitle1">{p.author.firstName} {p.author.lastName}</Typography>
+              <Typography variant="subtitle1">
+                {p.author.firstName} {p.author.lastName} (@{p.author.username}) -
+                {p.author.roles.join(', ')}
+              </Typography>
               <Typography variant="caption" sx={{ ml: 'auto' }}>{new Date(p.createdAt).toLocaleString()}</Typography>
             </Stack>
             <Typography sx={{ mt: 1, mb: 1 }}>{p.content}</Typography>
@@ -299,7 +302,8 @@ export default function Feed() {
                       <Box sx={{ flexGrow: 1 }}>
                         <Stack direction="row" spacing={1} alignItems="center">
                           <Typography variant="subtitle2">
-                            {c.author.firstName} {c.author.lastName}
+                            {c.author.firstName} {c.author.lastName} (@{c.author.username}) -
+                            {c.author.roles.join(', ')}
                           </Typography>
                           <Typography variant="caption" sx={{ ml: 'auto' }}>
                             {new Date(c.createdAt).toLocaleString()}
