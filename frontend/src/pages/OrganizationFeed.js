@@ -3,6 +3,7 @@ import {
   Box,
   Stack,
   TextField,
+  MenuItem,
   Button,
   Avatar,
   Typography,
@@ -45,11 +46,12 @@ export default function OrganizationFeed() {
   const [commentInput, setCommentInput] = useState({});
   const [postCreditInput, setPostCreditInput] = useState({});
   const [commentCreditInput, setCommentCreditInput] = useState({});
+  const [order, setOrder] = useState('latest');
 
   useEffect(() => {
-    refreshOrgPosts();
+    refreshOrgPosts(currentOrg, order);
     refreshBalance();
-  }, [refreshOrgPosts, refreshBalance]);
+  }, [refreshOrgPosts, refreshBalance, currentOrg, order]);
 
   const submit = async e => {
     e.preventDefault();
@@ -211,7 +213,18 @@ export default function OrganizationFeed() {
           <Button type="submit" variant="contained">Post</Button>
         </Stack>
       </Box>
-      <Stack spacing={2} sx={{ mt: 4 }}>
+      <TextField
+        select
+        label="Sort by"
+        value={order}
+        onChange={e => setOrder(e.target.value)}
+        sx={{ mt: 4, mb: 2, width: 200 }}
+      >
+        <MenuItem value="latest">Latest</MenuItem>
+        <MenuItem value="relevance">Relevance</MenuItem>
+        <MenuItem value="upvotes">Upvotes</MenuItem>
+      </TextField>
+      <Stack spacing={2} sx={{ mt: 2 }}>
         {orgPosts.map(p => (
           <Box key={p.id} sx={styles.swaggerPost}>
             <Stack direction="row" spacing={2} alignItems="center">
