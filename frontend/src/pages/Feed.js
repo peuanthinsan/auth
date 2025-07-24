@@ -39,6 +39,8 @@ export default function Feed() {
   const [preview, setPreview] = useState('');
   const [comments, setComments] = useState({});
   const [commentInput, setCommentInput] = useState({});
+  const [postCreditInput, setPostCreditInput] = useState({});
+  const [commentCreditInput, setCommentCreditInput] = useState({});
 
   useEffect(() => {
     refreshPosts();
@@ -89,14 +91,14 @@ export default function Feed() {
   };
 
   const handleCreditPost = async id => {
-    const amountStr = window.prompt('Amount to credit?');
-    const amount = parseFloat(amountStr);
-    if (!amountStr || isNaN(amount) || amount <= 0) {
+    const amount = parseFloat(postCreditInput[id]);
+    if (!postCreditInput[id] || isNaN(amount) || amount <= 0) {
       showToast('Invalid amount', 'error');
       return;
     }
     try {
       await creditPost(id, amount);
+      setPostCreditInput(prev => ({ ...prev, [id]: '' }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -150,9 +152,8 @@ export default function Feed() {
   };
 
   const handleCreditComment = async (id, postId) => {
-    const amountStr = window.prompt('Amount to credit?');
-    const amount = parseFloat(amountStr);
-    if (!amountStr || isNaN(amount) || amount <= 0) {
+    const amount = parseFloat(commentCreditInput[id]);
+    if (!commentCreditInput[id] || isNaN(amount) || amount <= 0) {
       showToast('Invalid amount', 'error');
       return;
     }
@@ -160,6 +161,7 @@ export default function Feed() {
       await creditComment(id, amount);
       const res = await getComments(postId);
       setComments(prev => ({ ...prev, [postId]: res }));
+      setCommentCreditInput(prev => ({ ...prev, [id]: '' }));
     } catch (err) {
       showToast(err.response?.data?.message || 'Error', 'error');
     }
@@ -228,6 +230,16 @@ export default function Feed() {
                 <ThumbDownIcon fontSize="small" />
               </IconButton>
               <Typography>{p.downvotes}</Typography>
+              <TextField
+                variant="standard"
+                size="small"
+                value={postCreditInput[p.id] || ''}
+                onChange={e =>
+                  setPostCreditInput(prev => ({ ...prev, [p.id]: e.target.value }))
+                }
+                placeholder="Amount"
+                sx={{ width: 60 }}
+              />
               <IconButton onClick={() => handleCreditPost(p.id)}>
                 <AttachMoneyIcon fontSize="small" />
               </IconButton>
@@ -264,6 +276,19 @@ export default function Feed() {
                             <ThumbDownIcon fontSize="small" />
                           </IconButton>
                           <Typography>{c.downvotes}</Typography>
+                          <TextField
+                            variant="standard"
+                            size="small"
+                            value={commentCreditInput[c.id] || ''}
+                            onChange={e =>
+                              setCommentCreditInput(prev => ({
+                                ...prev,
+                                [c.id]: e.target.value
+                              }))
+                            }
+                            placeholder="Amount"
+                            sx={{ width: 60 }}
+                          />
                           <IconButton onClick={() => handleCreditComment(c.id, p.id)}>
                             <AttachMoneyIcon fontSize="small" />
                           </IconButton>
